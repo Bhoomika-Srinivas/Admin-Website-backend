@@ -1,0 +1,32 @@
+[
+  {
+    "role_id": "r_member",
+    "tenant_id": "t_test123",
+    "name": "member",
+    "description": "Default member role",
+    "permissions": ["tenant:tenant:read", "user:user:read"],
+    "is_system": true,
+    "created_at": "2024-01-01T00:00:00.000Z",
+    "updated_at": "2024-01-01T00:00:00.000Z"
+  },
+  {
+    "role_id": "r_admin",
+    "tenant_id": "t_test123",
+    "name": "tenant-admin",
+    "description": "Tenant administrator",
+    "permissions": ["tenant:tenant:read", "tenant:tenant:list", "user:user:read", "user:user:list", "user:user:update", "user:role:read", "user:role:assign"],
+    "is_system": true,
+    "created_at": "2024-01-01T00:00:00.000Z",
+    "updated_at": "2024-01-01T00:00:00.000Z"
+  },
+  {
+    "role_id": "r_custom1",
+    "tenant_id": "t_test123",
+    "name": "custom-role",
+    "description": "Custom non-system role",
+    "permissions": ["user:user:read"],
+    "is_system": false,
+    "created_at": "2024-01-05T00:00:00.000Z",
+    "updated_at": "2024-01-05T00:00:00.000Z"
+  }
+]

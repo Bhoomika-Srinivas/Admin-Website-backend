@@ -1,0 +1,38 @@
+type AuditEntry {
+  entry_id: ID!
+  tenant_id: ID!
+  actor_id: String
+  actor_email: String
+  action: String!
+  resource_type: String
+  resource_id: String
+  before: AWSJSON
+  after: AWSJSON
+  metadata: AuditMetadata
+  timestamp: AWSDateTime
+}
+
+type AuditMetadata {
+  ip: String
+  user_agent: String
+  source: String
+  detail_type: String
+}
+
+type AuditEntryConnection {
+  items: [AuditEntry!]!
+  nextCursor: String
+}
+
+input AuditEntryFilter {
+  action: String
+  resource_type: String
+  actor_id: String
+  from: AWSDateTime
+  to: AWSDateTime
+}
+
+extend type Query {
+  getAuditEntry(entry_id: ID!): AuditEntry
+  listAuditEntries(filter: AuditEntryFilter, pagination: PaginationInput): AuditEntryConnection
+}

@@ -1,0 +1,15 @@
+[
+  {
+    "entry_id": "e_fixture1",
+    "tenant_id": "t_test123",
+    "actor_id": "u_test456",
+    "actor_email": "test@example.com",
+    "action": "UserInvited",
+    "resource_type": "User",
+    "resource_id": "u_new1",
+    "before": null,
+    "after": { "email": "new@example.com", "status": "invited" },
+    "metadata": { "source": "user-management", "detail_type": "UserInvited" },
+    "timestamp": "2024-01-01T12:00:00.000Z"
+  }
+]

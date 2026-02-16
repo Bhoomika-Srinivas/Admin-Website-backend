@@ -1,0 +1,31 @@
+# Module GraphQL types and operations. Use extend type Query / extend type Mutation.
+
+extend type Query {
+  getMODULE_NAME(id: ID!): MODULE_NAMEType
+  listMODULE_NAMEs(pagination: PaginationInput): MODULE_NAMEConnection
+}
+
+extend type Mutation {
+  createMODULE_NAME(input: CreateMODULE_NAMEInput!): MODULE_NAMEType
+  updateMODULE_NAME(id: ID!, input: UpdateMODULE_NAMEInput!): MODULE_NAMEType
+}
+
+type MODULE_NAMEType {
+  id: ID!
+  tenant_id: ID!
+  created_at: AWSDateTime
+  updated_at: AWSDateTime
+}
+
+type MODULE_NAMEConnection {
+  items: [MODULE_NAMEType!]!
+  nextCursor: String
+}
+
+input CreateMODULE_NAMEInput {
+  tenant_id: ID
+}
+
+input UpdateMODULE_NAMEInput {
+  tenant_id: ID
+}

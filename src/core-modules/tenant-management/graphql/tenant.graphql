@@ -1,0 +1,78 @@
+enum TenantPlan {
+  free
+  starter
+  pro
+  enterprise
+}
+
+enum TenantStatus {
+  active
+  suspended
+  archived
+}
+
+type TenantConfig {
+  features_enabled: [String]
+  max_users: Int
+  branding: TenantBranding
+}
+
+type TenantBranding {
+  logo_url: String
+  primary_color: String
+}
+
+type Tenant {
+  tenant_id: ID!
+  name: String!
+  slug: String!
+  plan: TenantPlan!
+  status: TenantStatus!
+  config: TenantConfig
+  owner_user_id: String
+  created_by: String
+  created_at: AWSDateTime
+  updated_at: AWSDateTime
+}
+
+type TenantConnection {
+  items: [Tenant!]!
+  nextCursor: String
+}
+
+input CreateTenantInput {
+  name: String!
+  slug: String
+  plan: TenantPlan
+  owner_user_id: String
+  config: TenantConfigInput
+}
+
+input TenantConfigInput {
+  features_enabled: [String]
+  max_users: Int
+  branding: TenantBrandingInput
+}
+
+input TenantBrandingInput {
+  logo_url: String
+  primary_color: String
+}
+
+input UpdateTenantInput {
+  name: String
+  slug: String
+  plan: TenantPlan
+  config: TenantConfigInput
+}
+
+extend type Query {
+  getTenant(tenant_id: ID!): Tenant
+  listTenants(pagination: PaginationInput): TenantConnection
+}
+
+extend type Mutation {
+  createTenant(input: CreateTenantInput!): Tenant
+  updateTenant(tenant_id: ID!, input: UpdateTenantInput!): Tenant
+  suspendTenant(tenant_id: ID!): Tenant
+}

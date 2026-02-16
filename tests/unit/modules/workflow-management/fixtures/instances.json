@@ -1,0 +1,13 @@
+[
+  {
+    "instance_id": "wi_fixture1",
+    "workflow_id": "wf_fixture1",
+    "tenant_id": "t_test123",
+    "state": "running",
+    "current_step_id": "s1",
+    "context": {},
+    "history": [],
+    "created_at": "2024-01-02T00:00:00.000Z",
+    "updated_at": "2024-01-02T00:00:00.000Z"
+  }
+]

@@ -1,0 +1,10 @@
+{
+  "name": "common-layer",
+  "version": "1.0.0",
+  "description": "Shared utilities and middleware for module Lambdas",
+  "dependencies": {
+    "joi": "^17.11.0",
+    "dayjs": "^1.11.10",
+    "ulid": "^2.3.0"
+  }
+}

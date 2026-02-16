@@ -1,0 +1,55 @@
+type FormDefinition {
+  form_id: ID!
+  tenant_id: ID!
+  title: String!
+  description: String
+  version: Int
+  status: String
+  fields: [AWSJSON]
+  settings: AWSJSON
+  created_at: AWSDateTime
+}
+
+type FormSubmission {
+  submission_id: ID!
+  form_id: ID!
+  tenant_id: ID!
+  submitted_by: String
+  responses: [AWSJSON]
+  status: String
+  submitted_at: AWSDateTime
+}
+
+type FormDefinitionConnection {
+  items: [FormDefinition!]!
+  nextCursor: String
+}
+
+type FormSubmissionConnection {
+  items: [FormSubmission!]!
+  nextCursor: String
+}
+
+input CreateFormInput {
+  title: String!
+  description: String
+  fields: [AWSJSON]
+  settings: AWSJSON
+}
+
+input SubmitFormInput {
+  form_id: ID!
+  responses: [AWSJSON]
+}
+
+extend type Query {
+  getForm(form_id: ID!): FormDefinition
+  listForms(pagination: PaginationInput): FormDefinitionConnection
+  listFormSubmissions(form_id: ID, pagination: PaginationInput): FormSubmissionConnection
+}
+
+extend type Mutation {
+  createForm(input: CreateFormInput!): FormDefinition
+  publishForm(form_id: ID!): FormDefinition
+  submitForm(input: SubmitFormInput!): FormSubmission
+}

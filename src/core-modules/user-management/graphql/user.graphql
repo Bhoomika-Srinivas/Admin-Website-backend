@@ -1,0 +1,78 @@
+enum UserStatus {
+  active
+  invited
+  suspended
+  deactivated
+}
+
+type User {
+  user_id: ID!
+  tenant_id: ID!
+  email: String!
+  name: String
+  status: UserStatus!
+  roles: [String!]
+  profile: AWSJSON
+  created_at: AWSDateTime
+  updated_at: AWSDateTime
+}
+
+type UserConnection {
+  items: [User!]!
+  nextCursor: String
+}
+
+type Role {
+  role_id: ID!
+  tenant_id: ID!
+  name: String!
+  description: String
+  permissions: [String!]
+  is_system: Boolean
+  created_at: AWSDateTime
+  updated_at: AWSDateTime
+}
+
+type RoleConnection {
+  items: [Role!]!
+  nextCursor: String
+}
+
+input UpdateUserInput {
+  name: String
+  profile: AWSJSON
+  status: UserStatus
+}
+
+input InviteUserInput {
+  email: String!
+  name: String
+}
+
+input CreateRoleInput {
+  name: String!
+  description: String
+  permissions: [String!]
+}
+
+input UpdateRoleInput {
+  name: String
+  description: String
+  permissions: [String!]
+}
+
+extend type Query {
+  getUser(user_id: ID!): User
+  listUsers(pagination: PaginationInput): UserConnection
+  listRoles(pagination: PaginationInput): RoleConnection
+}
+
+extend type Mutation {
+  updateUser(user_id: ID!, input: UpdateUserInput!): User
+  inviteUser(input: InviteUserInput!): User
+  deactivateUser(user_id: ID!): User
+  createRole(input: CreateRoleInput!): Role
+  updateRole(role_id: ID!, input: UpdateRoleInput!): Role
+  assignRole(user_id: ID!, role_id: ID!): User
+  removeRole(user_id: ID!, role_id: ID!): User
+}

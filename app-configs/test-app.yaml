@@ -1,0 +1,11 @@
+# App configuration for test-app. Used by compose-template.sh --app test-app
+
+project_name: test-app
+environment: dev
+
+core_modules:
+  - tenant-management
+  - user-management
+  - audit-log
+
+app_modules: []

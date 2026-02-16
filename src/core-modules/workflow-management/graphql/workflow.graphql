@@ -1,0 +1,35 @@
+type WorkflowDefinition {
+  workflow_id: ID!
+  tenant_id: ID!
+  name: String!
+  trigger: AWSJSON
+  steps: [AWSJSON]
+  status: String
+  created_at: AWSDateTime
+}
+
+type WorkflowInstance {
+  instance_id: ID!
+  workflow_id: ID!
+  tenant_id: ID!
+  state: String
+  current_step_id: String
+  context: AWSJSON
+  created_at: AWSDateTime
+}
+
+type WorkflowDefinitionConnection {
+  items: [WorkflowDefinition!]!
+  nextCursor: String
+}
+
+type WorkflowInstanceConnection {
+  items: [WorkflowInstance!]!
+  nextCursor: String
+}
+
+extend type Query {
+  getWorkflow(workflow_id: ID!): WorkflowDefinition
+  listWorkflows(pagination: PaginationInput): WorkflowDefinitionConnection
+  listWorkflowInstances(workflow_id: ID, pagination: PaginationInput): WorkflowInstanceConnection
+}

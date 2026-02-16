@@ -1,0 +1,37 @@
+type FileMetadata {
+  file_id: ID!
+  tenant_id: ID!
+  key: String!
+  original_name: String
+  mime_type: String
+  size_bytes: Int
+  uploaded_by: String
+  module: String
+  entity_id: String
+  created_at: AWSDateTime
+}
+
+type FileConnection {
+  items: [FileMetadata!]!
+  nextCursor: String
+}
+
+type UploadUrlResult {
+  upload_url: String!
+  key: String!
+  file_id: ID!
+}
+
+type DownloadUrlResult {
+  download_url: String!
+}
+
+extend type Query {
+  listFiles(module: String, entity_id: String, pagination: PaginationInput): FileConnection
+}
+
+extend type Mutation {
+  getUploadUrl(module: String, entity_id: String, extension: String): UploadUrlResult
+  getDownloadUrl(key: String!): DownloadUrlResult
+  deleteFile(file_id: ID!): MutationResponse
+}

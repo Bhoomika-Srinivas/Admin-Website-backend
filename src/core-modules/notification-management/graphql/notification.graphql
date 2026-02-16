@@ -1,0 +1,91 @@
+enum NotificationChannel {
+  email
+  sms
+  push
+  in_app
+}
+
+type NotificationTemplate {
+  template_id: ID!
+  tenant_id: ID!
+  name: String!
+  channel: NotificationChannel!
+  subject: String
+  body_html: String
+  variables: [String]
+  created_at: AWSDateTime
+}
+
+type Notification {
+  notification_id: ID!
+  tenant_id: ID!
+  recipient_email: String
+  channel: String
+  status: String
+  sent_at: AWSDateTime
+}
+
+type NotificationPreference {
+  user_id: ID!
+  tenant_id: ID!
+  channels: ChannelPreference
+  quiet_hours: QuietHours
+}
+
+type ChannelPreference {
+  email: Boolean
+  push: Boolean
+  in_app: Boolean
+}
+
+type QuietHours {
+  start: String
+  end: String
+}
+
+input CreateTemplateInput {
+  name: String!
+  channel: NotificationChannel
+  subject: String
+  body_html: String
+  body_text: String
+  variables: [String]
+}
+
+input UpdatePreferenceInput {
+  user_id: String
+  channels: ChannelPreferenceInput
+  quiet_hours: QuietHoursInput
+}
+
+input ChannelPreferenceInput {
+  email: Boolean
+  push: Boolean
+  in_app: Boolean
+}
+
+input QuietHoursInput {
+  start: String
+  end: String
+}
+
+extend type Query {
+  getNotificationTemplate(template_id: ID!): NotificationTemplate
+  listNotificationTemplates(pagination: PaginationInput): NotificationTemplateConnection
+  listNotifications(pagination: PaginationInput): NotificationConnection
+}
+
+extend type Mutation {
+  createNotificationTemplate(input: CreateTemplateInput!): NotificationTemplate
+  updateNotificationPreference(input: UpdatePreferenceInput!): NotificationPreference
+}
+
+type NotificationTemplateConnection {
+  items: [NotificationTemplate!]!
+  nextCursor: String
+}
+
+type NotificationConnection {
+  items: [Notification!]!
+  nextCursor: String
+}

@@ -1,0 +1,12 @@
+[
+  {
+    "submission_id": "sub_fixture1",
+    "form_id": "form_fixture1",
+    "tenant_id": "t_test123",
+    "submitted_by": "u_test456",
+    "responses": [{ "field_id": "f1", "value": "Great!" }],
+    "status": "pending",
+    "submitted_at": "2024-01-03T00:00:00.000Z",
+    "updated_at": "2024-01-03T00:00:00.000Z"
+  }
+]

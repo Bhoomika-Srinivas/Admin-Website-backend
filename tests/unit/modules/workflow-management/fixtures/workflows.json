@@ -1,0 +1,12 @@
+[
+  {
+    "workflow_id": "wf_fixture1",
+    "tenant_id": "t_test123",
+    "name": "Approval Flow",
+    "trigger": { "event_source": "form-management", "event_type": "FormSubmitted" },
+    "steps": [{ "step_id": "s1", "type": "approval", "config": {} }],
+    "status": "active",
+    "created_at": "2024-01-01T00:00:00.000Z",
+    "updated_at": "2024-01-01T00:00:00.000Z"
+  }
+]

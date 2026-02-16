@@ -1,0 +1,38 @@
+[
+  {
+    "user_id": "u_fixture1",
+    "tenant_id": "t_test123",
+    "cognito_sub": "sub-1",
+    "email": "alice@example.com",
+    "name": "Alice User",
+    "status": "active",
+    "roles": ["r_member"],
+    "profile": null,
+    "created_at": "2024-01-01T00:00:00.000Z",
+    "updated_at": "2024-01-01T00:00:00.000Z"
+  },
+  {
+    "user_id": "u_fixture2",
+    "tenant_id": "t_test123",
+    "cognito_sub": "sub-2",
+    "email": "bob@example.com",
+    "name": "Bob User",
+    "status": "active",
+    "roles": ["r_member", "r_admin"],
+    "profile": null,
+    "created_at": "2024-01-02T00:00:00.000Z",
+    "updated_at": "2024-01-02T00:00:00.000Z"
+  },
+  {
+    "user_id": "u_fixture3",
+    "tenant_id": "t_test123",
+    "cognito_sub": "",
+    "email": "invited@example.com",
+    "name": "Invited User",
+    "status": "invited",
+    "roles": ["r_member"],
+    "profile": null,
+    "created_at": "2024-01-03T00:00:00.000Z",
+    "updated_at": "2024-01-03T00:00:00.000Z"
+  }
+]

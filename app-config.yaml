@@ -1,0 +1,18 @@
+# App configuration: which modules are included in the composed template.yaml.
+# Used by scripts/compose-template.sh. Edit to enable/disable modules.
+# project_name and environment can be overridden by samconfig.toml at deploy time.
+
+project_name: myapp
+environment: dev
+
+core_modules:
+  - tenant-management
+  - user-management
+  - audit-log
+  - notification-management
+  - storage-management
+  - form-management
+  - workflow-management
+
+# Product-specific modules (add when you run generate-module.sh --type app)
+app_modules:

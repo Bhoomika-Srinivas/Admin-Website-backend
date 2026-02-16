@@ -1,0 +1,13 @@
+[
+  {
+    "notification_id": "n_fixture1",
+    "tenant_id": "t_test123",
+    "recipient_id": "u_test456",
+    "recipient_email": "test@example.com",
+    "channel": "email",
+    "template_id": "tp_fixture1",
+    "status": "sent",
+    "created_at": "2024-01-01T00:00:00.000Z",
+    "updated_at": "2024-01-01T00:00:00.000Z"
+  }
+]

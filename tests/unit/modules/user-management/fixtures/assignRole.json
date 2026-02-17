@@ -1,0 +1,12 @@
+{
+  "field": "assignRole",
+  "arguments": {
+    "user_id": "01KHN7HWFR13NDC92D4VFBHC98",
+    "role_id": "01KHN7ZEV7ZCYCP2WC2NFHJZ48"
+  },
+  "token": {
+    "custom:tenant_id": "tenant1",
+    "sub": "admin1",
+    "custom:permissions": "[\"user:role:assign\"]"
+  }
+}

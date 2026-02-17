@@ -1,0 +1,11 @@
+{
+  "field": "getUser",
+  "arguments": {
+    "user_id": "01KHN7HWFR13NDC92D4VFBHC98"
+  },
+  "token": {
+    "custom:tenant_id": "tenant1",
+    "sub": "admin1",
+    "custom:permissions": "[\"user:user:read\"]"
+  }
+}

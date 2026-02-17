@@ -1,0 +1,16 @@
+{
+  "field": "listUsers",
+  "arguments": {
+    "pagination": {
+      "limit": 10
+    }
+  },
+  "token": {
+    "custom:tenant_id": "tenant1",
+    "sub": "admin1",
+    "email": "admin@example.com",
+    "name": "Admin User",
+    "custom:roles": "[\"tenant-admin\"]",
+    "custom:permissions": "[\"user:user:list\"]"
+  }
+}

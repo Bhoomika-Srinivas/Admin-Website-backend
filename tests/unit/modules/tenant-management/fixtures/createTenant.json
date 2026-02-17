@@ -1,0 +1,13 @@
+{
+  "field": "createTenant",
+  "tenant_id": "tenant-2",
+  "user_id": "user_001",
+  "permissions": [
+    "tenant:tenant:create"
+  ],
+  "arguments": {
+    "input": {
+      "name": "Nova Labs"
+    }
+  }
+}

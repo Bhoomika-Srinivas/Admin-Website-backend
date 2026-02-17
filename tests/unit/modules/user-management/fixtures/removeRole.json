@@ -1,0 +1,12 @@
+{
+  "field": "removeRole",
+  "arguments": {
+    "user_id": "01KHN7D08KD92P7N1NB9C8G2K9",
+    "role_id": "role_1771240686215"
+  },
+  "token": {
+    "custom:tenant_id": "tenant1",
+    "sub": "admin1",
+    "custom:permissions": "[\"user:role:remove\"]"
+  }
+}

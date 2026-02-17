@@ -1,0 +1,14 @@
+{
+  "field": "updateTenant",
+  "tenant_id": "system",
+  "user_id": "user_001",
+  "permissions": [
+    "tenant:tenant:update"
+  ],
+  "arguments": {
+    "tenant_id": "system",
+    "input": {
+      "name": "Updated Tenant Name"
+    }
+  }
+}

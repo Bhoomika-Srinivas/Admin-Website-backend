@@ -16,3 +16,5 @@ core_modules:
 
 # Product-specific modules (add when you run generate-module.sh --type app)
 app_modules:
+  - team-management
+  

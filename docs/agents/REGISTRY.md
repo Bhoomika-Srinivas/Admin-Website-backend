@@ -32,3 +32,5 @@ Single source of truth for all agents. All pipeline and vertical agents read thi
 New modules: run `./scripts/generate-module.sh <module-name> [--type app] [--app <app-name>]` or let the new-module-pipeline rule create the agent; a row is appended with Type=Vertical, Category=Custom.
 
 **Multi-app**: Use `./scripts/init-app.sh <app-name> [--core ...] [--app ...]` to create app-configs/<app>.yaml and a samconfig deploy profile. Use `generate-module.sh --app <app-name>` to add new app modules to that app only. Build with `APP=<app> npm run build:app`; deploy with `sam deploy --config-env <app>` or `APP=<app> npm run deploy:app`.
+
+| TeamManagement | Vertical | Custom | src/app-modules/team-management/ | docs/agents/team-management-agent.SKILL.md |

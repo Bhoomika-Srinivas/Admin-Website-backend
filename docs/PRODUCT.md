@@ -22,5 +22,6 @@
 ## Custom Modules
 <!-- List product-specific modules added -->
 <!-- (auto-updated by generate-module.sh and remove-module.sh) -->
+- team-management
 ## Tech Decisions
 <!-- Any product-specific overrides (e.g., DynamoDB instead of MongoDB for X) -->

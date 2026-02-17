@@ -1,0 +1,14 @@
+{
+  "field": "deactivateUser",
+  "arguments": {
+    "user_id": "01KHN7HWFR13NDC92D4VFBHC98"
+  },
+  "token": {
+    "custom:tenant_id": "tenant1",
+    "sub": "admin1",
+    "email": "admin@example.com",
+    "name": "Admin User",
+    "custom:roles": "[\"tenant-admin\"]",
+    "custom:permissions": "[\"user:user:deactivate\"]"
+  }
+}

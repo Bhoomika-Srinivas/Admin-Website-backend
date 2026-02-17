@@ -1,0 +1,81 @@
+"""
+Team entity
+"""
+type Team {
+  team_id: ID!
+  name: String
+  constituency: String
+  ward: String
+  group: String
+  category: String
+  role: String
+  remarks: String
+  contact: String
+  childId: ID
+  status: String
+  createdBy: ID
+  created_at: AWSDateTime
+  updated_at: AWSDateTime
+}
+
+"""
+Connection type for paginated team list
+"""
+type TeamConnection {
+  items: [Team!]!
+  nextCursor: String
+}
+
+"""
+Input for creating a team
+"""
+input CreateTeamInput {
+  name: String
+  constituency: String
+  ward: String
+  group: String
+  category: String
+  role: String
+  remarks: String
+  contact: String
+  childId: ID
+  status: String
+}
+
+"""
+Input for updating a team
+"""
+input UpdateTeamInput {
+  name: String
+  constituency: String
+  ward: String
+  group: String
+  category: String
+  role: String
+  remarks: String
+  contact: String
+  childId: ID
+  status: String
+}
+
+extend type Query {
+  getTeam(team_id: ID!): Team
+  listTeams(
+    constituency: String
+    ward: String
+    group: String
+    category: String
+    role: String
+    status: String
+    search: String
+    sortBy: String
+    sortOrder: String
+    pagination: PaginationInput
+  ): TeamConnection
+}
+
+extend type Mutation {
+  createTeam(input: CreateTeamInput!): Team
+  updateTeam(team_id: ID!, input: UpdateTeamInput!): Team
+  deleteTeam(team_id: ID!): Team
+}

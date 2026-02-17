@@ -1,0 +1,9 @@
+{
+  "field": "listTenants",
+  "tenant_id": "system",
+  "user_id": "user_001",
+  "permissions": [
+    "tenant:tenant:list"
+  ],
+  "arguments": {}
+}

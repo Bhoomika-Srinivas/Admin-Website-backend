@@ -102,17 +102,20 @@ async function inviteUser(ctx, args) {
   const email = input.email;
   const name = input.name;
   const user_id = generateId();
+
   const data = {
     user_id,
     tenant_id: ctx.tenant_id,
-    cognito_sub: '',
+    cognito_sub: input.cognito_sub || generateId(), // FIXED
     email,
     name: name || email,
     status: 'invited',
     roles: ['member'],
     created_by: ctx.user_id,
   };
+
   const created = await userRepo.create(ctx, data);
+
   await publishEvent('user-management', 'UserInvited', {
     user_id: created.user_id,
     tenant_id: created.tenant_id,
@@ -120,8 +123,10 @@ async function inviteUser(ctx, args) {
     invited_by: ctx.user_id,
     timestamp: new Date().toISOString(),
   });
+
   return created;
 }
+
 
 async function deactivateUser(ctx, args) {
   const { user_id } = validate(deactivateUserSchema, { user_id: args?.user_id || args?.id });

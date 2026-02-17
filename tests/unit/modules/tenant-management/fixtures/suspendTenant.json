@@ -1,0 +1,11 @@
+{
+  "field": "suspendTenant",
+  "tenant_id": "system",
+  "user_id": "user_001",
+  "permissions": [
+    "tenant:tenant:suspend"
+  ],
+  "arguments": {
+    "tenant_id": "tenant-2"
+  }
+}

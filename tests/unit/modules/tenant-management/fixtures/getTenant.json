@@ -1,0 +1,11 @@
+{
+  "field": "getTenant",
+  "tenant_id": "system",
+  "user_id": "user_001",
+  "permissions": [
+    "tenant:tenant:read"
+  ],
+  "arguments": {
+    "tenant_id": "system"
+  }
+}

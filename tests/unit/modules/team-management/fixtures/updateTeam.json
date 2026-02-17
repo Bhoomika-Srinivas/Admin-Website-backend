@@ -1,0 +1,14 @@
+{
+  "field": "updateTeam",
+  "tenant_id": "tenant1",
+  "token": {
+    "sub": "69941625a7bd2c63395f10fb",
+    "custom:permissions": "[\"team:team:update\"]"
+  },
+  "arguments": {
+    "team_id": "01KHPGRPQ91D56FEPWKX9G2WKF",
+    "input": {
+      "name": "Updated Engineering Team"
+    }
+  }
+}

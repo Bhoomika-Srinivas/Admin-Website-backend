@@ -34,3 +34,6 @@ New modules: run `./scripts/generate-module.sh <module-name> [--type app] [--app
 **Multi-app**: Use `./scripts/init-app.sh <app-name> [--core ...] [--app ...]` to create app-configs/<app>.yaml and a samconfig deploy profile. Use `generate-module.sh --app <app-name>` to add new app modules to that app only. Build with `APP=<app> npm run build:app`; deploy with `sam deploy --config-env <app>` or `APP=<app> npm run deploy:app`.
 
 | TeamManagement | Vertical | Custom | src/app-modules/team-management/ | docs/agents/team-management-agent.SKILL.md |
+
+| DevelopmentManagement | Vertical | Custom | src/app-modules/development-management/ | docs/agents/development-management-agent.SKILL.md |
+| NewsManagement | Vertical | Custom | src/app-modules/news-management/ | docs/agents/news-management-agent.SKILL.md |

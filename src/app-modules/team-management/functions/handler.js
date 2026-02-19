@@ -27,6 +27,8 @@ const teamRepo = new MongoRepository({ model: Team, primaryKey: 'team_id' });
 
 async function handleEvent(event) {
   const ctx = resolveTenant(event);
+   // Disable tenant scoping for this module
+  ctx.tenant_id = undefined;
   log(ctx, 'team-management', event.field);
 
   switch (event.field) {
@@ -136,7 +138,7 @@ async function createTeam(ctx, args) {
     constituency: input.constituency,
     ward: input.ward,
     group: input.group,
-    category: input.category,
+    team_category: input.category,
     role: input.role,
     remarks: input.remarks,
     contact: input.contact,
@@ -175,7 +177,7 @@ async function updateTeam(ctx, args) {
   if (input.constituency !== undefined) updates.constituency = input.constituency;
   if (input.ward !== undefined) updates.ward = input.ward;
   if (input.group !== undefined) updates.group = input.group;
-  if (input.category !== undefined) updates.category = input.category;
+  if (input.team_category !== undefined) updates.category = input.category;
   if (input.role !== undefined) updates.role = input.role;
   if (input.remarks !== undefined) updates.remarks = input.remarks;
   if (input.contact !== undefined) updates.contact = input.contact;

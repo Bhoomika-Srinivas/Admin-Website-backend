@@ -35,12 +35,30 @@ type Query {
   getWorkflow(workflow_id: ID!): WorkflowDefinition
   listWorkflows(pagination: PaginationInput): WorkflowDefinitionConnection
   listWorkflowInstances(workflow_id: ID, pagination: PaginationInput): WorkflowInstanceConnection
+  getDevelopment(development_id: ID!): Development
+  listDevelopments(
+    constituency: String
+    ward: String
+    ward_no: String
+    year: Int
+    status: String
+    type: String
+    view_on_tracker: Boolean
+    pagination: PaginationInput
+  ): DevelopmentConnection
+  getNews(news_id: ID!): News
+  listNews(
+    constituency: String
+    ward: String
+    incidentType: String
+    pagination: PaginationInput
+  ): NewsConnection
   getTeam(team_id: ID!): Team
   listTeams(
     constituency: String
     ward: String
     group: String
-    category: String
+    team_category: String
     role: String
     status: String
     search: String
@@ -69,6 +87,12 @@ type Mutation {
   updateRole(role_id: ID!, input: UpdateRoleInput!): Role
   assignRole(user_id: ID!, role_id: ID!): User
   removeRole(user_id: ID!, role_id: ID!): User
+  createDevelopment(input: CreateDevelopmentInput!): Development
+  updateDevelopment(development_id: ID!, input: UpdateDevelopmentInput!): Development
+  deleteDevelopment(development_id: ID!): Boolean
+  createNews(input: CreateNewsInput!): News
+  updateNews(news_id: ID!, input: UpdateNewsInput!): News
+  deleteNews(news_id: ID!): Boolean
   createTeam(input: CreateTeamInput!): Team
   updateTeam(team_id: ID!, input: UpdateTeamInput!): Team
   deleteTeam(team_id: ID!): Team
@@ -441,6 +465,104 @@ type WorkflowInstanceConnection {
 }
 
 
+# module: development-management
+type Development {
+  development_id: ID!
+  constituency: String
+  ward: String
+  ward_no: String
+  nameOfWork: String
+  type: String
+  location: String
+  year: Int
+  amount_spent: Float
+  amount_unit: String
+  status: String
+  imageUrl: String
+  view_on_tracker: Boolean
+  createdBy: String
+  created_at: AWSDateTime
+  updated_at: AWSDateTime
+}
+
+type DevelopmentConnection {
+  items: [Development!]!
+  nextCursor: String
+}
+
+input CreateDevelopmentInput {
+  development_id: ID
+  constituency: String!
+  ward: String!
+  ward_no: String!
+  nameOfWork: String!
+  type: String!
+  location: String!
+  year: Int!
+  amount_spent: Float!
+  amount_unit: String!
+  status: String!
+  imageUrl: String
+  view_on_tracker: Boolean
+}
+
+input UpdateDevelopmentInput {
+  constituency: String
+  ward: String
+  ward_no: String
+  nameOfWork: String
+  type: String
+  location: String
+  year: Int
+  amount_spent: Float
+  amount_unit: String
+  status: String
+  imageUrl: String
+  view_on_tracker: Boolean
+}
+
+
+
+# module: news-management
+type News {
+  news_id: ID!
+  constituency: String
+  ward: String
+  dateTime: AWSDateTime
+  information: String
+  incidentType: String
+  imageUrl: String
+  createdBy: String
+  created_at: AWSDateTime
+  updated_at: AWSDateTime
+}
+
+type NewsConnection {
+  items: [News!]!
+  nextCursor: String
+}
+
+input CreateNewsInput {
+  news_id: ID
+  constituency: String!
+  ward: String!
+  dateTime: AWSDateTime!
+  information: String!
+  incidentType: String!
+  imageUrl: String
+}
+
+input UpdateNewsInput {
+  constituency: String
+  ward: String
+  dateTime: AWSDateTime
+  information: String
+  incidentType: String
+  imageUrl: String
+}
+
+
+
 # module: team-management
 """
 Team entity
@@ -451,7 +573,7 @@ type Team {
   constituency: String
   ward: String
   group: String
-  category: String
+  team_category: String
   role: String
   remarks: String
   contact: String
@@ -478,7 +600,7 @@ input CreateTeamInput {
   constituency: String
   ward: String
   group: String
-  category: String
+  team_category: String
   role: String
   remarks: String
   contact: String
@@ -494,7 +616,7 @@ input UpdateTeamInput {
   constituency: String
   ward: String
   group: String
-  category: String
+  team_category: String
   role: String
   remarks: String
   contact: String

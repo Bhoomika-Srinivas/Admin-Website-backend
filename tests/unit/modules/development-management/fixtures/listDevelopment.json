@@ -1,0 +1,16 @@
+{
+  "field": "listDevelopments",
+  "arguments": {
+    "constituency": "107",
+    "year": 2024,
+    "status": "Planned",
+    "pagination": {
+      "limit": 5
+    }
+  },
+  "token": {
+    "custom:tenant_id": "tenant1",
+    "sub": "admin1",
+    "custom:permissions": "[\"development:development:list\"]"
+  }
+}

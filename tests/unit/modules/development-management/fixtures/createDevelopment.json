@@ -1,0 +1,24 @@
+{
+  "field": "createDevelopment",
+  "arguments": {
+    "input": {
+      "constituency": "107",
+      "ward": "SSM Nagar - 2",
+      "ward_no": "2",
+      "nameOfWork": "High Mast Light Installation",
+      "type": "High Mass Lights",
+      "location": "Main Road Junction",
+      "year": 2023,
+      "amount_spent": 0.62,
+      "amount_unit": "Cr",
+      "status": "Completed",
+      "imageUrl": "https://example.com/lights.jpg",
+      "view_on_tracker": true
+    }
+  },
+  "token": {
+    "custom:tenant_id": "tenant1",
+    "sub": "admin1",
+    "custom:permissions": "[\"development:development:create\"]"
+  }
+}

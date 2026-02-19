@@ -1,0 +1,15 @@
+{
+  "field": "listNews",
+  "arguments": {
+    "constituency": "107",
+    "incidentType": "Accident",
+    "pagination": {
+      "limit": 5
+    }
+  },
+  "token": {
+    "custom:tenant_id": "tenant1",
+    "sub": "admin1",
+    "custom:permissions": "[\"news:news:list\"]"
+  }
+}

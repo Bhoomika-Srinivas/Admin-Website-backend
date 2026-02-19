@@ -1,0 +1,74 @@
+type Development {
+  development_id: ID!
+  constituency: String
+  ward: String
+  ward_no: String
+  nameOfWork: String
+  type: String
+  location: String
+  year: Int
+  amount_spent: Float
+  amount_unit: String
+  status: String
+  imageUrl: String
+  view_on_tracker: Boolean
+  createdBy: String
+  created_at: AWSDateTime
+  updated_at: AWSDateTime
+}
+
+type DevelopmentConnection {
+  items: [Development!]!
+  nextCursor: String
+}
+
+input CreateDevelopmentInput {
+  development_id: ID
+  constituency: String!
+  ward: String!
+  ward_no: String!
+  nameOfWork: String!
+  type: String!
+  location: String!
+  year: Int!
+  amount_spent: Float!
+  amount_unit: String!
+  status: String!
+  imageUrl: String
+  view_on_tracker: Boolean
+}
+
+input UpdateDevelopmentInput {
+  constituency: String
+  ward: String
+  ward_no: String
+  nameOfWork: String
+  type: String
+  location: String
+  year: Int
+  amount_spent: Float
+  amount_unit: String
+  status: String
+  imageUrl: String
+  view_on_tracker: Boolean
+}
+
+extend type Query {
+  getDevelopment(development_id: ID!): Development
+  listDevelopments(
+    constituency: String
+    ward: String
+    ward_no: String
+    year: Int
+    status: String
+    type: String
+    view_on_tracker: Boolean
+    pagination: PaginationInput
+  ): DevelopmentConnection
+}
+
+extend type Mutation {
+  createDevelopment(input: CreateDevelopmentInput!): Development
+  updateDevelopment(development_id: ID!, input: UpdateDevelopmentInput!): Development
+  deleteDevelopment(development_id: ID!): Boolean
+}

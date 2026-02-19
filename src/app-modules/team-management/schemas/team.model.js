@@ -27,7 +27,7 @@ const TeamSchema = new mongoose.Schema({
     index: true
   },
 
-  category: {
+  team_category: {
     type: String,
     index: true
   },
@@ -55,7 +55,7 @@ const TeamSchema = new mongoose.Schema({
   },
 
   createdBy: {
-    type: mongoose.Schema.Types.ObjectId
+    type: String
   }
 
 }, { timestamps: true });

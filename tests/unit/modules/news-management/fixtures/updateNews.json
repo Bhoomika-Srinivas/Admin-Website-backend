@@ -1,0 +1,15 @@
+{
+  "field": "updateNews",
+  "arguments": {
+    "news_id": "01KHTE6J700ZRTAM768KBJZCBD",
+    "input": {
+      "incidentType": "Public Update !!!! Yayyyyy",
+      "information": "Road work 60% completed.Just Kididing"
+    }
+  },
+  "token": {
+    "custom:tenant_id": "tenant1",
+    "sub": "admin1",
+    "custom:permissions": "[\"news:news:update\"]"
+  }
+}

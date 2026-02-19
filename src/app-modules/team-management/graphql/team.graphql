@@ -7,13 +7,13 @@ type Team {
   constituency: String
   ward: String
   group: String
-  category: String
+  team_category: String
   role: String
   remarks: String
   contact: String
   childId: ID
   status: String
-  createdBy: ID
+  createdBy: String
   created_at: AWSDateTime
   updated_at: AWSDateTime
 }
@@ -34,7 +34,7 @@ input CreateTeamInput {
   constituency: String
   ward: String
   group: String
-  category: String
+  team_category: String
   role: String
   remarks: String
   contact: String
@@ -50,7 +50,7 @@ input UpdateTeamInput {
   constituency: String
   ward: String
   group: String
-  category: String
+  team_category: String
   role: String
   remarks: String
   contact: String
@@ -64,7 +64,7 @@ extend type Query {
     constituency: String
     ward: String
     group: String
-    category: String
+    team_category: String
     role: String
     status: String
     search: String

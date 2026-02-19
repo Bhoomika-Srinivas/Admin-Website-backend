@@ -1,22 +1,50 @@
 # Module: team-management
 
 ## Data Models
-(Define schemas here)
+(team_id, name, constituency, ward, group, category, role, remarks, contact, childId, status, createdBy, createdAt, updatedAt)
 
 ## GraphQL Schema
-(Types, Queries, Mutations)
+(Queries:
+
+getTeam(team_id)
+
+listTeams(filters, search, sort, pagination)
+
+Mutations:
+
+createTeam
+
+updateTeam
+
+deleteTeam (soft delete – updates status to DELETED))
 
 ## Events Published
-(EventBridge events this module emits)
+(TeamCreated
+
+TeamUpdated
+
+TeamDeleted)
 
 ## Events Consumed
-(EventBridge events this module listens to)
+(None (no external EventBridge subscriptions))
 
 ## Permissions
-(List of permission strings: module:resource:action)
+(team:team:read
+
+team:team:list
+
+team:team:create
+
+team:team:update
+
+team:team:delete)
 
 ## Dependencies
-(Other modules this depends on)
+(User (createdBy stored as Mongo ObjectId of authenticated user)
+
+Common middleware (auth-guard, tenant-resolver, validation, event-publisher))
 
 ## Database Choice
-(mongodb | dynamodb -- and reasoning)
+(MongoDB (Mongoose).
+
+Document-based model supports flexible team structures across constituencies and wards. Indexed fields include constituency, ward, group, category, role, and status to support efficient filtering and listing operations. Logical team_id is used as primary business identifier, separate from Mongo _id for consistency across modules)

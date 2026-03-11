@@ -1,0 +1,18 @@
+{
+  "field": "updateHonor",
+  "arguments": {
+    "faculty_id": "faculty-001",
+    "honor_id": "honor-001",
+    "input": {
+      "title": "Best Paper Award - Runner Up",
+      "organization": "IEEE International Conference on Cloud Computing (CLOUD)",
+      "year": 2023,
+      "description": "Recognized as Runner Up for the paper 'Scalable Microservices Orchestration Using Serverless Architectures' at IEEE CLOUD 2023, San Francisco. Updated after official proceedings correction."
+    }
+  },
+  "token": {
+    "custom:tenant_id": "tenant1",
+    "sub": "admin1",
+    "custom:permissions": "[\"faculty:faculty:update\"]"
+  }
+}

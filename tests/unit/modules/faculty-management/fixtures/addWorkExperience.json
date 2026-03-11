@@ -1,0 +1,18 @@
+{
+  "field": "addWorkExperience",
+  "arguments": {
+    "faculty_id": "faculty-001",
+    "input": {
+      "position": "Senior Software Engineer",
+      "institution": "Amazon Web Services",
+      "startYear": 2010,
+      "endYear": 2014,
+      "description": "Led a team of 8 engineers building cloud-native distributed storage solutions. Contributed to the early development of AWS S3 reliability features."
+    }
+  },
+  "token": {
+    "custom:tenant_id": "tenant1",
+    "sub": "admin1",
+    "custom:permissions": "[\"faculty:faculty:update\"]"
+  }
+}

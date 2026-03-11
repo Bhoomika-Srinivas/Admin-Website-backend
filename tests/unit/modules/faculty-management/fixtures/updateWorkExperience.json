@@ -1,0 +1,19 @@
+{
+  "field": "updateWorkExperience",
+  "arguments": {
+    "faculty_id": "faculty-001",
+    "work_experience_id": "work-001",
+    "input": {
+      "position": "Principal Software Engineer",
+      "institution": "Amazon Web Services",
+      "startYear": 2010,
+      "endYear": 2014,
+      "description": "Led a team of 12 engineers building cloud-native distributed storage and compute solutions. Key contributor to AWS S3 reliability and AWS Lambda early architecture."
+    }
+  },
+  "token": {
+    "custom:tenant_id": "tenant1",
+    "sub": "admin1",
+    "custom:permissions": "[\"faculty:faculty:update\"]"
+  }
+}

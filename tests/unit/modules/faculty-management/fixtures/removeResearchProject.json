@@ -1,0 +1,12 @@
+{
+  "field": "removeResearchProject",
+  "arguments": {
+    "faculty_id": "faculty-001",
+    "research_project_id": "research-001"
+  },
+  "token": {
+    "custom:tenant_id": "tenant1",
+    "sub": "admin1",
+    "custom:permissions": "[\"faculty:faculty:update\"]"
+  }
+}

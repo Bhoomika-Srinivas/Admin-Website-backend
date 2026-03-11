@@ -1,0 +1,17 @@
+{
+  "field": "addEducation",
+  "arguments": {
+    "faculty_id": "faculty-001",
+    "input": {
+      "degree": "Ph.D.",
+      "institution": "Massachusetts Institute of Technology",
+      "year": 2010,
+      "specialization": "Computer Science - Distributed Systems"
+    }
+  },
+  "token": {
+    "custom:tenant_id": "tenant1",
+    "sub": "admin1",
+    "custom:permissions": "[\"faculty:faculty:update\"]"
+  }
+}

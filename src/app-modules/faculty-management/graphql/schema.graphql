@@ -1,0 +1,322 @@
+type Publication {
+  publicationId: ID!
+  facultyId: ID!
+  title: String!
+  authors: [String]
+  journal: String
+  year: Int
+  doi: String
+  type: String
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}
+
+type Education {
+  educationId: ID!
+  facultyId: ID!
+  degree: String!
+  institution: String!
+  fieldOfStudy: String
+  startYear: Int
+  endYear: Int
+  description: String
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}
+
+type WorkExperience {
+  workExperienceId: ID!
+  facultyId: ID!
+  title: String!
+  organization: String!
+  startDate: AWSDate
+  endDate: AWSDate
+  current: Boolean
+  description: String
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}
+
+type ResearchProject {
+  researchProjectId: ID!
+  facultyId: ID!
+  title: String!
+  description: String
+  status: String
+  startDate: AWSDate
+  endDate: AWSDate
+  fundingSource: String
+  collaborators: [String]
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}
+
+type CourseTeaching {
+  courseTeachingId: ID!
+  facultyId: ID!
+  courseCode: String!
+  courseName: String!
+  semester: String
+  year: Int
+  credits: Int
+  description: String
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}
+
+type Honor {
+  honorId: ID!
+  facultyId: ID!
+  title: String!
+  organization: String
+  year: Int
+  description: String
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}
+
+type Faculty {
+  facultyId: ID!
+  firstName: String!
+  lastName: String!
+  email: String!
+  title: String
+  department: String
+  designation: String
+  bio: String
+  profileImage: String
+  phone: String
+  officeLocation: String
+  website: String
+  publications: [Publication]
+  education: [Education]
+  workExperience: [WorkExperience]
+  researchProjects: [ResearchProject]
+  courseTeachings: [CourseTeaching]
+  honors: [Honor]
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}
+
+input CreateFacultyInput {
+  firstName: String!
+  lastName: String!
+  email: String!
+  title: String
+  department: String
+  designation: String
+  bio: String
+  profileImage: String
+  phone: String
+  officeLocation: String
+  website: String
+}
+
+input UpdateFacultyInput {
+  facultyId: ID!
+  firstName: String
+  lastName: String
+  email: String
+  title: String
+  department: String
+  designation: String
+  bio: String
+  profileImage: String
+  phone: String
+  officeLocation: String
+  website: String
+}
+
+input AddPublicationInput {
+  facultyId: ID!
+  title: String!
+  authors: [String]
+  journal: String
+  year: Int
+  doi: String
+  type: String
+}
+
+input UpdatePublicationInput {
+  publicationId: ID!
+  facultyId: ID!
+  title: String
+  authors: [String]
+  journal: String
+  year: Int
+  doi: String
+  type: String
+}
+
+input RemovePublicationInput {
+  publicationId: ID!
+  facultyId: ID!
+}
+
+input AddEducationInput {
+  facultyId: ID!
+  degree: String!
+  institution: String!
+  fieldOfStudy: String
+  startYear: Int
+  endYear: Int
+  description: String
+}
+
+input UpdateEducationInput {
+  educationId: ID!
+  facultyId: ID!
+  degree: String
+  institution: String
+  fieldOfStudy: String
+  startYear: Int
+  endYear: Int
+  description: String
+}
+
+input RemoveEducationInput {
+  educationId: ID!
+  facultyId: ID!
+}
+
+input AddWorkExperienceInput {
+  facultyId: ID!
+  title: String!
+  organization: String!
+  startDate: AWSDate
+  endDate: AWSDate
+  current: Boolean
+  description: String
+}
+
+input UpdateWorkExperienceInput {
+  workExperienceId: ID!
+  facultyId: ID!
+  title: String
+  organization: String
+  startDate: AWSDate
+  endDate: AWSDate
+  current: Boolean
+  description: String
+}
+
+input RemoveWorkExperienceInput {
+  workExperienceId: ID!
+  facultyId: ID!
+}
+
+input AddResearchProjectInput {
+  facultyId: ID!
+  title: String!
+  description: String
+  status: String
+  startDate: AWSDate
+  endDate: AWSDate
+  fundingSource: String
+  collaborators: [String]
+}
+
+input UpdateResearchProjectInput {
+  researchProjectId: ID!
+  facultyId: ID!
+  title: String
+  description: String
+  status: String
+  startDate: AWSDate
+  endDate: AWSDate
+  fundingSource: String
+  collaborators: [String]
+}
+
+input RemoveResearchProjectInput {
+  researchProjectId: ID!
+  facultyId: ID!
+}
+
+input AddCourseTeachingInput {
+  facultyId: ID!
+  courseCode: String!
+  courseName: String!
+  semester: String
+  year: Int
+  credits: Int
+  description: String
+}
+
+input UpdateCourseTeachingInput {
+  courseTeachingId: ID!
+  facultyId: ID!
+  courseCode: String
+  courseName: String
+  semester: String
+  year: Int
+  credits: Int
+  description: String
+}
+
+input RemoveCourseTeachingInput {
+  courseTeachingId: ID!
+  facultyId: ID!
+}
+
+input AddHonorInput {
+  facultyId: ID!
+  title: String!
+  organization: String
+  year: Int
+  description: String
+}
+
+input UpdateHonorInput {
+  honorId: ID!
+  facultyId: ID!
+  title: String
+  organization: String
+  year: Int
+  description: String
+}
+
+input RemoveHonorInput {
+  honorId: ID!
+  facultyId: ID!
+}
+
+type FacultyList {
+  items: [Faculty]
+  nextToken: String
+}
+
+extend type Query {
+  getFaculty(facultyId: ID!): Faculty
+  listFaculty(limit: Int, nextToken: String): FacultyList
+}
+
+extend type Mutation {
+  createFaculty(input: CreateFacultyInput!): Faculty
+  updateFaculty(input: UpdateFacultyInput!): Faculty
+  deleteFaculty(facultyId: ID!): Faculty
+
+  addPublication(input: AddPublicationInput!): Publication
+  updatePublication(input: UpdatePublicationInput!): Publication
+  removePublication(input: RemovePublicationInput!): Publication
+
+  addEducation(input: AddEducationInput!): Education
+  updateEducation(input: UpdateEducationInput!): Education
+  removeEducation(input: RemoveEducationInput!): Education
+
+  addWorkExperience(input: AddWorkExperienceInput!): WorkExperience
+  updateWorkExperience(input: UpdateWorkExperienceInput!): WorkExperience
+  removeWorkExperience(input: RemoveWorkExperienceInput!): WorkExperience
+
+  addResearchProject(input: AddResearchProjectInput!): ResearchProject
+  updateResearchProject(input: UpdateResearchProjectInput!): ResearchProject
+  removeResearchProject(input: RemoveResearchProjectInput!): ResearchProject
+
+  addCourseTeaching(input: AddCourseTeachingInput!): CourseTeaching
+  updateCourseTeaching(input: UpdateCourseTeachingInput!): CourseTeaching
+  removeCourseTeaching(input: RemoveCourseTeachingInput!): CourseTeaching
+
+  addHonor(input: AddHonorInput!): Honor
+  updateHonor(input: UpdateHonorInput!): Honor
+  removeHonor(input: RemoveHonorInput!): Honor
+}

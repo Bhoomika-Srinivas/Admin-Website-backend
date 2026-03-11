@@ -1,0 +1,22 @@
+{
+  "field": "createFaculty",
+  "arguments": {
+    "input": {
+      "name": "Dr. James Carter",
+      "designation": "Associate Professor",
+      "departmentId": "64f1a2b3c4d5e6f7a8b9c001",
+      "qualification": "Ph.D. in Computer Science",
+      "experience": 12,
+      "email": "james.carter@university.edu",
+      "phone": "+1-555-201-4782",
+      "specialization": "Distributed Systems and Cloud Computing",
+      "officeLocation": "Engineering Building, Room 214",
+      "profilePicture": "https://cdn.university.edu/profiles/james-carter.jpg"
+    }
+  },
+  "token": {
+    "custom:tenant_id": "tenant1",
+    "sub": "admin1",
+    "custom:permissions": "[\"faculty:faculty:create\"]"
+  }
+}

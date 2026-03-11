@@ -1,0 +1,18 @@
+{
+  "field": "updateFaculty",
+  "arguments": {
+    "faculty_id": "faculty-001",
+    "input": {
+      "designation": "Professor",
+      "experience": 15,
+      "phone": "+1-555-201-4799",
+      "officeLocation": "Engineering Building, Room 310",
+      "specialization": "Distributed Systems, Cloud Computing and AI Architectures"
+    }
+  },
+  "token": {
+    "custom:tenant_id": "tenant1",
+    "sub": "admin1",
+    "custom:permissions": "[\"faculty:faculty:update\"]"
+  }
+}

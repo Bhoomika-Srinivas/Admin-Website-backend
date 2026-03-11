@@ -1,0 +1,19 @@
+{
+  "field": "addPublication",
+  "arguments": {
+    "faculty_id": "faculty-001",
+    "input": {
+      "title": "Scalable Microservices Orchestration Using Serverless Architectures",
+      "authors": "James Carter, Linda Nguyen, Robert Kim",
+      "journal": "IEEE Transactions on Cloud Computing",
+      "year": 2023,
+      "doi": "10.1109/TCC.2023.0045821",
+      "type": "journal"
+    }
+  },
+  "token": {
+    "custom:tenant_id": "tenant1",
+    "sub": "admin1",
+    "custom:permissions": "[\"faculty:faculty:update\"]"
+  }
+}

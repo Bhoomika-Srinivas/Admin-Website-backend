@@ -1,0 +1,12 @@
+{
+  "field": "removeHonor",
+  "arguments": {
+    "faculty_id": "faculty-001",
+    "honor_id": "honor-001"
+  },
+  "token": {
+    "custom:tenant_id": "tenant1",
+    "sub": "admin1",
+    "custom:permissions": "[\"faculty:faculty:update\"]"
+  }
+}

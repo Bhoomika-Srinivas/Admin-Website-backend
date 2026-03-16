@@ -1,0 +1,323 @@
+
+  DeptInfoFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-dept-info-${Environment}'
+      CodeUri: src/app-modules/dept-info-management/
+      Handler: functions/handler.handler
+      Layers:
+        - !Ref CommonLayer
+        - !Ref PackagesLayer
+      Policies:
+        - EventBridgePutEventsPolicy:
+            EventBusName: !Ref AppEventBus
+        - SSMParameterReadPolicy:
+            ParameterName: !Sub '${ProjectName}/${Environment}/*'
+      Tags:
+        Environment: !Ref Environment
+        ModuleName: dept-info-management
+        ManagedBy: CloudFormation
+
+  DeptInfoDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      Name: DeptInfoDataSource
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !GetAtt AppSyncServiceRole.Arn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt DeptInfoFunction.Arn
+
+  DeptInfoGetDeptIntroductionResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: getDeptIntroduction
+      DataSourceName: !GetAtt DeptInfoDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-info-management/resolvers/getDeptIntroduction.js
+
+  DeptInfoGetDeptAboutResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: getDeptAbout
+      DataSourceName: !GetAtt DeptInfoDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-info-management/resolvers/getDeptAbout.js
+
+  DeptInfoGetDeptSwotResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: getDeptSwot
+      DataSourceName: !GetAtt DeptInfoDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-info-management/resolvers/getDeptSwot.js
+
+  DeptInfoGetHodProfileResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: getHodProfile
+      DataSourceName: !GetAtt DeptInfoDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-info-management/resolvers/getHodProfile.js
+
+  DeptInfoListProgramOutcomesResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listProgramOutcomes
+      DataSourceName: !GetAtt DeptInfoDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-info-management/resolvers/listProgramOutcomes.js
+
+  DeptInfoListCommitteeMembersResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listCommitteeMembers
+      DataSourceName: !GetAtt DeptInfoDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-info-management/resolvers/listCommitteeMembers.js
+
+  DeptInfoListDistinguishedAlumniResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listDistinguishedAlumni
+      DataSourceName: !GetAtt DeptInfoDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-info-management/resolvers/listDistinguishedAlumni.js
+
+  DeptInfoSaveDeptIntroductionResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: saveDeptIntroduction
+      DataSourceName: !GetAtt DeptInfoDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-info-management/resolvers/saveDeptIntroduction.js
+
+  DeptInfoSaveDeptAboutResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: saveDeptAbout
+      DataSourceName: !GetAtt DeptInfoDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-info-management/resolvers/saveDeptAbout.js
+
+  DeptInfoSaveDeptSwotResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: saveDeptSwot
+      DataSourceName: !GetAtt DeptInfoDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-info-management/resolvers/saveDeptSwot.js
+
+  DeptInfoSaveHodProfileResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: saveHodProfile
+      DataSourceName: !GetAtt DeptInfoDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-info-management/resolvers/saveHodProfile.js
+
+  DeptInfoCreateProgramOutcomeResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createProgramOutcome
+      DataSourceName: !GetAtt DeptInfoDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-info-management/resolvers/createProgramOutcome.js
+
+  DeptInfoUpdateProgramOutcomeResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateProgramOutcome
+      DataSourceName: !GetAtt DeptInfoDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-info-management/resolvers/updateProgramOutcome.js
+
+  DeptInfoDeleteProgramOutcomeResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteProgramOutcome
+      DataSourceName: !GetAtt DeptInfoDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-info-management/resolvers/deleteProgramOutcome.js
+
+  DeptInfoReorderProgramOutcomesResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: reorderProgramOutcomes
+      DataSourceName: !GetAtt DeptInfoDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-info-management/resolvers/reorderProgramOutcomes.js
+
+  DeptInfoCreateCommitteeMemberResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createCommitteeMember
+      DataSourceName: !GetAtt DeptInfoDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-info-management/resolvers/createCommitteeMember.js
+
+  DeptInfoUpdateCommitteeMemberResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateCommitteeMember
+      DataSourceName: !GetAtt DeptInfoDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-info-management/resolvers/updateCommitteeMember.js
+
+  DeptInfoDeleteCommitteeMemberResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteCommitteeMember
+      DataSourceName: !GetAtt DeptInfoDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-info-management/resolvers/deleteCommitteeMember.js
+
+  DeptInfoCreateDistinguishedAlumnusResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createDistinguishedAlumnus
+      DataSourceName: !GetAtt DeptInfoDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-info-management/resolvers/createDistinguishedAlumnus.js
+
+  DeptInfoUpdateDistinguishedAlumnusResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateDistinguishedAlumnus
+      DataSourceName: !GetAtt DeptInfoDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-info-management/resolvers/updateDistinguishedAlumnus.js
+
+  DeptInfoDeleteDistinguishedAlumnusResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteDistinguishedAlumnus
+      DataSourceName: !GetAtt DeptInfoDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-info-management/resolvers/deleteDistinguishedAlumnus.js

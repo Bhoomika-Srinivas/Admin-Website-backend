@@ -1,0 +1,5 @@
+[
+  { "Name": "custom:tenant_id", "Value": "tenant1" },
+  { "Name": "custom:permissions", "Value": "[\"faculty:faculty:create\",\"faculty:faculty:read\",\"faculty:faculty:list\",\"faculty:faculty:update\",\"faculty:faculty:delete\"]" },
+  { "Name": "custom:roles", "Value": "[\"admin\"]" }
+]

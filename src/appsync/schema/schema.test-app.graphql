@@ -16,8 +16,29 @@ input PaginationInput {
   cursor: String
 }
 
-type Query { _empty: String }
-type Mutation { _empty: String }
+type Query {
+  _empty: String
+  getTenant(tenant_id: ID!): Tenant
+  listTenants(pagination: PaginationInput): TenantConnection
+  getUser(user_id: ID!): User
+  listUsers(pagination: PaginationInput): UserConnection
+  listRoles(pagination: PaginationInput): RoleConnection
+  getAuditEntry(entry_id: ID!): AuditEntry
+  listAuditEntries(filter: AuditEntryFilter, pagination: PaginationInput): AuditEntryConnection
+}
+type Mutation {
+  _empty: String
+  createTenant(input: CreateTenantInput!): Tenant
+  updateTenant(tenant_id: ID!, input: UpdateTenantInput!): Tenant
+  suspendTenant(tenant_id: ID!): Tenant
+  updateUser(user_id: ID!, input: UpdateUserInput!): User
+  inviteUser(input: InviteUserInput!): User
+  deactivateUser(user_id: ID!): User
+  createRole(input: CreateRoleInput!): Role
+  updateRole(role_id: ID!, input: UpdateRoleInput!): Role
+  assignRole(user_id: ID!, role_id: ID!): User
+  removeRole(user_id: ID!, role_id: ID!): User
+}
 
 # module: tenant-management
 enum TenantPlan {
@@ -88,16 +109,7 @@ input UpdateTenantInput {
   config: TenantConfigInput
 }
 
-extend type Query {
-  getTenant(tenant_id: ID!): Tenant
-  listTenants(pagination: PaginationInput): TenantConnection
-}
 
-extend type Mutation {
-  createTenant(input: CreateTenantInput!): Tenant
-  updateTenant(tenant_id: ID!, input: UpdateTenantInput!): Tenant
-  suspendTenant(tenant_id: ID!): Tenant
-}
 
 # module: user-management
 enum UserStatus {
@@ -163,21 +175,7 @@ input UpdateRoleInput {
   permissions: [String!]
 }
 
-extend type Query {
-  getUser(user_id: ID!): User
-  listUsers(pagination: PaginationInput): UserConnection
-  listRoles(pagination: PaginationInput): RoleConnection
-}
 
-extend type Mutation {
-  updateUser(user_id: ID!, input: UpdateUserInput!): User
-  inviteUser(input: InviteUserInput!): User
-  deactivateUser(user_id: ID!): User
-  createRole(input: CreateRoleInput!): Role
-  updateRole(role_id: ID!, input: UpdateRoleInput!): Role
-  assignRole(user_id: ID!, role_id: ID!): User
-  removeRole(user_id: ID!, role_id: ID!): User
-}
 
 # module: audit-log
 type AuditEntry {
@@ -214,8 +212,4 @@ input AuditEntryFilter {
   to: AWSDateTime
 }
 
-extend type Query {
-  getAuditEntry(entry_id: ID!): AuditEntry
-  listAuditEntries(filter: AuditEntryFilter, pagination: PaginationInput): AuditEntryConnection
-}
 

@@ -43,11 +43,22 @@ get_core_lambda_id() {
 }
 
 # Map app module name (e.g. admission) -> Lambda logical ID (e.g. AdmissionFunction)
-# Convention: first segment PascalCase + "Function"
+# Convention: first segment PascalCase + "Function", with explicit overrides for multi-segment names
 get_app_lambda_id() {
-  local name="$1"
-  local first="${name%%-*}"
-  echo "$(echo "$first" | awk '{print toupper(substr($0,1,1)) substr($0,2)}')Function"
+  case "$1" in
+    department-management) echo "DepartmentFunction" ;;
+    dept-info-management) echo "DeptInfoFunction" ;;
+    dept-people-management) echo "DeptPeopleFunction" ;;
+    dept-research-management) echo "DeptResearchFunction" ;;
+    dept-academics-management) echo "DeptAcademicsFunction" ;;
+    dept-activities-management) echo "DeptActivitiesFunction" ;;
+    dept-branding-management) echo "DeptBrandingFunction" ;;
+    *)
+      local name="$1"
+      local first="${name%%-*}"
+      echo "$(echo "$first" | awk '{print toupper(substr($0,1,1)) substr($0,2)}')Function"
+      ;;
+  esac
 }
 
 if [ ! -f "$APP_CONFIG" ]; then

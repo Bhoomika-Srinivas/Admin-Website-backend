@@ -20,11 +20,7 @@ Globals:
         PROJECT_NAME: !Ref ProjectName
         EVENT_BUS_NAME: !Ref AppEventBus
         MONGODB_SSM_PARAM_NAME: !Sub '/${ProjectName}/${Environment}/mongodb/uri'
-        #MONGODB_DB_NAME: !Sub '${ProjectName}_${Environment}'
-        #LOCAL TESTING ONLY
-        MONGODB_DB_NAME: backend-sam
-        MONGODB_URI: mongodb://host.docker.internal:27017/backend-sam
-        AWS_SAM_LOCAL: TRUE
+        MONGODB_DB_NAME: !Sub '${ProjectName}_${Environment}'
 
 Resources:
 # Infrastructure resources: layers, event bus, queue, bucket, Cognito, AppSync API and schema.
@@ -229,37 +225,45 @@ Resources:
           getWorkflow(workflow_id: ID!): WorkflowDefinition
           listWorkflows(pagination: PaginationInput): WorkflowDefinitionConnection
           listWorkflowInstances(workflow_id: ID, pagination: PaginationInput): WorkflowInstanceConnection
-          getDevelopment(development_id: ID!): Development
-          listDevelopments(
-            constituency: String
-            ward: String
-            ward_no: String
-            year: Int
-            status: String
-            type: String
-            view_on_tracker: Boolean
-            pagination: PaginationInput
-          ): DevelopmentConnection
-          getNews(news_id: ID!): News
-          listNews(
-            constituency: String
-            ward: String
-            incidentType: String
-            pagination: PaginationInput
-          ): NewsConnection
-          getTeam(team_id: ID!): Team
-          listTeams(
-            constituency: String
-            ward: String
-            group: String
-            team_category: String
-            role: String
-            status: String
-            search: String
-            sortBy: String
-            sortOrder: String
-            pagination: PaginationInput
-          ): TeamConnection
+          getDepartment(departmentId: ID!): Department
+          listDepartments(limit: Int, nextToken: String): DepartmentList
+          listDeptCourses(deptId: ID!, semester: Int, type: String, limit: Int, nextToken: String): DeptCourseList
+          getDeptCourse(deptCourseId: ID!): DeptCourse
+          listDeptTimetables(deptId: ID!, semester: Int, academicYear: String): DeptTimetableList
+          listLearningMaterials(deptId: ID!, courseCode: String, type: String, limit: Int, nextToken: String): LearningMaterialList
+          listInnovativeTeaching(deptId: ID!): InnovativeTeachingList
+          listResultAnalyses(deptId: ID!, semester: Int, batch: String): ResultAnalysisList
+          listPlacementOverviews(deptId: ID!, academicYear: String): PlacementOverviewList
+          listStudentPlacements(deptId: ID!, batch: String, limit: Int, nextToken: String): StudentPlacementList
+          listAchievements(deptId: ID!, type: String): AchievementList
+          listDeptActivities(deptId: ID!, type: String, limit: Int, nextToken: String): DeptActivityList
+          getForumSection(deptId: ID!): ForumSection
+          listForumEvents(deptId: ID!, limit: Int, nextToken: String): ForumEventList
+          listDepartmentActivities(deptId: ID!, limit: Int, nextToken: String): DepartmentActivityLogList
+          listNewsletters(deptId: ID!): NewsletterList
+          listGalleryPhotos(deptId: ID!, category: String, limit: Int, nextToken: String): GalleryPhotoList
+          getDeptBranding(deptId: ID!): DeptBranding
+          getInstituteSettings: InstituteSettings
+          getDeptIntroduction(deptId: ID!): DeptIntroduction
+          getDeptAbout(deptId: ID!): DeptAbout
+          getDeptSwot(deptId: ID!): DeptSwot
+          getHodProfile(deptId: ID!): HodProfile
+          listProgramOutcomes(deptId: ID!, type: String, limit: Int, nextToken: String): ProgramOutcomeList
+          listCommitteeMembers(deptId: ID!, committee: String): CommitteeMemberList
+          listDistinguishedAlumni(deptId: ID!): DistinguishedAlumniList
+          listDeptStaff(deptId: ID!, status: String, limit: Int, nextToken: String): DeptStaffList
+          getDeptStaff(deptStaffId: ID!): DeptStaff
+          listAccreditations(deptId: ID!, status: String, limit: Int, nextToken: String): AccreditationList
+          getAccreditation(accreditationId: ID!): Accreditation
+          listDeptPublications(deptId: ID!, type: String, year: Int, limit: Int, nextToken: String): DeptPublicationList
+          listPublicationProfiles(deptId: ID!): PublicationProfileList
+          listResearchGrants(deptId: ID!): ResearchGrantList
+          listPatents(deptId: ID!): PatentList
+          listFacultyResearchSummaries(deptId: ID!, limit: Int, nextToken: String): FacultyResearchSummaryList
+          listPhdGuides(deptId: ID!): PhdGuideList
+          listPhdScholars(deptId: ID!, guideFacultyId: ID, status: String): PhdScholarList
+          getFaculty(facultyId: ID!): Faculty
+          listFaculty(limit: Int, nextToken: String): FacultyList
         }
         type Mutation {
           _empty: String
@@ -281,15 +285,139 @@ Resources:
           updateRole(role_id: ID!, input: UpdateRoleInput!): Role
           assignRole(user_id: ID!, role_id: ID!): User
           removeRole(user_id: ID!, role_id: ID!): User
-          createDevelopment(input: CreateDevelopmentInput!): Development
-          updateDevelopment(development_id: ID!, input: UpdateDevelopmentInput!): Development
-          deleteDevelopment(development_id: ID!): Boolean
-          createNews(input: CreateNewsInput!): News
-          updateNews(news_id: ID!, input: UpdateNewsInput!): News
-          deleteNews(news_id: ID!): Boolean
-          createTeam(input: CreateTeamInput!): Team
-          updateTeam(team_id: ID!, input: UpdateTeamInput!): Team
-          deleteTeam(team_id: ID!): Team
+          createDepartment(input: CreateDepartmentInput!): Department
+          updateDepartment(input: UpdateDepartmentInput!): Department
+          deleteDepartment(departmentId: ID!): Department
+          createDeptCourse(input: CreateDeptCourseInput!): DeptCourse
+          updateDeptCourse(input: UpdateDeptCourseInput!): DeptCourse
+          deleteDeptCourse(deptCourseId: ID!): DeptCourse
+        
+          createDeptTimetable(input: CreateDeptTimetableInput!): DeptTimetable
+          updateDeptTimetable(input: UpdateDeptTimetableInput!): DeptTimetable
+          deleteDeptTimetable(deptTimetableId: ID!): DeptTimetable
+        
+          createLearningMaterial(input: CreateLearningMaterialInput!): LearningMaterial
+          updateLearningMaterial(input: UpdateLearningMaterialInput!): LearningMaterial
+          deleteLearningMaterial(learningMaterialId: ID!): LearningMaterial
+        
+          createInnovativeTeaching(input: CreateInnovativeTeachingInput!): InnovativeTeaching
+          updateInnovativeTeaching(input: UpdateInnovativeTeachingInput!): InnovativeTeaching
+          deleteInnovativeTeaching(innovativeTeachingId: ID!): InnovativeTeaching
+        
+          createResultAnalysis(input: CreateResultAnalysisInput!): ResultAnalysis
+          updateResultAnalysis(input: UpdateResultAnalysisInput!): ResultAnalysis
+          deleteResultAnalysis(resultAnalysisId: ID!): ResultAnalysis
+          createPlacementOverview(input: CreatePlacementOverviewInput!): PlacementOverview
+          updatePlacementOverview(input: UpdatePlacementOverviewInput!): PlacementOverview
+          deletePlacementOverview(placementOverviewId: ID!): PlacementOverview
+        
+          createStudentPlacement(input: CreateStudentPlacementInput!): StudentPlacement
+          updateStudentPlacement(input: UpdateStudentPlacementInput!): StudentPlacement
+          deleteStudentPlacement(studentPlacementId: ID!): StudentPlacement
+        
+          createAchievement(input: CreateAchievementInput!): Achievement
+          updateAchievement(input: UpdateAchievementInput!): Achievement
+          deleteAchievement(achievementId: ID!): Achievement
+        
+          createDeptActivity(input: CreateDeptActivityInput!): DeptActivity
+          updateDeptActivity(input: UpdateDeptActivityInput!): DeptActivity
+          deleteDeptActivity(deptActivityId: ID!): DeptActivity
+        
+          saveForumSection(input: SaveForumSectionInput!): ForumSection
+        
+          createForumEvent(input: CreateForumEventInput!): ForumEvent
+          updateForumEvent(input: UpdateForumEventInput!): ForumEvent
+          deleteForumEvent(forumEventId: ID!): ForumEvent
+        
+          createDepartmentActivity(input: CreateDepartmentActivityInput!): DepartmentActivityLog
+          updateDepartmentActivity(input: UpdateDepartmentActivityInput!): DepartmentActivityLog
+          deleteDepartmentActivity(deptActivityLogId: ID!): DepartmentActivityLog
+        
+          createNewsletter(input: CreateNewsletterInput!): Newsletter
+          updateNewsletter(input: UpdateNewsletterInput!): Newsletter
+          deleteNewsletter(newsletterId: ID!): Newsletter
+        
+          createGalleryPhoto(input: CreateGalleryPhotoInput!): GalleryPhoto
+          updateGalleryPhoto(input: UpdateGalleryPhotoInput!): GalleryPhoto
+          deleteGalleryPhoto(galleryPhotoId: ID!): GalleryPhoto
+          saveDeptBranding(deptId: ID!, input: SaveDeptBrandingInput!): DeptBranding
+          saveInstituteSettings(input: SaveInstituteSettingsInput!): InstituteSettings
+          saveDeptIntroduction(deptId: ID!, input: SaveDeptIntroductionInput!): DeptIntroduction
+          saveDeptAbout(deptId: ID!, input: SaveDeptAboutInput!): DeptAbout
+          saveDeptSwot(deptId: ID!, input: SaveDeptSwotInput!): DeptSwot
+          saveHodProfile(deptId: ID!, input: SaveHodProfileInput!): HodProfile
+        
+          createProgramOutcome(input: CreateProgramOutcomeInput!): ProgramOutcome
+          updateProgramOutcome(input: UpdateProgramOutcomeInput!): ProgramOutcome
+          deleteProgramOutcome(programOutcomeId: ID!): ProgramOutcome
+          reorderProgramOutcomes(input: ReorderProgramOutcomesInput!): Boolean
+        
+          createCommitteeMember(input: CreateCommitteeMemberInput!): CommitteeMember
+          updateCommitteeMember(input: UpdateCommitteeMemberInput!): CommitteeMember
+          deleteCommitteeMember(committeeMemberId: ID!): CommitteeMember
+        
+          createDistinguishedAlumnus(input: CreateDistinguishedAlumnusInput!): DistinguishedAlumnus
+          updateDistinguishedAlumnus(input: UpdateDistinguishedAlumnusInput!): DistinguishedAlumnus
+          deleteDistinguishedAlumnus(distinguishedAlumnusId: ID!): DistinguishedAlumnus
+          createDeptStaff(input: CreateDeptStaffInput!): DeptStaff
+          updateDeptStaff(input: UpdateDeptStaffInput!): DeptStaff
+          deleteDeptStaff(deptStaffId: ID!): DeptStaff
+        
+          createAccreditation(input: CreateAccreditationInput!): Accreditation
+          updateAccreditation(input: UpdateAccreditationInput!): Accreditation
+          deleteAccreditation(accreditationId: ID!): Accreditation
+          createDeptPublication(input: CreateDeptPublicationInput!): DeptPublication
+          updateDeptPublication(input: UpdateDeptPublicationInput!): DeptPublication
+          deleteDeptPublication(deptPublicationId: ID!): DeptPublication
+        
+          savePublicationProfile(input: SavePublicationProfileInput!): PublicationProfile
+        
+          createResearchGrant(input: CreateResearchGrantInput!): ResearchGrant
+          updateResearchGrant(input: UpdateResearchGrantInput!): ResearchGrant
+          deleteResearchGrant(researchGrantId: ID!): ResearchGrant
+        
+          createPatent(input: CreatePatentInput!): Patent
+          updatePatent(input: UpdatePatentInput!): Patent
+          deletePatent(patentId: ID!): Patent
+        
+          createFacultyResearchSummary(input: CreateFacultyResearchSummaryInput!): FacultyResearchSummary
+          updateFacultyResearchSummary(input: UpdateFacultyResearchSummaryInput!): FacultyResearchSummary
+          deleteFacultyResearchSummary(facultyResearchSummaryId: ID!): FacultyResearchSummary
+        
+          createPhdGuide(input: CreatePhdGuideInput!): PhdGuide
+          updatePhdGuide(input: UpdatePhdGuideInput!): PhdGuide
+          deletePhdGuide(phdGuideId: ID!): PhdGuide
+        
+          createPhdScholar(input: CreatePhdScholarInput!): PhdScholar
+          updatePhdScholar(input: UpdatePhdScholarInput!): PhdScholar
+          deletePhdScholar(phdScholarId: ID!): PhdScholar
+          createFaculty(input: CreateFacultyInput!): Faculty
+          updateFaculty(input: UpdateFacultyInput!): Faculty
+          deleteFaculty(facultyId: ID!): Faculty
+        
+          addPublication(input: AddPublicationInput!): Publication
+          updatePublication(input: UpdatePublicationInput!): Publication
+          removePublication(input: RemovePublicationInput!): Publication
+        
+          addEducation(input: AddEducationInput!): Education
+          updateEducation(input: UpdateEducationInput!): Education
+          removeEducation(input: RemoveEducationInput!): Education
+        
+          addWorkExperience(input: AddWorkExperienceInput!): WorkExperience
+          updateWorkExperience(input: UpdateWorkExperienceInput!): WorkExperience
+          removeWorkExperience(input: RemoveWorkExperienceInput!): WorkExperience
+        
+          addResearchProject(input: AddResearchProjectInput!): ResearchProject
+          updateResearchProject(input: UpdateResearchProjectInput!): ResearchProject
+          removeResearchProject(input: RemoveResearchProjectInput!): ResearchProject
+        
+          addCourseTeaching(input: AddCourseTeachingInput!): CourseTeaching
+          updateCourseTeaching(input: UpdateCourseTeachingInput!): CourseTeaching
+          removeCourseTeaching(input: RemoveCourseTeachingInput!): CourseTeaching
+        
+          addHonor(input: AddHonorInput!): Honor
+          updateHonor(input: UpdateHonorInput!): Honor
+          removeHonor(input: RemoveHonorInput!): Honor
         }
         
         # module: audit-log
@@ -659,163 +787,1212 @@ Resources:
         }
         
         
-        # module: development-management
-        type Development {
-          development_id: ID!
-          constituency: String
-          ward: String
-          ward_no: String
-          nameOfWork: String
-          type: String
-          location: String
+        # module: department-management
+        type Department {
+          departmentId:  ID!
+          tenantId:      ID!
+          name:          String!
+          shortName:     String!
+          hod:           String
+          established:   Int
+          totalFaculty:  Int
+          totalStudents: Int
+          status:        String
+          description:   String
+          imageUrl:      String
+          createdAt:     AWSDateTime
+          updatedAt:     AWSDateTime
+        }
+        
+        type DepartmentList {
+          items:     [Department]
+          nextToken: String
+        }
+        
+        input CreateDepartmentInput {
+          name:        String!
+          shortName:   String!
+          hod:         String
+          established: Int
+          description: String
+          imageUrl:    String
+          status:      String
+        }
+        
+        input UpdateDepartmentInput {
+          departmentId:  ID!
+          name:          String
+          shortName:     String
+          hod:           String
+          established:   Int
+          totalFaculty:  Int
+          totalStudents: Int
+          description:   String
+          imageUrl:      String
+          status:        String
+        }
+        
+        
+        
+        # module: dept-academics-management
+        type DeptCourse {
+          deptCourseId: ID!
+          deptId:       ID!
+          code:         String!
+          name:         String!
+          semester:     Int
+          credits:      Int
+          type:         String
+          scheme:       String
+          createdAt:    AWSDateTime
+          updatedAt:    AWSDateTime
+        }
+        
+        type DeptTimetable {
+          deptTimetableId: ID!
+          deptId:          ID!
+          section:         String
+          semester:        Int
+          academicYear:    String
+          fileUrl:         String
+          uploadedAt:      String
+          createdAt:       AWSDateTime
+        }
+        
+        type LearningMaterial {
+          learningMaterialId: ID!
+          deptId:             ID!
+          courseCode:         String
+          courseName:         String
+          title:              String!
+          type:               String
+          fileUrl:            String
+          uploadedBy:         String
+          createdAt:          AWSDateTime
+        }
+        
+        type InnovativeTeaching {
+          innovativeTeachingId: ID!
+          deptId:               ID!
+          facultyName:          String
+          method:               String
+          description:          String
+          courseApplied:        String
+          year:                 String
+          outcome:              String
+          createdAt:            AWSDateTime
+        }
+        
+        type ResultAnalysis {
+          resultAnalysisId: ID!
+          deptId:           ID!
+          title:            String!
+          semester:         Int
+          batch:            String
+          pdfUrl:           String
+          graphImageUrl:    String
+          createdAt:        AWSDateTime
+        }
+        
+        type DeptCourseList         { items: [DeptCourse]         nextToken: String }
+        type DeptTimetableList      { items: [DeptTimetable]      nextToken: String }
+        type LearningMaterialList   { items: [LearningMaterial]   nextToken: String }
+        type InnovativeTeachingList { items: [InnovativeTeaching] nextToken: String }
+        type ResultAnalysisList     { items: [ResultAnalysis]     nextToken: String }
+        
+        input CreateDeptCourseInput {
+          deptId:   ID!
+          code:     String!
+          name:     String!
+          semester: Int
+          credits:  Int
+          type:     String
+          scheme:   String
+        }
+        input UpdateDeptCourseInput {
+          deptCourseId: ID!
+          code:         String
+          name:         String
+          semester:     Int
+          credits:      Int
+          type:         String
+          scheme:       String
+        }
+        
+        input CreateDeptTimetableInput {
+          deptId:       ID!
+          section:      String
+          semester:     Int
+          academicYear: String
+          fileUrl:      String
+        }
+        input UpdateDeptTimetableInput {
+          deptTimetableId: ID!
+          section:         String
+          semester:        Int
+          academicYear:    String
+          fileUrl:         String
+        }
+        
+        input CreateLearningMaterialInput {
+          deptId:     ID!
+          courseCode: String
+          courseName: String
+          title:      String!
+          type:       String
+          fileUrl:    String
+        }
+        input UpdateLearningMaterialInput {
+          learningMaterialId: ID!
+          courseCode:         String
+          courseName:         String
+          title:              String
+          type:               String
+          fileUrl:            String
+        }
+        
+        input CreateInnovativeTeachingInput {
+          deptId:        ID!
+          facultyName:   String
+          method:        String
+          description:   String
+          courseApplied: String
+          year:          String
+          outcome:       String
+        }
+        input UpdateInnovativeTeachingInput {
+          innovativeTeachingId: ID!
+          facultyName:          String
+          method:               String
+          description:          String
+          courseApplied:        String
+          year:                 String
+          outcome:              String
+        }
+        
+        input CreateResultAnalysisInput {
+          deptId:        ID!
+          title:         String!
+          semester:      Int
+          batch:         String
+          pdfUrl:        String
+          graphImageUrl: String
+        }
+        input UpdateResultAnalysisInput {
+          resultAnalysisId: ID!
+          title:            String
+          semester:         Int
+          batch:            String
+          pdfUrl:           String
+          graphImageUrl:    String
+        }
+        
+        
+        
+        # module: dept-activities-management
+        type PlacementOverview {
+          placementOverviewId: ID!
+          deptId:              ID!
+          title:               String
+          academicYear:        String
+          companiesVisited:    Int
+          studentsInCampus:    Int
+          studentsOffCampus:   Int
+          highestPackage:      String
+          createdAt:           AWSDateTime
+        }
+        
+        type StudentPlacement {
+          studentPlacementId: ID!
+          deptId:             ID!
+          studentName:        String!
+          usn:                String
+          batch:              String
+          company:            String
+          role:               String
+          package:            Float
+          imageUrl:           String
+          createdAt:          AWSDateTime
+        }
+        
+        type Achievement {
+          achievementId: ID!
+          deptId:        ID!
+          type:          String
+          text:          String!
+          createdAt:     AWSDateTime
+        }
+        
+        type DeptActivity {
+          deptActivityId: ID!
+          deptId:         ID!
+          type:           String
+          name:           String!
+          description:    String
+          date:           String
+          venue:          String
+          organizer:      String
+          participants:   Int
+          createdAt:      AWSDateTime
+        }
+        
+        type ForumSection {
+          forumSectionId: ID
+          deptId:         ID!
+          title:          String!
+          description:    String
+          createdAt:      AWSDateTime
+        }
+        
+        type ForumEvent {
+          forumEventId: ID!
+          deptId:       ID!
+          title:        String!
+          description:  String
+          createdAt:    AWSDateTime
+        }
+        
+        type DepartmentActivityLog {
+          deptActivityLogId: ID!
+          deptId:            ID!
+          text:              String!
+          createdBy:         String
+          createdAt:         AWSDateTime
+        }
+        
+        type Newsletter {
+          newsletterId:  ID!
+          deptId:        ID!
+          title:         String!
+          volume:        String
+          issue:         String
+          publishedDate: String
+          fileUrl:       String
+          createdAt:     AWSDateTime
+        }
+        
+        type GalleryPhoto {
+          galleryPhotoId: ID!
+          deptId:         ID!
+          title:          String
+          category:       String
+          imageUrl:       String!
+          capturedAt:     String
+          createdAt:      AWSDateTime
+        }
+        
+        type PlacementOverviewList     { items: [PlacementOverview]     nextToken: String }
+        type StudentPlacementList      { items: [StudentPlacement]      nextToken: String }
+        type AchievementList           { items: [Achievement]           nextToken: String }
+        type DeptActivityList          { items: [DeptActivity]          nextToken: String }
+        type ForumEventList            { items: [ForumEvent]            nextToken: String }
+        type DepartmentActivityLogList { items: [DepartmentActivityLog] nextToken: String }
+        type NewsletterList            { items: [Newsletter]            nextToken: String }
+        type GalleryPhotoList          { items: [GalleryPhoto]          nextToken: String }
+        
+        input CreatePlacementOverviewInput {
+          deptId:            ID!
+          title:             String
+          academicYear:      String
+          companiesVisited:  Int
+          studentsInCampus:  Int
+          studentsOffCampus: Int
+          highestPackage:    String
+        }
+        input UpdatePlacementOverviewInput {
+          placementOverviewId: ID!
+          title:               String
+          academicYear:        String
+          companiesVisited:    Int
+          studentsInCampus:    Int
+          studentsOffCampus:   Int
+          highestPackage:      String
+        }
+        
+        input CreateStudentPlacementInput {
+          deptId:      ID!
+          studentName: String!
+          usn:         String
+          batch:       String
+          company:     String
+          role:        String
+          package:     Float
+          imageUrl:    String
+        }
+        input UpdateStudentPlacementInput {
+          studentPlacementId: ID!
+          studentName:        String
+          usn:                String
+          batch:              String
+          company:            String
+          role:               String
+          package:            Float
+          imageUrl:           String
+        }
+        
+        input CreateAchievementInput { deptId: ID!  type: String  text: String! }
+        input UpdateAchievementInput { achievementId: ID!  type: String  text: String }
+        
+        input CreateDeptActivityInput {
+          deptId:       ID!
+          type:         String
+          name:         String!
+          description:  String
+          date:         String
+          venue:        String
+          organizer:    String
+          participants: Int
+        }
+        input UpdateDeptActivityInput {
+          deptActivityId: ID!
+          type:           String
+          name:           String
+          description:    String
+          date:           String
+          venue:          String
+          organizer:      String
+          participants:   Int
+        }
+        
+        input SaveForumSectionInput { deptId: ID!  title: String!  description: String }
+        
+        input CreateForumEventInput { deptId: ID!  title: String!  description: String }
+        input UpdateForumEventInput { forumEventId: ID!  title: String  description: String }
+        
+        input CreateDepartmentActivityInput { deptId: ID!  text: String! }
+        input UpdateDepartmentActivityInput { deptActivityLogId: ID!  text: String }
+        
+        input CreateNewsletterInput {
+          deptId:        ID!
+          title:         String!
+          volume:        String
+          issue:         String
+          publishedDate: String
+          fileUrl:       String
+        }
+        input UpdateNewsletterInput {
+          newsletterId:  ID!
+          title:         String
+          volume:        String
+          issue:         String
+          publishedDate: String
+          fileUrl:       String
+        }
+        
+        input CreateGalleryPhotoInput {
+          deptId:     ID!
+          title:      String
+          category:   String
+          imageUrl:   String!
+          capturedAt: String
+        }
+        input UpdateGalleryPhotoInput {
+          galleryPhotoId: ID!
+          title:          String
+          category:       String
+          imageUrl:       String
+          capturedAt:     String
+        }
+        
+        
+        
+        # module: dept-branding-management
+        type DeptBranding {
+          deptId:            ID!
+          departmentTitle:   String
+          departmentLogoUrl: String
+          twitterUrl:        String
+          linkedinUrl:       String
+          youtubeUrl:        String
+          emailContact:      String
+          mapLocationLink:   String
+          fullAddress:       String
+          hodPhone:          String
+          hodEmail:          String
+          departmentPhone:   String
+          departmentFax:     String
+          departmentEmail:   String
+          copyrightText:     String
+          websiteCredits:    String
+          updatedAt:         AWSDateTime
+        }
+        
+        type InstituteSettings {
+          tenantId:              ID!
+          instituteName:         String
+          instituteLogoUrl:      String
+          defaultCopyrightText:  String
+          defaultWebsiteCredits: String
+          updatedAt:             AWSDateTime
+        }
+        
+        input SaveDeptBrandingInput {
+          departmentTitle:   String
+          departmentLogoUrl: String
+          twitterUrl:        String
+          linkedinUrl:       String
+          youtubeUrl:        String
+          emailContact:      String
+          mapLocationLink:   String
+          fullAddress:       String
+          hodPhone:          String
+          hodEmail:          String
+          departmentPhone:   String
+          departmentFax:     String
+          departmentEmail:   String
+          copyrightText:     String
+          websiteCredits:    String
+        }
+        
+        input SaveInstituteSettingsInput {
+          instituteName:         String
+          instituteLogoUrl:      String
+          defaultCopyrightText:  String
+          defaultWebsiteCredits: String
+        }
+        
+        
+        
+        # module: dept-info-management
+        type DeptIntroduction {
+          deptId:         ID!
+          departmentName: String
+          logoUrl:        String
+          imageUrl:       String
+          description:    String
+          updatedAt:      AWSDateTime
+        }
+        
+        type DeptAbout {
+          deptId:    ID!
+          vision:    String
+          mission:   String
+          updatedAt: AWSDateTime
+        }
+        
+        type DeptSwot {
+          deptId:        ID!
+          strengths:     [String]
+          weaknesses:    [String]
+          opportunities: [String]
+          threats:       [String]
+          updatedAt:     AWSDateTime
+        }
+        
+        type HodProfile {
+          deptId:         ID!
+          name:           String
+          title:          String
+          designation:    String
+          qualification:  String
+          experience:     String
+          specialization: String
+          message:        String
+          profileSummary: String
+          email:          String
+          phone:          String
+          imageUrl:       String
+          cvUrl:          String
+          updatedAt:      AWSDateTime
+        }
+        
+        type ProgramOutcome {
+          programOutcomeId: ID!
+          deptId:           ID!
+          type:             String
+          statement:        String
+          order:            Int
+          createdAt:        AWSDateTime
+          updatedAt:        AWSDateTime
+        }
+        
+        type CommitteeMember {
+          committeeMemberId: ID!
+          deptId:            ID!
+          committee:         String
+          name:              String
+          designation:       String
+          order:             Int
+        }
+        
+        type DistinguishedAlumnus {
+          distinguishedAlumnusId: ID!
+          deptId:                 ID!
+          name:                   String!
+          batch:                  String
+          currentRole:            String
+          organization:           String
+          achievement:            String
+          imageUrl:               String
+          linkedInUrl:            String
+        }
+        
+        type ProgramOutcomeList      { items: [ProgramOutcome]       nextToken: String }
+        type CommitteeMemberList     { items: [CommitteeMember]      nextToken: String }
+        type DistinguishedAlumniList { items: [DistinguishedAlumnus] nextToken: String }
+        
+        # ── Inputs ──────────────────────────────────────────────────────────────────
+        
+        input SaveDeptIntroductionInput {
+          departmentName: String
+          logoUrl:        String
+          imageUrl:       String
+          description:    String
+        }
+        
+        input SaveDeptAboutInput {
+          vision:  String
+          mission: String
+        }
+        
+        input SaveDeptSwotInput {
+          strengths:     [String]
+          weaknesses:    [String]
+          opportunities: [String]
+          threats:       [String]
+        }
+        
+        input SaveHodProfileInput {
+          name:           String
+          title:          String
+          designation:    String
+          qualification:  String
+          experience:     String
+          specialization: String
+          message:        String
+          profileSummary: String
+          email:          String
+          phone:          String
+          imageUrl:       String
+          cvUrl:          String
+        }
+        
+        input CreateProgramOutcomeInput {
+          deptId:    ID!
+          type:      String!
+          statement: String!
+          order:     Int!
+        }
+        input UpdateProgramOutcomeInput {
+          programOutcomeId: ID!
+          statement:        String
+          order:            Int
+        }
+        input ReorderProgramOutcomesInput {
+          deptId:     ID!
+          type:       String!
+          orderedIds: [ID!]!
+        }
+        
+        input CreateCommitteeMemberInput {
+          deptId:      ID!
+          committee:   String!
+          name:        String!
+          designation: String
+          order:       Int
+        }
+        input UpdateCommitteeMemberInput {
+          committeeMemberId: ID!
+          name:              String
+          designation:       String
+          order:             Int
+        }
+        
+        input CreateDistinguishedAlumnusInput {
+          deptId:       ID!
+          name:         String!
+          batch:        String
+          currentRole:  String
+          organization: String
+          achievement:  String
+          imageUrl:     String
+          linkedInUrl:  String
+        }
+        input UpdateDistinguishedAlumnusInput {
+          distinguishedAlumnusId: ID!
+          name:                   String
+          batch:                  String
+          currentRole:            String
+          organization:           String
+          achievement:            String
+          imageUrl:               String
+          linkedInUrl:            String
+        }
+        
+        
+        
+        # module: dept-people-management
+        type DeptStaff {
+          deptStaffId:   ID!
+          deptId:        ID!
+          name:          String!
+          designation:   String!
+          qualification: String
+          experience:    Int
+          email:         String
+          phone:         String
+          status:        String
+          createdAt:     AWSDateTime
+          updatedAt:     AWSDateTime
+        }
+        
+        type Accreditation {
+          accreditationId: ID!
+          deptId:          ID!
+          name:            String!
+          accreditedBy:    String!
+          validFrom:       String
+          validUntil:      String
+          grade:           String
+          certificateUrl:  String
+          status:          String
+          createdAt:       AWSDateTime
+          updatedAt:       AWSDateTime
+        }
+        
+        type DeptStaffList     { items: [DeptStaff]     nextToken: String }
+        type AccreditationList { items: [Accreditation] nextToken: String }
+        
+        input CreateDeptStaffInput {
+          deptId:        ID!
+          name:          String!
+          designation:   String!
+          qualification: String
+          experience:    Int
+          email:         String
+          phone:         String
+          status:        String
+        }
+        input UpdateDeptStaffInput {
+          deptStaffId:   ID!
+          name:          String
+          designation:   String
+          qualification: String
+          experience:    Int
+          email:         String
+          phone:         String
+          status:        String
+        }
+        
+        input CreateAccreditationInput {
+          deptId:         ID!
+          name:           String!
+          accreditedBy:   String!
+          validFrom:      String
+          validUntil:     String
+          grade:          String
+          certificateUrl: String
+          status:         String
+        }
+        input UpdateAccreditationInput {
+          accreditationId: ID!
+          name:            String
+          accreditedBy:    String
+          validFrom:       String
+          validUntil:      String
+          grade:           String
+          certificateUrl:  String
+          status:          String
+        }
+        
+        
+        
+        # module: dept-research-management
+        type DeptPublication {
+          deptPublicationId: ID!
+          deptId:            ID!
+          title:             String!
+          authors:           String!
+          journal:           String
+          year:              Int
+          type:              String
+          doi:               String
+          createdAt:         AWSDateTime
+          updatedAt:         AWSDateTime
+        }
+        
+        type PublicationProfile {
+          publicationProfileId: ID!
+          deptId:               ID!
+          facultyId:            ID!
+          googleScholarLink:    String
+          irinsLink:            String
+          updatedAt:            AWSDateTime
+        }
+        
+        type ResearchGrant {
+          researchGrantId: ID!
+          deptId:          ID!
+          text:            String!
+          createdAt:       AWSDateTime
+        }
+        
+        type Patent {
+          patentId:  ID!
+          deptId:    ID!
+          text:      String!
+          createdAt: AWSDateTime
+        }
+        
+        type FacultyResearchSummary {
+          facultyResearchSummaryId: ID!
+          deptId:               ID!
+          facultyId:            ID!
+          researchArea:         String
+          guideName:            String
+          guideDesignation:     String
+          guideInstitution:     String
+          guideType:            String
+          thesisTitle:          String
+          university:           String
+          yearOfRegistration:   Int
+          yearOfDegreeAwarded:  Int
+          courseWorkCompleted:  Boolean
+          prePhDVivaVoce:       Boolean
+          finalThesisSubmitted: Boolean
+          researchStatus:       String
+          thesisDocumentUrl:    String
+          remarks:              String
+          createdAt:            AWSDateTime
+          updatedAt:            AWSDateTime
+        }
+        
+        type PhdGuide {
+          phdGuideId:      ID!
+          deptId:          ID!
+          facultyName:     String!
+          university:      String
+          recognizedYear:  Int
+          scholarsGuided:  Int
+          ongoingScholars: Int
+        }
+        
+        type PhdScholar {
+          phdScholarId:         ID!
+          deptId:               ID!
+          guideFacultyId:       ID!
+          scholarName:          String!
+          institution:          String
+          department:           String
+          yearOfRegistration:   Int
+          thesisTitle:          String
+          yearOfDegreeAwarded:  Int
+          courseWorkCompleted:  Boolean
+          prePhdViva:           Boolean
+          finalThesisSubmitted: Boolean
+          status:               String
+        }
+        
+        type DeptPublicationList        { items: [DeptPublication]        nextToken: String }
+        type PublicationProfileList     { items: [PublicationProfile]     nextToken: String }
+        type ResearchGrantList          { items: [ResearchGrant]          nextToken: String }
+        type PatentList                 { items: [Patent]                 nextToken: String }
+        type FacultyResearchSummaryList { items: [FacultyResearchSummary] nextToken: String }
+        type PhdGuideList               { items: [PhdGuide]               nextToken: String }
+        type PhdScholarList             { items: [PhdScholar]             nextToken: String }
+        
+        input CreateDeptPublicationInput {
+          deptId:  ID!
+          title:   String!
+          authors: String!
+          journal: String
+          year:    Int
+          type:    String
+          doi:     String
+        }
+        input UpdateDeptPublicationInput {
+          deptPublicationId: ID!
+          title:   String
+          authors: String
+          journal: String
+          year:    Int
+          type:    String
+          doi:     String
+        }
+        
+        input SavePublicationProfileInput {
+          deptId:            ID!
+          facultyId:         ID!
+          googleScholarLink: String
+          irinsLink:         String
+        }
+        
+        input CreateResearchGrantInput { deptId: ID!  text: String! }
+        input UpdateResearchGrantInput { researchGrantId: ID!  text: String! }
+        
+        input CreatePatentInput { deptId: ID!  text: String! }
+        input UpdatePatentInput { patentId: ID!  text: String! }
+        
+        input CreateFacultyResearchSummaryInput {
+          deptId:               ID!
+          facultyId:            ID!
+          researchArea:         String
+          guideName:            String
+          guideDesignation:     String
+          guideInstitution:     String
+          guideType:            String
+          thesisTitle:          String
+          university:           String
+          yearOfRegistration:   Int
+          courseWorkCompleted:  Boolean
+          prePhDVivaVoce:       Boolean
+          finalThesisSubmitted: Boolean
+          researchStatus:       String
+          thesisDocumentUrl:    String
+          remarks:              String
+        }
+        input UpdateFacultyResearchSummaryInput {
+          facultyResearchSummaryId: ID!
+          researchArea:         String
+          guideName:            String
+          guideDesignation:     String
+          guideInstitution:     String
+          guideType:            String
+          thesisTitle:          String
+          university:           String
+          yearOfRegistration:   Int
+          yearOfDegreeAwarded:  Int
+          courseWorkCompleted:  Boolean
+          prePhDVivaVoce:       Boolean
+          finalThesisSubmitted: Boolean
+          researchStatus:       String
+          thesisDocumentUrl:    String
+          remarks:              String
+        }
+        
+        input CreatePhdGuideInput {
+          deptId:          ID!
+          facultyName:     String!
+          university:      String
+          recognizedYear:  Int
+          scholarsGuided:  Int
+          ongoingScholars: Int
+        }
+        input UpdatePhdGuideInput {
+          phdGuideId:      ID!
+          facultyName:     String
+          university:      String
+          recognizedYear:  Int
+          scholarsGuided:  Int
+          ongoingScholars: Int
+        }
+        
+        input CreatePhdScholarInput {
+          deptId:               ID!
+          guideFacultyId:       ID!
+          scholarName:          String!
+          institution:          String
+          department:           String
+          yearOfRegistration:   Int
+          thesisTitle:          String
+          courseWorkCompleted:  Boolean
+          prePhdViva:           Boolean
+          finalThesisSubmitted: Boolean
+          status:               String
+        }
+        input UpdatePhdScholarInput {
+          phdScholarId:         ID!
+          scholarName:          String
+          institution:          String
+          department:           String
+          yearOfRegistration:   Int
+          thesisTitle:          String
+          yearOfDegreeAwarded:  Int
+          courseWorkCompleted:  Boolean
+          prePhdViva:           Boolean
+          finalThesisSubmitted: Boolean
+          status:               String
+        }
+        
+        
+        
+        # module: faculty-management
+        type Publication {
+          publicationId: ID!
+          facultyId: ID!
+          title: String!
+          authors: [String]
+          journal: String
           year: Int
-          amount_spent: Float
-          amount_unit: String
-          status: String
-          imageUrl: String
-          view_on_tracker: Boolean
-          createdBy: String
-          created_at: AWSDateTime
-          updated_at: AWSDateTime
-        }
-        
-        type DevelopmentConnection {
-          items: [Development!]!
-          nextCursor: String
-        }
-        
-        input CreateDevelopmentInput {
-          development_id: ID
-          constituency: String!
-          ward: String!
-          ward_no: String!
-          nameOfWork: String!
-          type: String!
-          location: String!
-          year: Int!
-          amount_spent: Float!
-          amount_unit: String!
-          status: String!
-          imageUrl: String
-          view_on_tracker: Boolean
-        }
-        
-        input UpdateDevelopmentInput {
-          constituency: String
-          ward: String
-          ward_no: String
-          nameOfWork: String
+          doi: String
           type: String
-          location: String
+          createdAt: AWSDateTime
+          updatedAt: AWSDateTime
+        }
+        
+        type Education {
+          educationId: ID!
+          facultyId: ID!
+          degree: String!
+          institution: String!
+          fieldOfStudy: String
+          startYear: Int
+          endYear: Int
+          description: String
+          createdAt: AWSDateTime
+          updatedAt: AWSDateTime
+        }
+        
+        type WorkExperience {
+          workExperienceId: ID!
+          facultyId: ID!
+          title: String!
+          organization: String!
+          startDate: AWSDate
+          endDate: AWSDate
+          current: Boolean
+          description: String
+          createdAt: AWSDateTime
+          updatedAt: AWSDateTime
+        }
+        
+        type ResearchProject {
+          researchProjectId: ID!
+          facultyId: ID!
+          title: String!
+          description: String
+          status: String
+          startDate: AWSDate
+          endDate: AWSDate
+          fundingSource: String
+          collaborators: [String]
+          createdAt: AWSDateTime
+          updatedAt: AWSDateTime
+        }
+        
+        type CourseTeaching {
+          courseTeachingId: ID!
+          facultyId: ID!
+          courseCode: String!
+          courseName: String!
+          semester: String
           year: Int
-          amount_spent: Float
-          amount_unit: String
+          credits: Int
+          description: String
+          createdAt: AWSDateTime
+          updatedAt: AWSDateTime
+        }
+        
+        type Honor {
+          honorId: ID!
+          facultyId: ID!
+          title: String!
+          organization: String
+          year: Int
+          description: String
+          createdAt: AWSDateTime
+          updatedAt: AWSDateTime
+        }
+        
+        type Faculty {
+          facultyId: ID!
+          firstName: String!
+          lastName: String!
+          email: String!
+          title: String
+          department: String
+          designation: String
+          bio: String
+          profileImage: String
+          phone: String
+          officeLocation: String
+          website: String
+          publications: [Publication]
+          education: [Education]
+          workExperience: [WorkExperience]
+          researchProjects: [ResearchProject]
+          courseTeachings: [CourseTeaching]
+          honors: [Honor]
+          createdAt: AWSDateTime
+          updatedAt: AWSDateTime
+        }
+        
+        input CreateFacultyInput {
+          firstName: String!
+          lastName: String!
+          email: String!
+          title: String
+          department: String
+          designation: String
+          bio: String
+          profileImage: String
+          phone: String
+          officeLocation: String
+          website: String
+        }
+        
+        input UpdateFacultyInput {
+          facultyId: ID!
+          firstName: String
+          lastName: String
+          email: String
+          title: String
+          department: String
+          designation: String
+          bio: String
+          profileImage: String
+          phone: String
+          officeLocation: String
+          website: String
+        }
+        
+        input AddPublicationInput {
+          facultyId: ID!
+          title: String!
+          authors: [String]
+          journal: String
+          year: Int
+          doi: String
+          type: String
+        }
+        
+        input UpdatePublicationInput {
+          publicationId: ID!
+          facultyId: ID!
+          title: String
+          authors: [String]
+          journal: String
+          year: Int
+          doi: String
+          type: String
+        }
+        
+        input RemovePublicationInput {
+          publicationId: ID!
+          facultyId: ID!
+        }
+        
+        input AddEducationInput {
+          facultyId: ID!
+          degree: String!
+          institution: String!
+          fieldOfStudy: String
+          startYear: Int
+          endYear: Int
+          description: String
+        }
+        
+        input UpdateEducationInput {
+          educationId: ID!
+          facultyId: ID!
+          degree: String
+          institution: String
+          fieldOfStudy: String
+          startYear: Int
+          endYear: Int
+          description: String
+        }
+        
+        input RemoveEducationInput {
+          educationId: ID!
+          facultyId: ID!
+        }
+        
+        input AddWorkExperienceInput {
+          facultyId: ID!
+          title: String!
+          organization: String!
+          startDate: AWSDate
+          endDate: AWSDate
+          current: Boolean
+          description: String
+        }
+        
+        input UpdateWorkExperienceInput {
+          workExperienceId: ID!
+          facultyId: ID!
+          title: String
+          organization: String
+          startDate: AWSDate
+          endDate: AWSDate
+          current: Boolean
+          description: String
+        }
+        
+        input RemoveWorkExperienceInput {
+          workExperienceId: ID!
+          facultyId: ID!
+        }
+        
+        input AddResearchProjectInput {
+          facultyId: ID!
+          title: String!
+          description: String
           status: String
-          imageUrl: String
-          view_on_tracker: Boolean
+          startDate: AWSDate
+          endDate: AWSDate
+          fundingSource: String
+          collaborators: [String]
         }
         
-        
-        
-        # module: news-management
-        type News {
-          news_id: ID!
-          constituency: String
-          ward: String
-          dateTime: AWSDateTime
-          information: String
-          incidentType: String
-          imageUrl: String
-          createdBy: String
-          created_at: AWSDateTime
-          updated_at: AWSDateTime
-        }
-        
-        type NewsConnection {
-          items: [News!]!
-          nextCursor: String
-        }
-        
-        input CreateNewsInput {
-          news_id: ID
-          constituency: String!
-          ward: String!
-          dateTime: AWSDateTime!
-          information: String!
-          incidentType: String!
-          imageUrl: String
-        }
-        
-        input UpdateNewsInput {
-          constituency: String
-          ward: String
-          dateTime: AWSDateTime
-          information: String
-          incidentType: String
-          imageUrl: String
-        }
-        
-        
-        
-        # module: team-management
-        """
-        Team entity
-        """
-        type Team {
-          team_id: ID!
-          name: String
-          constituency: String
-          ward: String
-          group: String
-          team_category: String
-          role: String
-          remarks: String
-          contact: String
-          childId: ID
+        input UpdateResearchProjectInput {
+          researchProjectId: ID!
+          facultyId: ID!
+          title: String
+          description: String
           status: String
-          createdBy: ID
-          created_at: AWSDateTime
-          updated_at: AWSDateTime
+          startDate: AWSDate
+          endDate: AWSDate
+          fundingSource: String
+          collaborators: [String]
         }
         
-        """
-        Connection type for paginated team list
-        """
-        type TeamConnection {
-          items: [Team!]!
-          nextCursor: String
+        input RemoveResearchProjectInput {
+          researchProjectId: ID!
+          facultyId: ID!
         }
         
-        """
-        Input for creating a team
-        """
-        input CreateTeamInput {
-          name: String
-          constituency: String
-          ward: String
-          group: String
-          team_category: String
-          role: String
-          remarks: String
-          contact: String
-          childId: ID
-          status: String
+        input AddCourseTeachingInput {
+          facultyId: ID!
+          courseCode: String!
+          courseName: String!
+          semester: String
+          year: Int
+          credits: Int
+          description: String
         }
         
-        """
-        Input for updating a team
-        """
-        input UpdateTeamInput {
-          name: String
-          constituency: String
-          ward: String
-          group: String
-          team_category: String
-          role: String
-          remarks: String
-          contact: String
-          childId: ID
-          status: String
+        input UpdateCourseTeachingInput {
+          courseTeachingId: ID!
+          facultyId: ID!
+          courseCode: String
+          courseName: String
+          semester: String
+          year: Int
+          credits: Int
+          description: String
+        }
+        
+        input RemoveCourseTeachingInput {
+          courseTeachingId: ID!
+          facultyId: ID!
+        }
+        
+        input AddHonorInput {
+          facultyId: ID!
+          title: String!
+          organization: String
+          year: Int
+          description: String
+        }
+        
+        input UpdateHonorInput {
+          honorId: ID!
+          facultyId: ID!
+          title: String
+          organization: String
+          year: Int
+          description: String
+        }
+        
+        input RemoveHonorInput {
+          honorId: ID!
+          facultyId: ID!
+        }
+        
+        type FacultyList {
+          items: [Faculty]
+          nextToken: String
         }
         
         
@@ -1511,11 +2688,11 @@ Resources:
         RuntimeVersion: 1.0.0
       CodeS3Location: src/core-modules/workflow-management/resolvers/listWorkflowInstances.js
 
-  NewsFunction:
+  DeptBrandingFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub '${ProjectName}-news-${Environment}'
-      CodeUri: src/app-modules/news-management/
+      FunctionName: !Sub '${ProjectName}-dept-branding-${Environment}'
+      CodeUri: src/app-modules/dept-branding-management/
       Handler: functions/handler.handler
       Layers:
         - !Ref CommonLayer
@@ -1527,53 +2704,80 @@ Resources:
             ParameterName: !Sub '${ProjectName}/${Environment}/*'
       Tags:
         Environment: !Ref Environment
-        ModuleName: news-management
+        ModuleName: dept-branding-management
         ManagedBy: CloudFormation
 
-  NewsDataSource:
+  DeptBrandingDataSource:
     Type: AWS::AppSync::DataSource
     Properties:
       ApiId: !GetAtt AppSyncApi.ApiId
-      Name: NewsDataSource
+      Name: DeptBrandingDataSource
       Type: AWS_LAMBDA
       ServiceRoleArn: !GetAtt AppSyncServiceRole.Arn
       LambdaConfig:
-        LambdaFunctionArn: !GetAtt NewsFunction.Arn
+        LambdaFunctionArn: !GetAtt DeptBrandingFunction.Arn
 
-  NewsMutationResolver:
+  DeptBrandingGetInstituteSettingsResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: getInstituteSettings
+      DataSourceName: !GetAtt DeptBrandingDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-branding-management/resolvers/getInstituteSettings.js
+
+  DeptBrandingSaveInstituteSettingsResolver:
     Type: AWS::AppSync::Resolver
     DependsOn: AppSyncSchema
     Properties:
       ApiId: !GetAtt AppSyncApi.ApiId
       TypeName: Mutation
-      FieldName: mutation
-      DataSourceName: !GetAtt NewsDataSource.Name
+      FieldName: saveInstituteSettings
+      DataSourceName: !GetAtt DeptBrandingDataSource.Name
       Kind: UNIT
       Runtime:
         Name: APPSYNC_JS
         RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/news-management/resolvers/mutation.js
+      CodeS3Location: src/app-modules/dept-branding-management/resolvers/saveInstituteSettings.js
 
-  NewsQueryResolver:
+  DeptBrandingGetDeptBrandingResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: getDeptBranding
+      DataSourceName: !GetAtt DeptBrandingDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-branding-management/resolvers/getDeptBranding.js
+
+  DeptBrandingSaveDeptBrandingResolver:
     Type: AWS::AppSync::Resolver
     DependsOn: AppSyncSchema
     Properties:
       ApiId: !GetAtt AppSyncApi.ApiId
       TypeName: Mutation
-      FieldName: query
-      DataSourceName: !GetAtt NewsDataSource.Name
+      FieldName: saveDeptBranding
+      DataSourceName: !GetAtt DeptBrandingDataSource.Name
       Kind: UNIT
       Runtime:
         Name: APPSYNC_JS
         RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/news-management/resolvers/query.js
+      CodeS3Location: src/app-modules/dept-branding-management/resolvers/saveDeptBranding.js
 
-
-  DevelopmentFunction:
+  DeptActivitiesFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub '${ProjectName}-development-${Environment}'
-      CodeUri: src/app-modules/development-management/
+      FunctionName: !Sub '${ProjectName}-dept-activities-${Environment}'
+      CodeUri: src/app-modules/dept-activities-management/
       Handler: functions/handler.handler
       Layers:
         - !Ref CommonLayer
@@ -1585,53 +2789,500 @@ Resources:
             ParameterName: !Sub '${ProjectName}/${Environment}/*'
       Tags:
         Environment: !Ref Environment
-        ModuleName: development-management
+        ModuleName: dept-activities-management
         ManagedBy: CloudFormation
 
-  DevelopmentDataSource:
+  DeptActivitiesDataSource:
     Type: AWS::AppSync::DataSource
     Properties:
       ApiId: !GetAtt AppSyncApi.ApiId
-      Name: DevelopmentDataSource
+      Name: DeptActivitiesDataSource
       Type: AWS_LAMBDA
       ServiceRoleArn: !GetAtt AppSyncServiceRole.Arn
       LambdaConfig:
-        LambdaFunctionArn: !GetAtt DevelopmentFunction.Arn
+        LambdaFunctionArn: !GetAtt DeptActivitiesFunction.Arn
 
-  DevelopmentMutationResolver:
+  DeptActivitiesListPlacementOverviewsResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listPlacementOverviews
+      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-activities-management/resolvers/listPlacementOverviews.js
+
+  DeptActivitiesCreatePlacementOverviewResolver:
     Type: AWS::AppSync::Resolver
     DependsOn: AppSyncSchema
     Properties:
       ApiId: !GetAtt AppSyncApi.ApiId
       TypeName: Mutation
-      FieldName: mutation
-      DataSourceName: !GetAtt DevelopmentDataSource.Name
+      FieldName: createPlacementOverview
+      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
       Kind: UNIT
       Runtime:
         Name: APPSYNC_JS
         RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/development-management/resolvers/mutation.js
+      CodeS3Location: src/app-modules/dept-activities-management/resolvers/createPlacementOverview.js
 
-  DevelopmentQueryResolver:
+  DeptActivitiesUpdatePlacementOverviewResolver:
     Type: AWS::AppSync::Resolver
     DependsOn: AppSyncSchema
     Properties:
       ApiId: !GetAtt AppSyncApi.ApiId
       TypeName: Mutation
-      FieldName: query
-      DataSourceName: !GetAtt DevelopmentDataSource.Name
+      FieldName: updatePlacementOverview
+      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
       Kind: UNIT
       Runtime:
         Name: APPSYNC_JS
         RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/development-management/resolvers/query.js
+      CodeS3Location: src/app-modules/dept-activities-management/resolvers/updatePlacementOverview.js
 
+  DeptActivitiesDeletePlacementOverviewResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deletePlacementOverview
+      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-activities-management/resolvers/deletePlacementOverview.js
 
-  TeamFunction:
+  DeptActivitiesListStudentPlacementsResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listStudentPlacements
+      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-activities-management/resolvers/listStudentPlacements.js
+
+  DeptActivitiesCreateStudentPlacementResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createStudentPlacement
+      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-activities-management/resolvers/createStudentPlacement.js
+
+  DeptActivitiesUpdateStudentPlacementResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateStudentPlacement
+      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-activities-management/resolvers/updateStudentPlacement.js
+
+  DeptActivitiesDeleteStudentPlacementResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteStudentPlacement
+      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-activities-management/resolvers/deleteStudentPlacement.js
+
+  DeptActivitiesListAchievementsResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listAchievements
+      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-activities-management/resolvers/listAchievements.js
+
+  DeptActivitiesCreateAchievementResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createAchievement
+      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-activities-management/resolvers/createAchievement.js
+
+  DeptActivitiesUpdateAchievementResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateAchievement
+      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-activities-management/resolvers/updateAchievement.js
+
+  DeptActivitiesDeleteAchievementResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteAchievement
+      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-activities-management/resolvers/deleteAchievement.js
+
+  DeptActivitiesListDeptActivitiesResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listDeptActivities
+      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-activities-management/resolvers/listDeptActivities.js
+
+  DeptActivitiesCreateDeptActivityResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createDeptActivity
+      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-activities-management/resolvers/createDeptActivity.js
+
+  DeptActivitiesUpdateDeptActivityResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateDeptActivity
+      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-activities-management/resolvers/updateDeptActivity.js
+
+  DeptActivitiesDeleteDeptActivityResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteDeptActivity
+      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-activities-management/resolvers/deleteDeptActivity.js
+
+  DeptActivitiesListNewslettersResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listNewsletters
+      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-activities-management/resolvers/listNewsletters.js
+
+  DeptActivitiesCreateNewsletterResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createNewsletter
+      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-activities-management/resolvers/createNewsletter.js
+
+  DeptActivitiesUpdateNewsletterResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateNewsletter
+      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-activities-management/resolvers/updateNewsletter.js
+
+  DeptActivitiesDeleteNewsletterResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteNewsletter
+      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-activities-management/resolvers/deleteNewsletter.js
+
+  DeptActivitiesListGalleryPhotosResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listGalleryPhotos
+      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-activities-management/resolvers/listGalleryPhotos.js
+
+  DeptActivitiesCreateGalleryPhotoResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createGalleryPhoto
+      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-activities-management/resolvers/createGalleryPhoto.js
+
+  DeptActivitiesUpdateGalleryPhotoResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateGalleryPhoto
+      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-activities-management/resolvers/updateGalleryPhoto.js
+
+  DeptActivitiesDeleteGalleryPhotoResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteGalleryPhoto
+      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-activities-management/resolvers/deleteGalleryPhoto.js
+
+  DeptActivitiesGetForumSectionResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: getForumSection
+      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-activities-management/resolvers/getForumSection.js
+
+  DeptActivitiesSaveForumSectionResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: saveForumSection
+      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-activities-management/resolvers/saveForumSection.js
+
+  DeptActivitiesListForumEventsResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listForumEvents
+      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-activities-management/resolvers/listForumEvents.js
+
+  DeptActivitiesCreateForumEventResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createForumEvent
+      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-activities-management/resolvers/createForumEvent.js
+
+  DeptActivitiesUpdateForumEventResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateForumEvent
+      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-activities-management/resolvers/updateForumEvent.js
+
+  DeptActivitiesDeleteForumEventResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteForumEvent
+      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-activities-management/resolvers/deleteForumEvent.js
+
+  DeptActivitiesListDepartmentActivitiesResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listDepartmentActivities
+      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-activities-management/resolvers/listDepartmentActivities.js
+
+  DeptActivitiesCreateDepartmentActivityResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createDepartmentActivity
+      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-activities-management/resolvers/createDepartmentActivity.js
+
+  DeptActivitiesUpdateDepartmentActivityResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateDepartmentActivity
+      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-activities-management/resolvers/updateDepartmentActivity.js
+
+  DeptActivitiesDeleteDepartmentActivityResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteDepartmentActivity
+      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-activities-management/resolvers/deleteDepartmentActivity.js
+
+  DeptAcademicsFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub '${ProjectName}-team-${Environment}'
-      CodeUri: src/app-modules/team-management/
+      FunctionName: !Sub '${ProjectName}-dept-academics-${Environment}'
+      CodeUri: src/app-modules/dept-academics-management/
       Handler: functions/handler.handler
       Layers:
         - !Ref CommonLayer
@@ -1643,47 +3294,1648 @@ Resources:
             ParameterName: !Sub '${ProjectName}/${Environment}/*'
       Tags:
         Environment: !Ref Environment
-        ModuleName: team-management
+        ModuleName: dept-academics-management
         ManagedBy: CloudFormation
 
-  TeamDataSource:
+  DeptAcademicsDataSource:
     Type: AWS::AppSync::DataSource
     Properties:
       ApiId: !GetAtt AppSyncApi.ApiId
-      Name: TeamDataSource
+      Name: DeptAcademicsDataSource
       Type: AWS_LAMBDA
       ServiceRoleArn: !GetAtt AppSyncServiceRole.Arn
       LambdaConfig:
-        LambdaFunctionArn: !GetAtt TeamFunction.Arn
+        LambdaFunctionArn: !GetAtt DeptAcademicsFunction.Arn
 
-  TeamMutationResolver:
+  DeptAcademicsGetDeptCourseResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: getDeptCourse
+      DataSourceName: !GetAtt DeptAcademicsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-academics-management/resolvers/getDeptCourse.js
+
+  DeptAcademicsListDeptCoursesResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listDeptCourses
+      DataSourceName: !GetAtt DeptAcademicsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-academics-management/resolvers/listDeptCourses.js
+
+  DeptAcademicsListDeptTimetablesResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listDeptTimetables
+      DataSourceName: !GetAtt DeptAcademicsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-academics-management/resolvers/listDeptTimetables.js
+
+  DeptAcademicsListLearningMaterialsResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listLearningMaterials
+      DataSourceName: !GetAtt DeptAcademicsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-academics-management/resolvers/listLearningMaterials.js
+
+  DeptAcademicsListInnovativeTeachingResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listInnovativeTeaching
+      DataSourceName: !GetAtt DeptAcademicsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-academics-management/resolvers/listInnovativeTeaching.js
+
+  DeptAcademicsListResultAnalysesResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listResultAnalyses
+      DataSourceName: !GetAtt DeptAcademicsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-academics-management/resolvers/listResultAnalyses.js
+
+  DeptAcademicsCreateDeptCourseResolver:
     Type: AWS::AppSync::Resolver
     DependsOn: AppSyncSchema
     Properties:
       ApiId: !GetAtt AppSyncApi.ApiId
       TypeName: Mutation
-      FieldName: mutation
-      DataSourceName: !GetAtt TeamDataSource.Name
+      FieldName: createDeptCourse
+      DataSourceName: !GetAtt DeptAcademicsDataSource.Name
       Kind: UNIT
       Runtime:
         Name: APPSYNC_JS
         RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/team-management/resolvers/mutation.js
+      CodeS3Location: src/app-modules/dept-academics-management/resolvers/createDeptCourse.js
 
-  TeamQueryResolver:
+  DeptAcademicsUpdateDeptCourseResolver:
     Type: AWS::AppSync::Resolver
     DependsOn: AppSyncSchema
     Properties:
       ApiId: !GetAtt AppSyncApi.ApiId
       TypeName: Mutation
-      FieldName: query
-      DataSourceName: !GetAtt TeamDataSource.Name
+      FieldName: updateDeptCourse
+      DataSourceName: !GetAtt DeptAcademicsDataSource.Name
       Kind: UNIT
       Runtime:
         Name: APPSYNC_JS
         RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/team-management/resolvers/query.js
+      CodeS3Location: src/app-modules/dept-academics-management/resolvers/updateDeptCourse.js
 
+  DeptAcademicsDeleteDeptCourseResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteDeptCourse
+      DataSourceName: !GetAtt DeptAcademicsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-academics-management/resolvers/deleteDeptCourse.js
+
+  DeptAcademicsCreateDeptTimetableResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createDeptTimetable
+      DataSourceName: !GetAtt DeptAcademicsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-academics-management/resolvers/createDeptTimetable.js
+
+  DeptAcademicsUpdateDeptTimetableResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateDeptTimetable
+      DataSourceName: !GetAtt DeptAcademicsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-academics-management/resolvers/updateDeptTimetable.js
+
+  DeptAcademicsDeleteDeptTimetableResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteDeptTimetable
+      DataSourceName: !GetAtt DeptAcademicsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-academics-management/resolvers/deleteDeptTimetable.js
+
+  DeptAcademicsCreateLearningMaterialResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createLearningMaterial
+      DataSourceName: !GetAtt DeptAcademicsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-academics-management/resolvers/createLearningMaterial.js
+
+  DeptAcademicsUpdateLearningMaterialResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateLearningMaterial
+      DataSourceName: !GetAtt DeptAcademicsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-academics-management/resolvers/updateLearningMaterial.js
+
+  DeptAcademicsDeleteLearningMaterialResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteLearningMaterial
+      DataSourceName: !GetAtt DeptAcademicsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-academics-management/resolvers/deleteLearningMaterial.js
+
+  DeptAcademicsCreateInnovativeTeachingResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createInnovativeTeaching
+      DataSourceName: !GetAtt DeptAcademicsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-academics-management/resolvers/createInnovativeTeaching.js
+
+  DeptAcademicsUpdateInnovativeTeachingResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateInnovativeTeaching
+      DataSourceName: !GetAtt DeptAcademicsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-academics-management/resolvers/updateInnovativeTeaching.js
+
+  DeptAcademicsDeleteInnovativeTeachingResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteInnovativeTeaching
+      DataSourceName: !GetAtt DeptAcademicsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-academics-management/resolvers/deleteInnovativeTeaching.js
+
+  DeptAcademicsCreateResultAnalysisResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createResultAnalysis
+      DataSourceName: !GetAtt DeptAcademicsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-academics-management/resolvers/createResultAnalysis.js
+
+  DeptAcademicsUpdateResultAnalysisResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateResultAnalysis
+      DataSourceName: !GetAtt DeptAcademicsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-academics-management/resolvers/updateResultAnalysis.js
+
+  DeptAcademicsDeleteResultAnalysisResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteResultAnalysis
+      DataSourceName: !GetAtt DeptAcademicsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-academics-management/resolvers/deleteResultAnalysis.js
+
+  DeptResearchFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-dept-research-${Environment}'
+      CodeUri: src/app-modules/dept-research-management/
+      Handler: functions/handler.handler
+      Layers:
+        - !Ref CommonLayer
+        - !Ref PackagesLayer
+      Policies:
+        - EventBridgePutEventsPolicy:
+            EventBusName: !Ref AppEventBus
+        - SSMParameterReadPolicy:
+            ParameterName: !Sub '${ProjectName}/${Environment}/*'
+      Tags:
+        Environment: !Ref Environment
+        ModuleName: dept-research-management
+        ManagedBy: CloudFormation
+
+  DeptResearchDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      Name: DeptResearchDataSource
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !GetAtt AppSyncServiceRole.Arn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt DeptResearchFunction.Arn
+
+  DeptResearchListDeptPublicationsResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listDeptPublications
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/listDeptPublications.js
+
+  DeptResearchCreateDeptPublicationResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createDeptPublication
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/createDeptPublication.js
+
+  DeptResearchUpdateDeptPublicationResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateDeptPublication
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/updateDeptPublication.js
+
+  DeptResearchDeleteDeptPublicationResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteDeptPublication
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/deleteDeptPublication.js
+
+  DeptResearchListPublicationProfilesResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listPublicationProfiles
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/listPublicationProfiles.js
+
+  DeptResearchSavePublicationProfileResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: savePublicationProfile
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/savePublicationProfile.js
+
+  DeptResearchListResearchGrantsResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listResearchGrants
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/listResearchGrants.js
+
+  DeptResearchCreateResearchGrantResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createResearchGrant
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/createResearchGrant.js
+
+  DeptResearchUpdateResearchGrantResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateResearchGrant
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/updateResearchGrant.js
+
+  DeptResearchDeleteResearchGrantResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteResearchGrant
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/deleteResearchGrant.js
+
+  DeptResearchListPatentsResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listPatents
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/listPatents.js
+
+  DeptResearchCreatePatentResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createPatent
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/createPatent.js
+
+  DeptResearchUpdatePatentResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updatePatent
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/updatePatent.js
+
+  DeptResearchDeletePatentResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deletePatent
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/deletePatent.js
+
+  DeptResearchListFacultyResearchSummariesResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listFacultyResearchSummaries
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/listFacultyResearchSummaries.js
+
+  DeptResearchCreateFacultyResearchSummaryResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createFacultyResearchSummary
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/createFacultyResearchSummary.js
+
+  DeptResearchUpdateFacultyResearchSummaryResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateFacultyResearchSummary
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/updateFacultyResearchSummary.js
+
+  DeptResearchDeleteFacultyResearchSummaryResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteFacultyResearchSummary
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/deleteFacultyResearchSummary.js
+
+  DeptResearchListPhdGuidesResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listPhdGuides
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/listPhdGuides.js
+
+  DeptResearchCreatePhdGuideResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createPhdGuide
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/createPhdGuide.js
+
+  DeptResearchUpdatePhdGuideResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updatePhdGuide
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/updatePhdGuide.js
+
+  DeptResearchDeletePhdGuideResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deletePhdGuide
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/deletePhdGuide.js
+
+  DeptResearchListPhdScholarsResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listPhdScholars
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/listPhdScholars.js
+
+  DeptResearchCreatePhdScholarResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createPhdScholar
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/createPhdScholar.js
+
+  DeptResearchUpdatePhdScholarResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updatePhdScholar
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/updatePhdScholar.js
+
+  DeptResearchDeletePhdScholarResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deletePhdScholar
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/deletePhdScholar.js
+
+  DeptPeopleFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-dept-people-${Environment}'
+      CodeUri: src/app-modules/dept-people-management/
+      Handler: functions/handler.handler
+      Layers:
+        - !Ref CommonLayer
+        - !Ref PackagesLayer
+      Policies:
+        - EventBridgePutEventsPolicy:
+            EventBusName: !Ref AppEventBus
+        - SSMParameterReadPolicy:
+            ParameterName: !Sub '${ProjectName}/${Environment}/*'
+      Tags:
+        Environment: !Ref Environment
+        ModuleName: dept-people-management
+        ManagedBy: CloudFormation
+
+  DeptPeopleDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      Name: DeptPeopleDataSource
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !GetAtt AppSyncServiceRole.Arn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt DeptPeopleFunction.Arn
+
+  DeptPeopleGetDeptStaffResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: getDeptStaff
+      DataSourceName: !GetAtt DeptPeopleDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-people-management/resolvers/getDeptStaff.js
+
+  DeptPeopleListDeptStaffResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listDeptStaff
+      DataSourceName: !GetAtt DeptPeopleDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-people-management/resolvers/listDeptStaff.js
+
+  DeptPeopleCreateDeptStaffResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createDeptStaff
+      DataSourceName: !GetAtt DeptPeopleDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-people-management/resolvers/createDeptStaff.js
+
+  DeptPeopleUpdateDeptStaffResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateDeptStaff
+      DataSourceName: !GetAtt DeptPeopleDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-people-management/resolvers/updateDeptStaff.js
+
+  DeptPeopleDeleteDeptStaffResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteDeptStaff
+      DataSourceName: !GetAtt DeptPeopleDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-people-management/resolvers/deleteDeptStaff.js
+
+  DeptPeopleGetAccreditationResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: getAccreditation
+      DataSourceName: !GetAtt DeptPeopleDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-people-management/resolvers/getAccreditation.js
+
+  DeptPeopleListAccreditationsResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listAccreditations
+      DataSourceName: !GetAtt DeptPeopleDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-people-management/resolvers/listAccreditations.js
+
+  DeptPeopleCreateAccreditationResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createAccreditation
+      DataSourceName: !GetAtt DeptPeopleDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-people-management/resolvers/createAccreditation.js
+
+  DeptPeopleUpdateAccreditationResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateAccreditation
+      DataSourceName: !GetAtt DeptPeopleDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-people-management/resolvers/updateAccreditation.js
+
+  DeptPeopleDeleteAccreditationResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteAccreditation
+      DataSourceName: !GetAtt DeptPeopleDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-people-management/resolvers/deleteAccreditation.js
+
+  DeptInfoFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-dept-info-${Environment}'
+      CodeUri: src/app-modules/dept-info-management/
+      Handler: functions/handler.handler
+      Layers:
+        - !Ref CommonLayer
+        - !Ref PackagesLayer
+      Policies:
+        - EventBridgePutEventsPolicy:
+            EventBusName: !Ref AppEventBus
+        - SSMParameterReadPolicy:
+            ParameterName: !Sub '${ProjectName}/${Environment}/*'
+      Tags:
+        Environment: !Ref Environment
+        ModuleName: dept-info-management
+        ManagedBy: CloudFormation
+
+  DeptInfoDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      Name: DeptInfoDataSource
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !GetAtt AppSyncServiceRole.Arn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt DeptInfoFunction.Arn
+
+  DeptInfoGetDeptIntroductionResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: getDeptIntroduction
+      DataSourceName: !GetAtt DeptInfoDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-info-management/resolvers/getDeptIntroduction.js
+
+  DeptInfoGetDeptAboutResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: getDeptAbout
+      DataSourceName: !GetAtt DeptInfoDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-info-management/resolvers/getDeptAbout.js
+
+  DeptInfoGetDeptSwotResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: getDeptSwot
+      DataSourceName: !GetAtt DeptInfoDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-info-management/resolvers/getDeptSwot.js
+
+  DeptInfoGetHodProfileResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: getHodProfile
+      DataSourceName: !GetAtt DeptInfoDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-info-management/resolvers/getHodProfile.js
+
+  DeptInfoListProgramOutcomesResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listProgramOutcomes
+      DataSourceName: !GetAtt DeptInfoDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-info-management/resolvers/listProgramOutcomes.js
+
+  DeptInfoListCommitteeMembersResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listCommitteeMembers
+      DataSourceName: !GetAtt DeptInfoDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-info-management/resolvers/listCommitteeMembers.js
+
+  DeptInfoListDistinguishedAlumniResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listDistinguishedAlumni
+      DataSourceName: !GetAtt DeptInfoDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-info-management/resolvers/listDistinguishedAlumni.js
+
+  DeptInfoSaveDeptIntroductionResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: saveDeptIntroduction
+      DataSourceName: !GetAtt DeptInfoDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-info-management/resolvers/saveDeptIntroduction.js
+
+  DeptInfoSaveDeptAboutResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: saveDeptAbout
+      DataSourceName: !GetAtt DeptInfoDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-info-management/resolvers/saveDeptAbout.js
+
+  DeptInfoSaveDeptSwotResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: saveDeptSwot
+      DataSourceName: !GetAtt DeptInfoDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-info-management/resolvers/saveDeptSwot.js
+
+  DeptInfoSaveHodProfileResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: saveHodProfile
+      DataSourceName: !GetAtt DeptInfoDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-info-management/resolvers/saveHodProfile.js
+
+  DeptInfoCreateProgramOutcomeResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createProgramOutcome
+      DataSourceName: !GetAtt DeptInfoDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-info-management/resolvers/createProgramOutcome.js
+
+  DeptInfoUpdateProgramOutcomeResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateProgramOutcome
+      DataSourceName: !GetAtt DeptInfoDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-info-management/resolvers/updateProgramOutcome.js
+
+  DeptInfoDeleteProgramOutcomeResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteProgramOutcome
+      DataSourceName: !GetAtt DeptInfoDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-info-management/resolvers/deleteProgramOutcome.js
+
+  DeptInfoReorderProgramOutcomesResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: reorderProgramOutcomes
+      DataSourceName: !GetAtt DeptInfoDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-info-management/resolvers/reorderProgramOutcomes.js
+
+  DeptInfoCreateCommitteeMemberResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createCommitteeMember
+      DataSourceName: !GetAtt DeptInfoDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-info-management/resolvers/createCommitteeMember.js
+
+  DeptInfoUpdateCommitteeMemberResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateCommitteeMember
+      DataSourceName: !GetAtt DeptInfoDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-info-management/resolvers/updateCommitteeMember.js
+
+  DeptInfoDeleteCommitteeMemberResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteCommitteeMember
+      DataSourceName: !GetAtt DeptInfoDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-info-management/resolvers/deleteCommitteeMember.js
+
+  DeptInfoCreateDistinguishedAlumnusResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createDistinguishedAlumnus
+      DataSourceName: !GetAtt DeptInfoDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-info-management/resolvers/createDistinguishedAlumnus.js
+
+  DeptInfoUpdateDistinguishedAlumnusResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateDistinguishedAlumnus
+      DataSourceName: !GetAtt DeptInfoDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-info-management/resolvers/updateDistinguishedAlumnus.js
+
+  DeptInfoDeleteDistinguishedAlumnusResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteDistinguishedAlumnus
+      DataSourceName: !GetAtt DeptInfoDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-info-management/resolvers/deleteDistinguishedAlumnus.js
+
+  DepartmentFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-department-${Environment}'
+      CodeUri: src/app-modules/department-management/
+      Handler: functions/handler.handler
+      Layers:
+        - !Ref CommonLayer
+        - !Ref PackagesLayer
+      Policies:
+        - EventBridgePutEventsPolicy:
+            EventBusName: !Ref AppEventBus
+        - SSMParameterReadPolicy:
+            ParameterName: !Sub '${ProjectName}/${Environment}/*'
+      Tags:
+        Environment: !Ref Environment
+        ModuleName: department-management
+        ManagedBy: CloudFormation
+
+  DepartmentDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      Name: DepartmentDataSource
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !GetAtt AppSyncServiceRole.Arn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt DepartmentFunction.Arn
+
+  DepartmentCreateDepartmentResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createDepartment
+      DataSourceName: !GetAtt DepartmentDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/department-management/resolvers/createDepartment.js
+
+  DepartmentDeleteDepartmentResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteDepartment
+      DataSourceName: !GetAtt DepartmentDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/department-management/resolvers/deleteDepartment.js
+
+  DepartmentGetDepartmentResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: getDepartment
+      DataSourceName: !GetAtt DepartmentDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/department-management/resolvers/getDepartment.js
+
+  DepartmentListDepartmentsResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listDepartments
+      DataSourceName: !GetAtt DepartmentDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/department-management/resolvers/listDepartments.js
+
+  DepartmentUpdateDepartmentResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateDepartment
+      DataSourceName: !GetAtt DepartmentDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/department-management/resolvers/updateDepartment.js
+# Module: faculty-management — Prefix: Faculty
+
+  FacultyFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-faculty-${Environment}'
+      CodeUri: src/app-modules/faculty-management/
+      Handler: functions/handler.handler
+      Layers:
+        - !Ref CommonLayer
+        - !Ref PackagesLayer
+      Policies:
+        - EventBridgePutEventsPolicy:
+            EventBusName: !Ref AppEventBus
+        - SSMParameterReadPolicy:
+            ParameterName: !Sub '${ProjectName}/${Environment}/*'
+      Tags:
+        Environment: !Ref Environment
+        ModuleName: faculty-management
+        ManagedBy: CloudFormation
+
+  FacultyDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      Name: FacultyDataSource
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !GetAtt AppSyncServiceRole.Arn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt FacultyFunction.Arn
+
+  FacultyAddCourseTeachingResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: addCourseTeaching
+      DataSourceName: !GetAtt FacultyDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/faculty-management/resolvers/addCourseTeaching.js   
+
+  FacultyAddEducationResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: addEducation
+      DataSourceName: !GetAtt FacultyDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/faculty-management/resolvers/addEducation.js        
+
+  FacultyAddHonorResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: addHonor
+      DataSourceName: !GetAtt FacultyDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/faculty-management/resolvers/addHonor.js
+
+  FacultyAddPublicationResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: addPublication
+      DataSourceName: !GetAtt FacultyDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/faculty-management/resolvers/addPublication.js      
+
+  FacultyAddResearchProjectResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: addResearchProject
+      DataSourceName: !GetAtt FacultyDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/faculty-management/resolvers/addResearchProject.js  
+
+  FacultyAddWorkExperienceResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: addWorkExperience
+      DataSourceName: !GetAtt FacultyDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/faculty-management/resolvers/addWorkExperience.js   
+
+  FacultyCreateFacultyResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createFaculty
+      DataSourceName: !GetAtt FacultyDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/faculty-management/resolvers/createFaculty.js       
+
+  FacultyDeleteFacultyResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteFaculty
+      DataSourceName: !GetAtt FacultyDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/faculty-management/resolvers/deleteFaculty.js       
+
+  FacultyGetFacultyResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: getFaculty
+      DataSourceName: !GetAtt FacultyDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/faculty-management/resolvers/getFaculty.js
+
+  FacultyListFacultyResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listFaculty
+      DataSourceName: !GetAtt FacultyDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/faculty-management/resolvers/listFaculty.js
+
+  FacultyRemoveCourseTeachingResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: removeCourseTeaching
+      DataSourceName: !GetAtt FacultyDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/faculty-management/resolvers/removeCourseTeaching.js
+
+  FacultyRemoveEducationResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: removeEducation
+      DataSourceName: !GetAtt FacultyDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/faculty-management/resolvers/removeEducation.js     
+
+  FacultyRemoveHonorResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: removeHonor
+      DataSourceName: !GetAtt FacultyDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/faculty-management/resolvers/removeHonor.js
+
+  FacultyRemovePublicationResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: removePublication
+      DataSourceName: !GetAtt FacultyDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/faculty-management/resolvers/removePublication.js   
+
+  FacultyRemoveResearchProjectResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: removeResearchProject
+      DataSourceName: !GetAtt FacultyDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/faculty-management/resolvers/removeResearchProject.js
+
+  FacultyRemoveWorkExperienceResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: removeWorkExperience
+      DataSourceName: !GetAtt FacultyDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/faculty-management/resolvers/removeWorkExperience.js
+
+  FacultyUpdateCourseTeachingResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateCourseTeaching
+      DataSourceName: !GetAtt FacultyDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/faculty-management/resolvers/updateCourseTeaching.js
+
+  FacultyUpdateEducationResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateEducation
+      DataSourceName: !GetAtt FacultyDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/faculty-management/resolvers/updateEducation.js     
+
+  FacultyUpdateFacultyResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateFaculty
+      DataSourceName: !GetAtt FacultyDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/faculty-management/resolvers/updateFaculty.js       
+
+  FacultyUpdateHonorResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateHonor
+      DataSourceName: !GetAtt FacultyDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/faculty-management/resolvers/updateHonor.js
+
+  FacultyUpdatePublicationResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updatePublication
+      DataSourceName: !GetAtt FacultyDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/faculty-management/resolvers/updatePublication.js   
+
+  FacultyUpdateResearchProjectResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateResearchProject
+      DataSourceName: !GetAtt FacultyDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/faculty-management/resolvers/updateResearchProject.js
+
+  FacultyUpdateWorkExperienceResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateWorkExperience
+      DataSourceName: !GetAtt FacultyDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/faculty-management/resolvers/updateWorkExperience.js
   AppSyncServiceRole:
     Type: AWS::IAM::Role
     Properties:
@@ -1709,9 +4961,14 @@ Resources:
                   - !GetAtt StorageFunction.Arn
                   - !GetAtt FormFunction.Arn
                   - !GetAtt WorkflowFunction.Arn
-                  - !GetAtt NewsFunction.Arn
-                  - !GetAtt DevelopmentFunction.Arn
-                  - !GetAtt TeamFunction.Arn
+                  - !GetAtt DeptBrandingFunction.Arn
+                  - !GetAtt DeptActivitiesFunction.Arn
+                  - !GetAtt DeptAcademicsFunction.Arn
+                  - !GetAtt DeptResearchFunction.Arn
+                  - !GetAtt DeptPeopleFunction.Arn
+                  - !GetAtt DeptInfoFunction.Arn
+                  - !GetAtt DepartmentFunction.Arn
+                  - !GetAtt FacultyFunction.Arn
 
 Outputs:
   CognitoUserPoolId:

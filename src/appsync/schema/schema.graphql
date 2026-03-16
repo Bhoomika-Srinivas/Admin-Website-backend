@@ -35,37 +35,45 @@ type Query {
   getWorkflow(workflow_id: ID!): WorkflowDefinition
   listWorkflows(pagination: PaginationInput): WorkflowDefinitionConnection
   listWorkflowInstances(workflow_id: ID, pagination: PaginationInput): WorkflowInstanceConnection
-  getDevelopment(development_id: ID!): Development
-  listDevelopments(
-    constituency: String
-    ward: String
-    ward_no: String
-    year: Int
-    status: String
-    type: String
-    view_on_tracker: Boolean
-    pagination: PaginationInput
-  ): DevelopmentConnection
-  getNews(news_id: ID!): News
-  listNews(
-    constituency: String
-    ward: String
-    incidentType: String
-    pagination: PaginationInput
-  ): NewsConnection
-  getTeam(team_id: ID!): Team
-  listTeams(
-    constituency: String
-    ward: String
-    group: String
-    team_category: String
-    role: String
-    status: String
-    search: String
-    sortBy: String
-    sortOrder: String
-    pagination: PaginationInput
-  ): TeamConnection
+  getDepartment(departmentId: ID!): Department
+  listDepartments(limit: Int, nextToken: String): DepartmentList
+  listDeptCourses(deptId: ID!, semester: Int, type: String, limit: Int, nextToken: String): DeptCourseList
+  getDeptCourse(deptCourseId: ID!): DeptCourse
+  listDeptTimetables(deptId: ID!, semester: Int, academicYear: String): DeptTimetableList
+  listLearningMaterials(deptId: ID!, courseCode: String, type: String, limit: Int, nextToken: String): LearningMaterialList
+  listInnovativeTeaching(deptId: ID!): InnovativeTeachingList
+  listResultAnalyses(deptId: ID!, semester: Int, batch: String): ResultAnalysisList
+  listPlacementOverviews(deptId: ID!, academicYear: String): PlacementOverviewList
+  listStudentPlacements(deptId: ID!, batch: String, limit: Int, nextToken: String): StudentPlacementList
+  listAchievements(deptId: ID!, type: String): AchievementList
+  listDeptActivities(deptId: ID!, type: String, limit: Int, nextToken: String): DeptActivityList
+  getForumSection(deptId: ID!): ForumSection
+  listForumEvents(deptId: ID!, limit: Int, nextToken: String): ForumEventList
+  listDepartmentActivities(deptId: ID!, limit: Int, nextToken: String): DepartmentActivityLogList
+  listNewsletters(deptId: ID!): NewsletterList
+  listGalleryPhotos(deptId: ID!, category: String, limit: Int, nextToken: String): GalleryPhotoList
+  getDeptBranding(deptId: ID!): DeptBranding
+  getInstituteSettings: InstituteSettings
+  getDeptIntroduction(deptId: ID!): DeptIntroduction
+  getDeptAbout(deptId: ID!): DeptAbout
+  getDeptSwot(deptId: ID!): DeptSwot
+  getHodProfile(deptId: ID!): HodProfile
+  listProgramOutcomes(deptId: ID!, type: String, limit: Int, nextToken: String): ProgramOutcomeList
+  listCommitteeMembers(deptId: ID!, committee: String): CommitteeMemberList
+  listDistinguishedAlumni(deptId: ID!): DistinguishedAlumniList
+  listDeptStaff(deptId: ID!, status: String, limit: Int, nextToken: String): DeptStaffList
+  getDeptStaff(deptStaffId: ID!): DeptStaff
+  listAccreditations(deptId: ID!, status: String, limit: Int, nextToken: String): AccreditationList
+  getAccreditation(accreditationId: ID!): Accreditation
+  listDeptPublications(deptId: ID!, type: String, year: Int, limit: Int, nextToken: String): DeptPublicationList
+  listPublicationProfiles(deptId: ID!): PublicationProfileList
+  listResearchGrants(deptId: ID!): ResearchGrantList
+  listPatents(deptId: ID!): PatentList
+  listFacultyResearchSummaries(deptId: ID!, limit: Int, nextToken: String): FacultyResearchSummaryList
+  listPhdGuides(deptId: ID!): PhdGuideList
+  listPhdScholars(deptId: ID!, guideFacultyId: ID, status: String): PhdScholarList
+  getFaculty(facultyId: ID!): Faculty
+  listFaculty(limit: Int, nextToken: String): FacultyList
 }
 type Mutation {
   _empty: String
@@ -87,15 +95,139 @@ type Mutation {
   updateRole(role_id: ID!, input: UpdateRoleInput!): Role
   assignRole(user_id: ID!, role_id: ID!): User
   removeRole(user_id: ID!, role_id: ID!): User
-  createDevelopment(input: CreateDevelopmentInput!): Development
-  updateDevelopment(development_id: ID!, input: UpdateDevelopmentInput!): Development
-  deleteDevelopment(development_id: ID!): Boolean
-  createNews(input: CreateNewsInput!): News
-  updateNews(news_id: ID!, input: UpdateNewsInput!): News
-  deleteNews(news_id: ID!): Boolean
-  createTeam(input: CreateTeamInput!): Team
-  updateTeam(team_id: ID!, input: UpdateTeamInput!): Team
-  deleteTeam(team_id: ID!): Team
+  createDepartment(input: CreateDepartmentInput!): Department
+  updateDepartment(input: UpdateDepartmentInput!): Department
+  deleteDepartment(departmentId: ID!): Department
+  createDeptCourse(input: CreateDeptCourseInput!): DeptCourse
+  updateDeptCourse(input: UpdateDeptCourseInput!): DeptCourse
+  deleteDeptCourse(deptCourseId: ID!): DeptCourse
+
+  createDeptTimetable(input: CreateDeptTimetableInput!): DeptTimetable
+  updateDeptTimetable(input: UpdateDeptTimetableInput!): DeptTimetable
+  deleteDeptTimetable(deptTimetableId: ID!): DeptTimetable
+
+  createLearningMaterial(input: CreateLearningMaterialInput!): LearningMaterial
+  updateLearningMaterial(input: UpdateLearningMaterialInput!): LearningMaterial
+  deleteLearningMaterial(learningMaterialId: ID!): LearningMaterial
+
+  createInnovativeTeaching(input: CreateInnovativeTeachingInput!): InnovativeTeaching
+  updateInnovativeTeaching(input: UpdateInnovativeTeachingInput!): InnovativeTeaching
+  deleteInnovativeTeaching(innovativeTeachingId: ID!): InnovativeTeaching
+
+  createResultAnalysis(input: CreateResultAnalysisInput!): ResultAnalysis
+  updateResultAnalysis(input: UpdateResultAnalysisInput!): ResultAnalysis
+  deleteResultAnalysis(resultAnalysisId: ID!): ResultAnalysis
+  createPlacementOverview(input: CreatePlacementOverviewInput!): PlacementOverview
+  updatePlacementOverview(input: UpdatePlacementOverviewInput!): PlacementOverview
+  deletePlacementOverview(placementOverviewId: ID!): PlacementOverview
+
+  createStudentPlacement(input: CreateStudentPlacementInput!): StudentPlacement
+  updateStudentPlacement(input: UpdateStudentPlacementInput!): StudentPlacement
+  deleteStudentPlacement(studentPlacementId: ID!): StudentPlacement
+
+  createAchievement(input: CreateAchievementInput!): Achievement
+  updateAchievement(input: UpdateAchievementInput!): Achievement
+  deleteAchievement(achievementId: ID!): Achievement
+
+  createDeptActivity(input: CreateDeptActivityInput!): DeptActivity
+  updateDeptActivity(input: UpdateDeptActivityInput!): DeptActivity
+  deleteDeptActivity(deptActivityId: ID!): DeptActivity
+
+  saveForumSection(input: SaveForumSectionInput!): ForumSection
+
+  createForumEvent(input: CreateForumEventInput!): ForumEvent
+  updateForumEvent(input: UpdateForumEventInput!): ForumEvent
+  deleteForumEvent(forumEventId: ID!): ForumEvent
+
+  createDepartmentActivity(input: CreateDepartmentActivityInput!): DepartmentActivityLog
+  updateDepartmentActivity(input: UpdateDepartmentActivityInput!): DepartmentActivityLog
+  deleteDepartmentActivity(deptActivityLogId: ID!): DepartmentActivityLog
+
+  createNewsletter(input: CreateNewsletterInput!): Newsletter
+  updateNewsletter(input: UpdateNewsletterInput!): Newsletter
+  deleteNewsletter(newsletterId: ID!): Newsletter
+
+  createGalleryPhoto(input: CreateGalleryPhotoInput!): GalleryPhoto
+  updateGalleryPhoto(input: UpdateGalleryPhotoInput!): GalleryPhoto
+  deleteGalleryPhoto(galleryPhotoId: ID!): GalleryPhoto
+  saveDeptBranding(deptId: ID!, input: SaveDeptBrandingInput!): DeptBranding
+  saveInstituteSettings(input: SaveInstituteSettingsInput!): InstituteSettings
+  saveDeptIntroduction(deptId: ID!, input: SaveDeptIntroductionInput!): DeptIntroduction
+  saveDeptAbout(deptId: ID!, input: SaveDeptAboutInput!): DeptAbout
+  saveDeptSwot(deptId: ID!, input: SaveDeptSwotInput!): DeptSwot
+  saveHodProfile(deptId: ID!, input: SaveHodProfileInput!): HodProfile
+
+  createProgramOutcome(input: CreateProgramOutcomeInput!): ProgramOutcome
+  updateProgramOutcome(input: UpdateProgramOutcomeInput!): ProgramOutcome
+  deleteProgramOutcome(programOutcomeId: ID!): ProgramOutcome
+  reorderProgramOutcomes(input: ReorderProgramOutcomesInput!): Boolean
+
+  createCommitteeMember(input: CreateCommitteeMemberInput!): CommitteeMember
+  updateCommitteeMember(input: UpdateCommitteeMemberInput!): CommitteeMember
+  deleteCommitteeMember(committeeMemberId: ID!): CommitteeMember
+
+  createDistinguishedAlumnus(input: CreateDistinguishedAlumnusInput!): DistinguishedAlumnus
+  updateDistinguishedAlumnus(input: UpdateDistinguishedAlumnusInput!): DistinguishedAlumnus
+  deleteDistinguishedAlumnus(distinguishedAlumnusId: ID!): DistinguishedAlumnus
+  createDeptStaff(input: CreateDeptStaffInput!): DeptStaff
+  updateDeptStaff(input: UpdateDeptStaffInput!): DeptStaff
+  deleteDeptStaff(deptStaffId: ID!): DeptStaff
+
+  createAccreditation(input: CreateAccreditationInput!): Accreditation
+  updateAccreditation(input: UpdateAccreditationInput!): Accreditation
+  deleteAccreditation(accreditationId: ID!): Accreditation
+  createDeptPublication(input: CreateDeptPublicationInput!): DeptPublication
+  updateDeptPublication(input: UpdateDeptPublicationInput!): DeptPublication
+  deleteDeptPublication(deptPublicationId: ID!): DeptPublication
+
+  savePublicationProfile(input: SavePublicationProfileInput!): PublicationProfile
+
+  createResearchGrant(input: CreateResearchGrantInput!): ResearchGrant
+  updateResearchGrant(input: UpdateResearchGrantInput!): ResearchGrant
+  deleteResearchGrant(researchGrantId: ID!): ResearchGrant
+
+  createPatent(input: CreatePatentInput!): Patent
+  updatePatent(input: UpdatePatentInput!): Patent
+  deletePatent(patentId: ID!): Patent
+
+  createFacultyResearchSummary(input: CreateFacultyResearchSummaryInput!): FacultyResearchSummary
+  updateFacultyResearchSummary(input: UpdateFacultyResearchSummaryInput!): FacultyResearchSummary
+  deleteFacultyResearchSummary(facultyResearchSummaryId: ID!): FacultyResearchSummary
+
+  createPhdGuide(input: CreatePhdGuideInput!): PhdGuide
+  updatePhdGuide(input: UpdatePhdGuideInput!): PhdGuide
+  deletePhdGuide(phdGuideId: ID!): PhdGuide
+
+  createPhdScholar(input: CreatePhdScholarInput!): PhdScholar
+  updatePhdScholar(input: UpdatePhdScholarInput!): PhdScholar
+  deletePhdScholar(phdScholarId: ID!): PhdScholar
+  createFaculty(input: CreateFacultyInput!): Faculty
+  updateFaculty(input: UpdateFacultyInput!): Faculty
+  deleteFaculty(facultyId: ID!): Faculty
+
+  addPublication(input: AddPublicationInput!): Publication
+  updatePublication(input: UpdatePublicationInput!): Publication
+  removePublication(input: RemovePublicationInput!): Publication
+
+  addEducation(input: AddEducationInput!): Education
+  updateEducation(input: UpdateEducationInput!): Education
+  removeEducation(input: RemoveEducationInput!): Education
+
+  addWorkExperience(input: AddWorkExperienceInput!): WorkExperience
+  updateWorkExperience(input: UpdateWorkExperienceInput!): WorkExperience
+  removeWorkExperience(input: RemoveWorkExperienceInput!): WorkExperience
+
+  addResearchProject(input: AddResearchProjectInput!): ResearchProject
+  updateResearchProject(input: UpdateResearchProjectInput!): ResearchProject
+  removeResearchProject(input: RemoveResearchProjectInput!): ResearchProject
+
+  addCourseTeaching(input: AddCourseTeachingInput!): CourseTeaching
+  updateCourseTeaching(input: UpdateCourseTeachingInput!): CourseTeaching
+  removeCourseTeaching(input: RemoveCourseTeachingInput!): CourseTeaching
+
+  addHonor(input: AddHonorInput!): Honor
+  updateHonor(input: UpdateHonorInput!): Honor
+  removeHonor(input: RemoveHonorInput!): Honor
 }
 
 # module: audit-log
@@ -465,163 +597,1212 @@ type WorkflowInstanceConnection {
 }
 
 
-# module: development-management
-type Development {
-  development_id: ID!
-  constituency: String
-  ward: String
-  ward_no: String
-  nameOfWork: String
-  type: String
-  location: String
+# module: department-management
+type Department {
+  departmentId:  ID!
+  tenantId:      ID!
+  name:          String!
+  shortName:     String!
+  hod:           String
+  established:   Int
+  totalFaculty:  Int
+  totalStudents: Int
+  status:        String
+  description:   String
+  imageUrl:      String
+  createdAt:     AWSDateTime
+  updatedAt:     AWSDateTime
+}
+
+type DepartmentList {
+  items:     [Department]
+  nextToken: String
+}
+
+input CreateDepartmentInput {
+  name:        String!
+  shortName:   String!
+  hod:         String
+  established: Int
+  description: String
+  imageUrl:    String
+  status:      String
+}
+
+input UpdateDepartmentInput {
+  departmentId:  ID!
+  name:          String
+  shortName:     String
+  hod:           String
+  established:   Int
+  totalFaculty:  Int
+  totalStudents: Int
+  description:   String
+  imageUrl:      String
+  status:        String
+}
+
+
+
+# module: dept-academics-management
+type DeptCourse {
+  deptCourseId: ID!
+  deptId:       ID!
+  code:         String!
+  name:         String!
+  semester:     Int
+  credits:      Int
+  type:         String
+  scheme:       String
+  createdAt:    AWSDateTime
+  updatedAt:    AWSDateTime
+}
+
+type DeptTimetable {
+  deptTimetableId: ID!
+  deptId:          ID!
+  section:         String
+  semester:        Int
+  academicYear:    String
+  fileUrl:         String
+  uploadedAt:      String
+  createdAt:       AWSDateTime
+}
+
+type LearningMaterial {
+  learningMaterialId: ID!
+  deptId:             ID!
+  courseCode:         String
+  courseName:         String
+  title:              String!
+  type:               String
+  fileUrl:            String
+  uploadedBy:         String
+  createdAt:          AWSDateTime
+}
+
+type InnovativeTeaching {
+  innovativeTeachingId: ID!
+  deptId:               ID!
+  facultyName:          String
+  method:               String
+  description:          String
+  courseApplied:        String
+  year:                 String
+  outcome:              String
+  createdAt:            AWSDateTime
+}
+
+type ResultAnalysis {
+  resultAnalysisId: ID!
+  deptId:           ID!
+  title:            String!
+  semester:         Int
+  batch:            String
+  pdfUrl:           String
+  graphImageUrl:    String
+  createdAt:        AWSDateTime
+}
+
+type DeptCourseList         { items: [DeptCourse]         nextToken: String }
+type DeptTimetableList      { items: [DeptTimetable]      nextToken: String }
+type LearningMaterialList   { items: [LearningMaterial]   nextToken: String }
+type InnovativeTeachingList { items: [InnovativeTeaching] nextToken: String }
+type ResultAnalysisList     { items: [ResultAnalysis]     nextToken: String }
+
+input CreateDeptCourseInput {
+  deptId:   ID!
+  code:     String!
+  name:     String!
+  semester: Int
+  credits:  Int
+  type:     String
+  scheme:   String
+}
+input UpdateDeptCourseInput {
+  deptCourseId: ID!
+  code:         String
+  name:         String
+  semester:     Int
+  credits:      Int
+  type:         String
+  scheme:       String
+}
+
+input CreateDeptTimetableInput {
+  deptId:       ID!
+  section:      String
+  semester:     Int
+  academicYear: String
+  fileUrl:      String
+}
+input UpdateDeptTimetableInput {
+  deptTimetableId: ID!
+  section:         String
+  semester:        Int
+  academicYear:    String
+  fileUrl:         String
+}
+
+input CreateLearningMaterialInput {
+  deptId:     ID!
+  courseCode: String
+  courseName: String
+  title:      String!
+  type:       String
+  fileUrl:    String
+}
+input UpdateLearningMaterialInput {
+  learningMaterialId: ID!
+  courseCode:         String
+  courseName:         String
+  title:              String
+  type:               String
+  fileUrl:            String
+}
+
+input CreateInnovativeTeachingInput {
+  deptId:        ID!
+  facultyName:   String
+  method:        String
+  description:   String
+  courseApplied: String
+  year:          String
+  outcome:       String
+}
+input UpdateInnovativeTeachingInput {
+  innovativeTeachingId: ID!
+  facultyName:          String
+  method:               String
+  description:          String
+  courseApplied:        String
+  year:                 String
+  outcome:              String
+}
+
+input CreateResultAnalysisInput {
+  deptId:        ID!
+  title:         String!
+  semester:      Int
+  batch:         String
+  pdfUrl:        String
+  graphImageUrl: String
+}
+input UpdateResultAnalysisInput {
+  resultAnalysisId: ID!
+  title:            String
+  semester:         Int
+  batch:            String
+  pdfUrl:           String
+  graphImageUrl:    String
+}
+
+
+
+# module: dept-activities-management
+type PlacementOverview {
+  placementOverviewId: ID!
+  deptId:              ID!
+  title:               String
+  academicYear:        String
+  companiesVisited:    Int
+  studentsInCampus:    Int
+  studentsOffCampus:   Int
+  highestPackage:      String
+  createdAt:           AWSDateTime
+}
+
+type StudentPlacement {
+  studentPlacementId: ID!
+  deptId:             ID!
+  studentName:        String!
+  usn:                String
+  batch:              String
+  company:            String
+  role:               String
+  package:            Float
+  imageUrl:           String
+  createdAt:          AWSDateTime
+}
+
+type Achievement {
+  achievementId: ID!
+  deptId:        ID!
+  type:          String
+  text:          String!
+  createdAt:     AWSDateTime
+}
+
+type DeptActivity {
+  deptActivityId: ID!
+  deptId:         ID!
+  type:           String
+  name:           String!
+  description:    String
+  date:           String
+  venue:          String
+  organizer:      String
+  participants:   Int
+  createdAt:      AWSDateTime
+}
+
+type ForumSection {
+  forumSectionId: ID
+  deptId:         ID!
+  title:          String!
+  description:    String
+  createdAt:      AWSDateTime
+}
+
+type ForumEvent {
+  forumEventId: ID!
+  deptId:       ID!
+  title:        String!
+  description:  String
+  createdAt:    AWSDateTime
+}
+
+type DepartmentActivityLog {
+  deptActivityLogId: ID!
+  deptId:            ID!
+  text:              String!
+  createdBy:         String
+  createdAt:         AWSDateTime
+}
+
+type Newsletter {
+  newsletterId:  ID!
+  deptId:        ID!
+  title:         String!
+  volume:        String
+  issue:         String
+  publishedDate: String
+  fileUrl:       String
+  createdAt:     AWSDateTime
+}
+
+type GalleryPhoto {
+  galleryPhotoId: ID!
+  deptId:         ID!
+  title:          String
+  category:       String
+  imageUrl:       String!
+  capturedAt:     String
+  createdAt:      AWSDateTime
+}
+
+type PlacementOverviewList     { items: [PlacementOverview]     nextToken: String }
+type StudentPlacementList      { items: [StudentPlacement]      nextToken: String }
+type AchievementList           { items: [Achievement]           nextToken: String }
+type DeptActivityList          { items: [DeptActivity]          nextToken: String }
+type ForumEventList            { items: [ForumEvent]            nextToken: String }
+type DepartmentActivityLogList { items: [DepartmentActivityLog] nextToken: String }
+type NewsletterList            { items: [Newsletter]            nextToken: String }
+type GalleryPhotoList          { items: [GalleryPhoto]          nextToken: String }
+
+input CreatePlacementOverviewInput {
+  deptId:            ID!
+  title:             String
+  academicYear:      String
+  companiesVisited:  Int
+  studentsInCampus:  Int
+  studentsOffCampus: Int
+  highestPackage:    String
+}
+input UpdatePlacementOverviewInput {
+  placementOverviewId: ID!
+  title:               String
+  academicYear:        String
+  companiesVisited:    Int
+  studentsInCampus:    Int
+  studentsOffCampus:   Int
+  highestPackage:      String
+}
+
+input CreateStudentPlacementInput {
+  deptId:      ID!
+  studentName: String!
+  usn:         String
+  batch:       String
+  company:     String
+  role:        String
+  package:     Float
+  imageUrl:    String
+}
+input UpdateStudentPlacementInput {
+  studentPlacementId: ID!
+  studentName:        String
+  usn:                String
+  batch:              String
+  company:            String
+  role:               String
+  package:            Float
+  imageUrl:           String
+}
+
+input CreateAchievementInput { deptId: ID!  type: String  text: String! }
+input UpdateAchievementInput { achievementId: ID!  type: String  text: String }
+
+input CreateDeptActivityInput {
+  deptId:       ID!
+  type:         String
+  name:         String!
+  description:  String
+  date:         String
+  venue:        String
+  organizer:    String
+  participants: Int
+}
+input UpdateDeptActivityInput {
+  deptActivityId: ID!
+  type:           String
+  name:           String
+  description:    String
+  date:           String
+  venue:          String
+  organizer:      String
+  participants:   Int
+}
+
+input SaveForumSectionInput { deptId: ID!  title: String!  description: String }
+
+input CreateForumEventInput { deptId: ID!  title: String!  description: String }
+input UpdateForumEventInput { forumEventId: ID!  title: String  description: String }
+
+input CreateDepartmentActivityInput { deptId: ID!  text: String! }
+input UpdateDepartmentActivityInput { deptActivityLogId: ID!  text: String }
+
+input CreateNewsletterInput {
+  deptId:        ID!
+  title:         String!
+  volume:        String
+  issue:         String
+  publishedDate: String
+  fileUrl:       String
+}
+input UpdateNewsletterInput {
+  newsletterId:  ID!
+  title:         String
+  volume:        String
+  issue:         String
+  publishedDate: String
+  fileUrl:       String
+}
+
+input CreateGalleryPhotoInput {
+  deptId:     ID!
+  title:      String
+  category:   String
+  imageUrl:   String!
+  capturedAt: String
+}
+input UpdateGalleryPhotoInput {
+  galleryPhotoId: ID!
+  title:          String
+  category:       String
+  imageUrl:       String
+  capturedAt:     String
+}
+
+
+
+# module: dept-branding-management
+type DeptBranding {
+  deptId:            ID!
+  departmentTitle:   String
+  departmentLogoUrl: String
+  twitterUrl:        String
+  linkedinUrl:       String
+  youtubeUrl:        String
+  emailContact:      String
+  mapLocationLink:   String
+  fullAddress:       String
+  hodPhone:          String
+  hodEmail:          String
+  departmentPhone:   String
+  departmentFax:     String
+  departmentEmail:   String
+  copyrightText:     String
+  websiteCredits:    String
+  updatedAt:         AWSDateTime
+}
+
+type InstituteSettings {
+  tenantId:              ID!
+  instituteName:         String
+  instituteLogoUrl:      String
+  defaultCopyrightText:  String
+  defaultWebsiteCredits: String
+  updatedAt:             AWSDateTime
+}
+
+input SaveDeptBrandingInput {
+  departmentTitle:   String
+  departmentLogoUrl: String
+  twitterUrl:        String
+  linkedinUrl:       String
+  youtubeUrl:        String
+  emailContact:      String
+  mapLocationLink:   String
+  fullAddress:       String
+  hodPhone:          String
+  hodEmail:          String
+  departmentPhone:   String
+  departmentFax:     String
+  departmentEmail:   String
+  copyrightText:     String
+  websiteCredits:    String
+}
+
+input SaveInstituteSettingsInput {
+  instituteName:         String
+  instituteLogoUrl:      String
+  defaultCopyrightText:  String
+  defaultWebsiteCredits: String
+}
+
+
+
+# module: dept-info-management
+type DeptIntroduction {
+  deptId:         ID!
+  departmentName: String
+  logoUrl:        String
+  imageUrl:       String
+  description:    String
+  updatedAt:      AWSDateTime
+}
+
+type DeptAbout {
+  deptId:    ID!
+  vision:    String
+  mission:   String
+  updatedAt: AWSDateTime
+}
+
+type DeptSwot {
+  deptId:        ID!
+  strengths:     [String]
+  weaknesses:    [String]
+  opportunities: [String]
+  threats:       [String]
+  updatedAt:     AWSDateTime
+}
+
+type HodProfile {
+  deptId:         ID!
+  name:           String
+  title:          String
+  designation:    String
+  qualification:  String
+  experience:     String
+  specialization: String
+  message:        String
+  profileSummary: String
+  email:          String
+  phone:          String
+  imageUrl:       String
+  cvUrl:          String
+  updatedAt:      AWSDateTime
+}
+
+type ProgramOutcome {
+  programOutcomeId: ID!
+  deptId:           ID!
+  type:             String
+  statement:        String
+  order:            Int
+  createdAt:        AWSDateTime
+  updatedAt:        AWSDateTime
+}
+
+type CommitteeMember {
+  committeeMemberId: ID!
+  deptId:            ID!
+  committee:         String
+  name:              String
+  designation:       String
+  order:             Int
+}
+
+type DistinguishedAlumnus {
+  distinguishedAlumnusId: ID!
+  deptId:                 ID!
+  name:                   String!
+  batch:                  String
+  currentRole:            String
+  organization:           String
+  achievement:            String
+  imageUrl:               String
+  linkedInUrl:            String
+}
+
+type ProgramOutcomeList      { items: [ProgramOutcome]       nextToken: String }
+type CommitteeMemberList     { items: [CommitteeMember]      nextToken: String }
+type DistinguishedAlumniList { items: [DistinguishedAlumnus] nextToken: String }
+
+# ── Inputs ──────────────────────────────────────────────────────────────────
+
+input SaveDeptIntroductionInput {
+  departmentName: String
+  logoUrl:        String
+  imageUrl:       String
+  description:    String
+}
+
+input SaveDeptAboutInput {
+  vision:  String
+  mission: String
+}
+
+input SaveDeptSwotInput {
+  strengths:     [String]
+  weaknesses:    [String]
+  opportunities: [String]
+  threats:       [String]
+}
+
+input SaveHodProfileInput {
+  name:           String
+  title:          String
+  designation:    String
+  qualification:  String
+  experience:     String
+  specialization: String
+  message:        String
+  profileSummary: String
+  email:          String
+  phone:          String
+  imageUrl:       String
+  cvUrl:          String
+}
+
+input CreateProgramOutcomeInput {
+  deptId:    ID!
+  type:      String!
+  statement: String!
+  order:     Int!
+}
+input UpdateProgramOutcomeInput {
+  programOutcomeId: ID!
+  statement:        String
+  order:            Int
+}
+input ReorderProgramOutcomesInput {
+  deptId:     ID!
+  type:       String!
+  orderedIds: [ID!]!
+}
+
+input CreateCommitteeMemberInput {
+  deptId:      ID!
+  committee:   String!
+  name:        String!
+  designation: String
+  order:       Int
+}
+input UpdateCommitteeMemberInput {
+  committeeMemberId: ID!
+  name:              String
+  designation:       String
+  order:             Int
+}
+
+input CreateDistinguishedAlumnusInput {
+  deptId:       ID!
+  name:         String!
+  batch:        String
+  currentRole:  String
+  organization: String
+  achievement:  String
+  imageUrl:     String
+  linkedInUrl:  String
+}
+input UpdateDistinguishedAlumnusInput {
+  distinguishedAlumnusId: ID!
+  name:                   String
+  batch:                  String
+  currentRole:            String
+  organization:           String
+  achievement:            String
+  imageUrl:               String
+  linkedInUrl:            String
+}
+
+
+
+# module: dept-people-management
+type DeptStaff {
+  deptStaffId:   ID!
+  deptId:        ID!
+  name:          String!
+  designation:   String!
+  qualification: String
+  experience:    Int
+  email:         String
+  phone:         String
+  status:        String
+  createdAt:     AWSDateTime
+  updatedAt:     AWSDateTime
+}
+
+type Accreditation {
+  accreditationId: ID!
+  deptId:          ID!
+  name:            String!
+  accreditedBy:    String!
+  validFrom:       String
+  validUntil:      String
+  grade:           String
+  certificateUrl:  String
+  status:          String
+  createdAt:       AWSDateTime
+  updatedAt:       AWSDateTime
+}
+
+type DeptStaffList     { items: [DeptStaff]     nextToken: String }
+type AccreditationList { items: [Accreditation] nextToken: String }
+
+input CreateDeptStaffInput {
+  deptId:        ID!
+  name:          String!
+  designation:   String!
+  qualification: String
+  experience:    Int
+  email:         String
+  phone:         String
+  status:        String
+}
+input UpdateDeptStaffInput {
+  deptStaffId:   ID!
+  name:          String
+  designation:   String
+  qualification: String
+  experience:    Int
+  email:         String
+  phone:         String
+  status:        String
+}
+
+input CreateAccreditationInput {
+  deptId:         ID!
+  name:           String!
+  accreditedBy:   String!
+  validFrom:      String
+  validUntil:     String
+  grade:          String
+  certificateUrl: String
+  status:         String
+}
+input UpdateAccreditationInput {
+  accreditationId: ID!
+  name:            String
+  accreditedBy:    String
+  validFrom:       String
+  validUntil:      String
+  grade:           String
+  certificateUrl:  String
+  status:          String
+}
+
+
+
+# module: dept-research-management
+type DeptPublication {
+  deptPublicationId: ID!
+  deptId:            ID!
+  title:             String!
+  authors:           String!
+  journal:           String
+  year:              Int
+  type:              String
+  doi:               String
+  createdAt:         AWSDateTime
+  updatedAt:         AWSDateTime
+}
+
+type PublicationProfile {
+  publicationProfileId: ID!
+  deptId:               ID!
+  facultyId:            ID!
+  googleScholarLink:    String
+  irinsLink:            String
+  updatedAt:            AWSDateTime
+}
+
+type ResearchGrant {
+  researchGrantId: ID!
+  deptId:          ID!
+  text:            String!
+  createdAt:       AWSDateTime
+}
+
+type Patent {
+  patentId:  ID!
+  deptId:    ID!
+  text:      String!
+  createdAt: AWSDateTime
+}
+
+type FacultyResearchSummary {
+  facultyResearchSummaryId: ID!
+  deptId:               ID!
+  facultyId:            ID!
+  researchArea:         String
+  guideName:            String
+  guideDesignation:     String
+  guideInstitution:     String
+  guideType:            String
+  thesisTitle:          String
+  university:           String
+  yearOfRegistration:   Int
+  yearOfDegreeAwarded:  Int
+  courseWorkCompleted:  Boolean
+  prePhDVivaVoce:       Boolean
+  finalThesisSubmitted: Boolean
+  researchStatus:       String
+  thesisDocumentUrl:    String
+  remarks:              String
+  createdAt:            AWSDateTime
+  updatedAt:            AWSDateTime
+}
+
+type PhdGuide {
+  phdGuideId:      ID!
+  deptId:          ID!
+  facultyName:     String!
+  university:      String
+  recognizedYear:  Int
+  scholarsGuided:  Int
+  ongoingScholars: Int
+}
+
+type PhdScholar {
+  phdScholarId:         ID!
+  deptId:               ID!
+  guideFacultyId:       ID!
+  scholarName:          String!
+  institution:          String
+  department:           String
+  yearOfRegistration:   Int
+  thesisTitle:          String
+  yearOfDegreeAwarded:  Int
+  courseWorkCompleted:  Boolean
+  prePhdViva:           Boolean
+  finalThesisSubmitted: Boolean
+  status:               String
+}
+
+type DeptPublicationList        { items: [DeptPublication]        nextToken: String }
+type PublicationProfileList     { items: [PublicationProfile]     nextToken: String }
+type ResearchGrantList          { items: [ResearchGrant]          nextToken: String }
+type PatentList                 { items: [Patent]                 nextToken: String }
+type FacultyResearchSummaryList { items: [FacultyResearchSummary] nextToken: String }
+type PhdGuideList               { items: [PhdGuide]               nextToken: String }
+type PhdScholarList             { items: [PhdScholar]             nextToken: String }
+
+input CreateDeptPublicationInput {
+  deptId:  ID!
+  title:   String!
+  authors: String!
+  journal: String
+  year:    Int
+  type:    String
+  doi:     String
+}
+input UpdateDeptPublicationInput {
+  deptPublicationId: ID!
+  title:   String
+  authors: String
+  journal: String
+  year:    Int
+  type:    String
+  doi:     String
+}
+
+input SavePublicationProfileInput {
+  deptId:            ID!
+  facultyId:         ID!
+  googleScholarLink: String
+  irinsLink:         String
+}
+
+input CreateResearchGrantInput { deptId: ID!  text: String! }
+input UpdateResearchGrantInput { researchGrantId: ID!  text: String! }
+
+input CreatePatentInput { deptId: ID!  text: String! }
+input UpdatePatentInput { patentId: ID!  text: String! }
+
+input CreateFacultyResearchSummaryInput {
+  deptId:               ID!
+  facultyId:            ID!
+  researchArea:         String
+  guideName:            String
+  guideDesignation:     String
+  guideInstitution:     String
+  guideType:            String
+  thesisTitle:          String
+  university:           String
+  yearOfRegistration:   Int
+  courseWorkCompleted:  Boolean
+  prePhDVivaVoce:       Boolean
+  finalThesisSubmitted: Boolean
+  researchStatus:       String
+  thesisDocumentUrl:    String
+  remarks:              String
+}
+input UpdateFacultyResearchSummaryInput {
+  facultyResearchSummaryId: ID!
+  researchArea:         String
+  guideName:            String
+  guideDesignation:     String
+  guideInstitution:     String
+  guideType:            String
+  thesisTitle:          String
+  university:           String
+  yearOfRegistration:   Int
+  yearOfDegreeAwarded:  Int
+  courseWorkCompleted:  Boolean
+  prePhDVivaVoce:       Boolean
+  finalThesisSubmitted: Boolean
+  researchStatus:       String
+  thesisDocumentUrl:    String
+  remarks:              String
+}
+
+input CreatePhdGuideInput {
+  deptId:          ID!
+  facultyName:     String!
+  university:      String
+  recognizedYear:  Int
+  scholarsGuided:  Int
+  ongoingScholars: Int
+}
+input UpdatePhdGuideInput {
+  phdGuideId:      ID!
+  facultyName:     String
+  university:      String
+  recognizedYear:  Int
+  scholarsGuided:  Int
+  ongoingScholars: Int
+}
+
+input CreatePhdScholarInput {
+  deptId:               ID!
+  guideFacultyId:       ID!
+  scholarName:          String!
+  institution:          String
+  department:           String
+  yearOfRegistration:   Int
+  thesisTitle:          String
+  courseWorkCompleted:  Boolean
+  prePhdViva:           Boolean
+  finalThesisSubmitted: Boolean
+  status:               String
+}
+input UpdatePhdScholarInput {
+  phdScholarId:         ID!
+  scholarName:          String
+  institution:          String
+  department:           String
+  yearOfRegistration:   Int
+  thesisTitle:          String
+  yearOfDegreeAwarded:  Int
+  courseWorkCompleted:  Boolean
+  prePhdViva:           Boolean
+  finalThesisSubmitted: Boolean
+  status:               String
+}
+
+
+
+# module: faculty-management
+type Publication {
+  publicationId: ID!
+  facultyId: ID!
+  title: String!
+  authors: [String]
+  journal: String
   year: Int
-  amount_spent: Float
-  amount_unit: String
-  status: String
-  imageUrl: String
-  view_on_tracker: Boolean
-  createdBy: String
-  created_at: AWSDateTime
-  updated_at: AWSDateTime
-}
-
-type DevelopmentConnection {
-  items: [Development!]!
-  nextCursor: String
-}
-
-input CreateDevelopmentInput {
-  development_id: ID
-  constituency: String!
-  ward: String!
-  ward_no: String!
-  nameOfWork: String!
-  type: String!
-  location: String!
-  year: Int!
-  amount_spent: Float!
-  amount_unit: String!
-  status: String!
-  imageUrl: String
-  view_on_tracker: Boolean
-}
-
-input UpdateDevelopmentInput {
-  constituency: String
-  ward: String
-  ward_no: String
-  nameOfWork: String
+  doi: String
   type: String
-  location: String
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}
+
+type Education {
+  educationId: ID!
+  facultyId: ID!
+  degree: String!
+  institution: String!
+  fieldOfStudy: String
+  startYear: Int
+  endYear: Int
+  description: String
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}
+
+type WorkExperience {
+  workExperienceId: ID!
+  facultyId: ID!
+  title: String!
+  organization: String!
+  startDate: AWSDate
+  endDate: AWSDate
+  current: Boolean
+  description: String
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}
+
+type ResearchProject {
+  researchProjectId: ID!
+  facultyId: ID!
+  title: String!
+  description: String
+  status: String
+  startDate: AWSDate
+  endDate: AWSDate
+  fundingSource: String
+  collaborators: [String]
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}
+
+type CourseTeaching {
+  courseTeachingId: ID!
+  facultyId: ID!
+  courseCode: String!
+  courseName: String!
+  semester: String
   year: Int
-  amount_spent: Float
-  amount_unit: String
+  credits: Int
+  description: String
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}
+
+type Honor {
+  honorId: ID!
+  facultyId: ID!
+  title: String!
+  organization: String
+  year: Int
+  description: String
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}
+
+type Faculty {
+  facultyId: ID!
+  firstName: String!
+  lastName: String!
+  email: String!
+  title: String
+  department: String
+  designation: String
+  bio: String
+  profileImage: String
+  phone: String
+  officeLocation: String
+  website: String
+  publications: [Publication]
+  education: [Education]
+  workExperience: [WorkExperience]
+  researchProjects: [ResearchProject]
+  courseTeachings: [CourseTeaching]
+  honors: [Honor]
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}
+
+input CreateFacultyInput {
+  firstName: String!
+  lastName: String!
+  email: String!
+  title: String
+  department: String
+  designation: String
+  bio: String
+  profileImage: String
+  phone: String
+  officeLocation: String
+  website: String
+}
+
+input UpdateFacultyInput {
+  facultyId: ID!
+  firstName: String
+  lastName: String
+  email: String
+  title: String
+  department: String
+  designation: String
+  bio: String
+  profileImage: String
+  phone: String
+  officeLocation: String
+  website: String
+}
+
+input AddPublicationInput {
+  facultyId: ID!
+  title: String!
+  authors: [String]
+  journal: String
+  year: Int
+  doi: String
+  type: String
+}
+
+input UpdatePublicationInput {
+  publicationId: ID!
+  facultyId: ID!
+  title: String
+  authors: [String]
+  journal: String
+  year: Int
+  doi: String
+  type: String
+}
+
+input RemovePublicationInput {
+  publicationId: ID!
+  facultyId: ID!
+}
+
+input AddEducationInput {
+  facultyId: ID!
+  degree: String!
+  institution: String!
+  fieldOfStudy: String
+  startYear: Int
+  endYear: Int
+  description: String
+}
+
+input UpdateEducationInput {
+  educationId: ID!
+  facultyId: ID!
+  degree: String
+  institution: String
+  fieldOfStudy: String
+  startYear: Int
+  endYear: Int
+  description: String
+}
+
+input RemoveEducationInput {
+  educationId: ID!
+  facultyId: ID!
+}
+
+input AddWorkExperienceInput {
+  facultyId: ID!
+  title: String!
+  organization: String!
+  startDate: AWSDate
+  endDate: AWSDate
+  current: Boolean
+  description: String
+}
+
+input UpdateWorkExperienceInput {
+  workExperienceId: ID!
+  facultyId: ID!
+  title: String
+  organization: String
+  startDate: AWSDate
+  endDate: AWSDate
+  current: Boolean
+  description: String
+}
+
+input RemoveWorkExperienceInput {
+  workExperienceId: ID!
+  facultyId: ID!
+}
+
+input AddResearchProjectInput {
+  facultyId: ID!
+  title: String!
+  description: String
   status: String
-  imageUrl: String
-  view_on_tracker: Boolean
+  startDate: AWSDate
+  endDate: AWSDate
+  fundingSource: String
+  collaborators: [String]
 }
 
-
-
-# module: news-management
-type News {
-  news_id: ID!
-  constituency: String
-  ward: String
-  dateTime: AWSDateTime
-  information: String
-  incidentType: String
-  imageUrl: String
-  createdBy: String
-  created_at: AWSDateTime
-  updated_at: AWSDateTime
-}
-
-type NewsConnection {
-  items: [News!]!
-  nextCursor: String
-}
-
-input CreateNewsInput {
-  news_id: ID
-  constituency: String!
-  ward: String!
-  dateTime: AWSDateTime!
-  information: String!
-  incidentType: String!
-  imageUrl: String
-}
-
-input UpdateNewsInput {
-  constituency: String
-  ward: String
-  dateTime: AWSDateTime
-  information: String
-  incidentType: String
-  imageUrl: String
-}
-
-
-
-# module: team-management
-"""
-Team entity
-"""
-type Team {
-  team_id: ID!
-  name: String
-  constituency: String
-  ward: String
-  group: String
-  team_category: String
-  role: String
-  remarks: String
-  contact: String
-  childId: ID
+input UpdateResearchProjectInput {
+  researchProjectId: ID!
+  facultyId: ID!
+  title: String
+  description: String
   status: String
-  createdBy: ID
-  created_at: AWSDateTime
-  updated_at: AWSDateTime
+  startDate: AWSDate
+  endDate: AWSDate
+  fundingSource: String
+  collaborators: [String]
 }
 
-"""
-Connection type for paginated team list
-"""
-type TeamConnection {
-  items: [Team!]!
-  nextCursor: String
+input RemoveResearchProjectInput {
+  researchProjectId: ID!
+  facultyId: ID!
 }
 
-"""
-Input for creating a team
-"""
-input CreateTeamInput {
-  name: String
-  constituency: String
-  ward: String
-  group: String
-  team_category: String
-  role: String
-  remarks: String
-  contact: String
-  childId: ID
-  status: String
+input AddCourseTeachingInput {
+  facultyId: ID!
+  courseCode: String!
+  courseName: String!
+  semester: String
+  year: Int
+  credits: Int
+  description: String
 }
 
-"""
-Input for updating a team
-"""
-input UpdateTeamInput {
-  name: String
-  constituency: String
-  ward: String
-  group: String
-  team_category: String
-  role: String
-  remarks: String
-  contact: String
-  childId: ID
-  status: String
+input UpdateCourseTeachingInput {
+  courseTeachingId: ID!
+  facultyId: ID!
+  courseCode: String
+  courseName: String
+  semester: String
+  year: Int
+  credits: Int
+  description: String
+}
+
+input RemoveCourseTeachingInput {
+  courseTeachingId: ID!
+  facultyId: ID!
+}
+
+input AddHonorInput {
+  facultyId: ID!
+  title: String!
+  organization: String
+  year: Int
+  description: String
+}
+
+input UpdateHonorInput {
+  honorId: ID!
+  facultyId: ID!
+  title: String
+  organization: String
+  year: Int
+  description: String
+}
+
+input RemoveHonorInput {
+  honorId: ID!
+  facultyId: ID!
+}
+
+type FacultyList {
+  items: [Faculty]
+  nextToken: String
 }
 
 

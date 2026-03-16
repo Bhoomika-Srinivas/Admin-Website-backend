@@ -22,8 +22,12 @@
 ## Custom Modules
 <!-- List product-specific modules added -->
 <!-- (auto-updated by generate-module.sh and remove-module.sh) -->
-- news-management
-- development-management
-- team-management
+- dept-branding-management
+- dept-activities-management
+- dept-academics-management
+- dept-research-management
+- dept-people-management
+- dept-info-management
+- department-management
 ## Tech Decisions
 <!-- Any product-specific overrides (e.g., DynamoDB instead of MongoDB for X) -->

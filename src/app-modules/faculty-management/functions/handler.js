@@ -17,6 +17,15 @@ const {
   deleteFacultySchema
 } = require('../schemas/validation')
 
+// Normalize a Mongoose doc to a plain object with facultyId mapped
+function toFacultyResponse(doc) {
+  const plain = doc && doc.toObject ? doc.toObject() : { ...doc }
+  return {
+    ...plain,
+    facultyId: plain.faculty_id || (plain._id ? plain._id.toString() : null)
+  }
+}
+
 const Faculty = require('../schemas/faculty.model')
 
 const facultyRepo = new MongoRepository({
@@ -68,13 +77,13 @@ exports.handler = withConnection(handleEvent)
 
 async function getFaculty(ctx, args) {
 
-  const { faculty_id } = validate(getFacultySchema, args || {})
+  const { facultyId } = validate(getFacultySchema, args || {})
 
-  const doc = await facultyRepo.findById(ctx, faculty_id)
+  const doc = await facultyRepo.findById(ctx, facultyId)
 
   if (!doc) throw new NotFoundError('Faculty not found')
 
-  return doc
+  return toFacultyResponse(doc)
 
 }
 
@@ -92,7 +101,7 @@ async function listFaculty(ctx, args) {
   const result = await facultyRepo.findMany(ctx, {}, pagination)
 
   return {
-    items: result.items,
+    items: result.items.map(toFacultyResponse),
     nextCursor: result.nextCursor
   }
 
@@ -110,45 +119,38 @@ async function createFaculty(ctx, args) {
   const faculty_id = generateId()
 
   const data = {
-
     faculty_id,
-    tenant_id: ctx.tenant_id,
-
-    name: input.name,
-    designation: input.designation,
-    departmentId: input.departmentId,
-
-    qualification: input.qualification,
-    experience: input.experience,
-
+    firstName: input.firstName,
+    lastName: input.lastName,
     email: input.email,
+    title: input.title,
+    department: input.department,
+    designation: input.designation,
+    bio: input.bio,
+    profileImage: input.profileImage,
     phone: input.phone,
-
-    specialization: input.specialization,
     officeLocation: input.officeLocation,
-    profilePicture: input.profilePicture,
-
-    publications: input.publications || [],
-    education: input.education || [],
-    workExperience: input.workExperience || [],
-    researchProjects: input.researchProjects || [],
-    coursesTeaching: input.coursesTeaching || [],
-    honors: input.honors || [],
-
+    website: input.website,
+    publications: [],
+    education: [],
+    workExperience: [],
+    researchProjects: [],
+    coursesTeaching: [],
+    honors: [],
     created_by: ctx.user_id
-
   }
 
   const created = await facultyRepo.create(ctx, data)
+  const response = toFacultyResponse(created)
 
   await publishEvent('faculty-management', 'FacultyCreated', {
-    faculty_id: created.faculty_id,
+    faculty_id: response.facultyId,
     tenant_id: ctx.tenant_id,
     created_by: ctx.user_id,
     timestamp: new Date().toISOString()
   })
 
-  return created
+  return response
 
 }
 
@@ -159,39 +161,28 @@ async function createFaculty(ctx, args) {
 
 async function updateFaculty(ctx, args) {
 
-  const validated = validate(updateFacultySchema, { ...args, input: args?.input || args })
+  const input = validate(updateFacultySchema, args?.input || args || {})
 
-  const faculty_id = validated.faculty_id || validated.id
-
-  const input = validated.input || {}
-
-  const existing = await facultyRepo.findById(ctx, faculty_id)
+  const existing = await facultyRepo.findById(ctx, input.facultyId)
 
   if (!existing) throw new NotFoundError('Faculty not found')
 
   const updates = {}
-
-  if (input.name !== undefined) updates.name = input.name
-  if (input.designation !== undefined) updates.designation = input.designation
-  if (input.departmentId !== undefined) updates.department_id = input.departmentId
-  if (input.qualification !== undefined) updates.qualification = input.qualification
-  if (input.experience !== undefined) updates.experience = input.experience
+  if (input.firstName !== undefined) updates.firstName = input.firstName
+  if (input.lastName !== undefined) updates.lastName = input.lastName
   if (input.email !== undefined) updates.email = input.email
+  if (input.title !== undefined) updates.title = input.title
+  if (input.department !== undefined) updates.department = input.department
+  if (input.designation !== undefined) updates.designation = input.designation
+  if (input.bio !== undefined) updates.bio = input.bio
+  if (input.profileImage !== undefined) updates.profileImage = input.profileImage
   if (input.phone !== undefined) updates.phone = input.phone
-  if (input.specialization !== undefined) updates.specialization = input.specialization
   if (input.officeLocation !== undefined) updates.officeLocation = input.officeLocation
-  if (input.profilePicture !== undefined) updates.profilePicture = input.profilePicture
+  if (input.website !== undefined) updates.website = input.website
 
-  if (input.publications !== undefined) updates.publications = input.publications
-  if (input.education !== undefined) updates.education = input.education
-  if (input.workExperience !== undefined) updates.workExperience = input.workExperience
-  if (input.researchProjects !== undefined) updates.researchProjects = input.researchProjects
-  if (input.coursesTeaching !== undefined) updates.coursesTeaching = input.coursesTeaching
-  if (input.honors !== undefined) updates.honors = input.honors
+  const updated = await facultyRepo.updateById(ctx, input.facultyId, updates)
 
-  const updated = await facultyRepo.updateById(ctx, faculty_id, updates)
-
-  return updated
+  return toFacultyResponse(updated)
 
 }
 
@@ -202,21 +193,21 @@ async function updateFaculty(ctx, args) {
 
 async function deleteFaculty(ctx, args) {
 
-  const { faculty_id } = validate(deleteFacultySchema, { faculty_id: args?.faculty_id || args?.id })
+  const { facultyId } = validate(deleteFacultySchema, { facultyId: args?.facultyId || args?.faculty_id })
 
-  const existing = await facultyRepo.findById(ctx, faculty_id)
+  const existing = await facultyRepo.findById(ctx, facultyId)
 
   if (!existing) throw new NotFoundError('Faculty not found')
 
-  await facultyRepo.deleteById(ctx, faculty_id)
+  await facultyRepo.deleteById(ctx, facultyId)
 
   await publishEvent('faculty-management', 'FacultyDeleted', {
-    faculty_id,
+    faculty_id: facultyId,
     tenant_id: ctx.tenant_id,
     deleted_by: ctx.user_id,
     timestamp: new Date().toISOString()
   })
 
-  return true
+  return toFacultyResponse(existing)
 
 }

@@ -1,0 +1,243 @@
+type DeptPublication {
+  deptPublicationId: ID!
+  deptId:            ID!
+  title:             String!
+  authors:           String!
+  journal:           String
+  year:              Int
+  type:              String
+  doi:               String
+  createdAt:         AWSDateTime
+  updatedAt:         AWSDateTime
+}
+
+type PublicationProfile {
+  publicationProfileId: ID!
+  deptId:               ID!
+  facultyId:            ID!
+  googleScholarLink:    String
+  irinsLink:            String
+  updatedAt:            AWSDateTime
+}
+
+type ResearchGrant {
+  researchGrantId: ID!
+  deptId:          ID!
+  text:            String!
+  createdAt:       AWSDateTime
+}
+
+type Patent {
+  patentId:  ID!
+  deptId:    ID!
+  text:      String!
+  createdAt: AWSDateTime
+}
+
+type FacultyResearchSummary {
+  facultyResearchSummaryId: ID!
+  deptId:               ID!
+  facultyId:            ID!
+  researchArea:         String
+  guideName:            String
+  guideDesignation:     String
+  guideInstitution:     String
+  guideType:            String
+  thesisTitle:          String
+  university:           String
+  yearOfRegistration:   Int
+  yearOfDegreeAwarded:  Int
+  courseWorkCompleted:  Boolean
+  prePhDVivaVoce:       Boolean
+  finalThesisSubmitted: Boolean
+  researchStatus:       String
+  thesisDocumentUrl:    String
+  remarks:              String
+  createdAt:            AWSDateTime
+  updatedAt:            AWSDateTime
+}
+
+type PhdGuide {
+  phdGuideId:      ID!
+  deptId:          ID!
+  facultyName:     String!
+  university:      String
+  recognizedYear:  Int
+  scholarsGuided:  Int
+  ongoingScholars: Int
+}
+
+type PhdScholar {
+  phdScholarId:         ID!
+  deptId:               ID!
+  guideFacultyId:       ID!
+  scholarName:          String!
+  institution:          String
+  department:           String
+  yearOfRegistration:   Int
+  thesisTitle:          String
+  yearOfDegreeAwarded:  Int
+  courseWorkCompleted:  Boolean
+  prePhdViva:           Boolean
+  finalThesisSubmitted: Boolean
+  status:               String
+}
+
+type DeptPublicationList        { items: [DeptPublication]        nextToken: String }
+type PublicationProfileList     { items: [PublicationProfile]     nextToken: String }
+type ResearchGrantList          { items: [ResearchGrant]          nextToken: String }
+type PatentList                 { items: [Patent]                 nextToken: String }
+type FacultyResearchSummaryList { items: [FacultyResearchSummary] nextToken: String }
+type PhdGuideList               { items: [PhdGuide]               nextToken: String }
+type PhdScholarList             { items: [PhdScholar]             nextToken: String }
+
+input CreateDeptPublicationInput {
+  deptId:  ID!
+  title:   String!
+  authors: String!
+  journal: String
+  year:    Int
+  type:    String
+  doi:     String
+}
+input UpdateDeptPublicationInput {
+  deptPublicationId: ID!
+  title:   String
+  authors: String
+  journal: String
+  year:    Int
+  type:    String
+  doi:     String
+}
+
+input SavePublicationProfileInput {
+  deptId:            ID!
+  facultyId:         ID!
+  googleScholarLink: String
+  irinsLink:         String
+}
+
+input CreateResearchGrantInput { deptId: ID!  text: String! }
+input UpdateResearchGrantInput { researchGrantId: ID!  text: String! }
+
+input CreatePatentInput { deptId: ID!  text: String! }
+input UpdatePatentInput { patentId: ID!  text: String! }
+
+input CreateFacultyResearchSummaryInput {
+  deptId:               ID!
+  facultyId:            ID!
+  researchArea:         String
+  guideName:            String
+  guideDesignation:     String
+  guideInstitution:     String
+  guideType:            String
+  thesisTitle:          String
+  university:           String
+  yearOfRegistration:   Int
+  courseWorkCompleted:  Boolean
+  prePhDVivaVoce:       Boolean
+  finalThesisSubmitted: Boolean
+  researchStatus:       String
+  thesisDocumentUrl:    String
+  remarks:              String
+}
+input UpdateFacultyResearchSummaryInput {
+  facultyResearchSummaryId: ID!
+  researchArea:         String
+  guideName:            String
+  guideDesignation:     String
+  guideInstitution:     String
+  guideType:            String
+  thesisTitle:          String
+  university:           String
+  yearOfRegistration:   Int
+  yearOfDegreeAwarded:  Int
+  courseWorkCompleted:  Boolean
+  prePhDVivaVoce:       Boolean
+  finalThesisSubmitted: Boolean
+  researchStatus:       String
+  thesisDocumentUrl:    String
+  remarks:              String
+}
+
+input CreatePhdGuideInput {
+  deptId:          ID!
+  facultyName:     String!
+  university:      String
+  recognizedYear:  Int
+  scholarsGuided:  Int
+  ongoingScholars: Int
+}
+input UpdatePhdGuideInput {
+  phdGuideId:      ID!
+  facultyName:     String
+  university:      String
+  recognizedYear:  Int
+  scholarsGuided:  Int
+  ongoingScholars: Int
+}
+
+input CreatePhdScholarInput {
+  deptId:               ID!
+  guideFacultyId:       ID!
+  scholarName:          String!
+  institution:          String
+  department:           String
+  yearOfRegistration:   Int
+  thesisTitle:          String
+  courseWorkCompleted:  Boolean
+  prePhdViva:           Boolean
+  finalThesisSubmitted: Boolean
+  status:               String
+}
+input UpdatePhdScholarInput {
+  phdScholarId:         ID!
+  scholarName:          String
+  institution:          String
+  department:           String
+  yearOfRegistration:   Int
+  thesisTitle:          String
+  yearOfDegreeAwarded:  Int
+  courseWorkCompleted:  Boolean
+  prePhdViva:           Boolean
+  finalThesisSubmitted: Boolean
+  status:               String
+}
+
+extend type Query {
+  listDeptPublications(deptId: ID!, type: String, year: Int, limit: Int, nextToken: String): DeptPublicationList
+  listPublicationProfiles(deptId: ID!): PublicationProfileList
+  listResearchGrants(deptId: ID!): ResearchGrantList
+  listPatents(deptId: ID!): PatentList
+  listFacultyResearchSummaries(deptId: ID!, limit: Int, nextToken: String): FacultyResearchSummaryList
+  listPhdGuides(deptId: ID!): PhdGuideList
+  listPhdScholars(deptId: ID!, guideFacultyId: ID, status: String): PhdScholarList
+}
+
+extend type Mutation {
+  createDeptPublication(input: CreateDeptPublicationInput!): DeptPublication
+  updateDeptPublication(input: UpdateDeptPublicationInput!): DeptPublication
+  deleteDeptPublication(deptPublicationId: ID!): DeptPublication
+
+  savePublicationProfile(input: SavePublicationProfileInput!): PublicationProfile
+
+  createResearchGrant(input: CreateResearchGrantInput!): ResearchGrant
+  updateResearchGrant(input: UpdateResearchGrantInput!): ResearchGrant
+  deleteResearchGrant(researchGrantId: ID!): ResearchGrant
+
+  createPatent(input: CreatePatentInput!): Patent
+  updatePatent(input: UpdatePatentInput!): Patent
+  deletePatent(patentId: ID!): Patent
+
+  createFacultyResearchSummary(input: CreateFacultyResearchSummaryInput!): FacultyResearchSummary
+  updateFacultyResearchSummary(input: UpdateFacultyResearchSummaryInput!): FacultyResearchSummary
+  deleteFacultyResearchSummary(facultyResearchSummaryId: ID!): FacultyResearchSummary
+
+  createPhdGuide(input: CreatePhdGuideInput!): PhdGuide
+  updatePhdGuide(input: UpdatePhdGuideInput!): PhdGuide
+  deletePhdGuide(phdGuideId: ID!): PhdGuide
+
+  createPhdScholar(input: CreatePhdScholarInput!): PhdScholar
+  updatePhdScholar(input: UpdatePhdScholarInput!): PhdScholar
+  deletePhdScholar(phdScholarId: ID!): PhdScholar
+}

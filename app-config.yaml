@@ -16,7 +16,12 @@ core_modules:
 
 # Product-specific modules (add when you run generate-module.sh --type app)
 app_modules:
-  - news-management
-  - development-management
-  - team-management
+  - dept-branding-management
+  - dept-activities-management
+  - dept-academics-management
+  - dept-research-management
+  - dept-people-management
+  - dept-info-management
+  - department-management
+  - faculty-management
   

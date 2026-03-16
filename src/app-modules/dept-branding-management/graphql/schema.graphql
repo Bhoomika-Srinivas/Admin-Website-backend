@@ -1,0 +1,63 @@
+type DeptBranding {
+  deptId:            ID!
+  departmentTitle:   String
+  departmentLogoUrl: String
+  twitterUrl:        String
+  linkedinUrl:       String
+  youtubeUrl:        String
+  emailContact:      String
+  mapLocationLink:   String
+  fullAddress:       String
+  hodPhone:          String
+  hodEmail:          String
+  departmentPhone:   String
+  departmentFax:     String
+  departmentEmail:   String
+  copyrightText:     String
+  websiteCredits:    String
+  updatedAt:         AWSDateTime
+}
+
+type InstituteSettings {
+  tenantId:              ID!
+  instituteName:         String
+  instituteLogoUrl:      String
+  defaultCopyrightText:  String
+  defaultWebsiteCredits: String
+  updatedAt:             AWSDateTime
+}
+
+input SaveDeptBrandingInput {
+  departmentTitle:   String
+  departmentLogoUrl: String
+  twitterUrl:        String
+  linkedinUrl:       String
+  youtubeUrl:        String
+  emailContact:      String
+  mapLocationLink:   String
+  fullAddress:       String
+  hodPhone:          String
+  hodEmail:          String
+  departmentPhone:   String
+  departmentFax:     String
+  departmentEmail:   String
+  copyrightText:     String
+  websiteCredits:    String
+}
+
+input SaveInstituteSettingsInput {
+  instituteName:         String
+  instituteLogoUrl:      String
+  defaultCopyrightText:  String
+  defaultWebsiteCredits: String
+}
+
+extend type Query {
+  getDeptBranding(deptId: ID!): DeptBranding
+  getInstituteSettings: InstituteSettings
+}
+
+extend type Mutation {
+  saveDeptBranding(deptId: ID!, input: SaveDeptBrandingInput!): DeptBranding
+  saveInstituteSettings(input: SaveInstituteSettingsInput!): InstituteSettings
+}

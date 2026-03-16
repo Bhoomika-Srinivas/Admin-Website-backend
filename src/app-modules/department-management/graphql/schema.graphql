@@ -1,0 +1,54 @@
+type Department {
+  departmentId:  ID!
+  tenantId:      ID!
+  name:          String!
+  shortName:     String!
+  hod:           String
+  established:   Int
+  totalFaculty:  Int
+  totalStudents: Int
+  status:        String
+  description:   String
+  imageUrl:      String
+  createdAt:     AWSDateTime
+  updatedAt:     AWSDateTime
+}
+
+type DepartmentList {
+  items:     [Department]
+  nextToken: String
+}
+
+input CreateDepartmentInput {
+  name:        String!
+  shortName:   String!
+  hod:         String
+  established: Int
+  description: String
+  imageUrl:    String
+  status:      String
+}
+
+input UpdateDepartmentInput {
+  departmentId:  ID!
+  name:          String
+  shortName:     String
+  hod:           String
+  established:   Int
+  totalFaculty:  Int
+  totalStudents: Int
+  description:   String
+  imageUrl:      String
+  status:        String
+}
+
+extend type Query {
+  getDepartment(departmentId: ID!): Department
+  listDepartments(limit: Int, nextToken: String): DepartmentList
+}
+
+extend type Mutation {
+  createDepartment(input: CreateDepartmentInput!): Department
+  updateDepartment(input: UpdateDepartmentInput!): Department
+  deleteDepartment(departmentId: ID!): Department
+}

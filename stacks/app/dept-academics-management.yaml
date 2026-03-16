@@ -1,0 +1,323 @@
+
+  DeptAcademicsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-dept-academics-${Environment}'
+      CodeUri: src/app-modules/dept-academics-management/
+      Handler: functions/handler.handler
+      Layers:
+        - !Ref CommonLayer
+        - !Ref PackagesLayer
+      Policies:
+        - EventBridgePutEventsPolicy:
+            EventBusName: !Ref AppEventBus
+        - SSMParameterReadPolicy:
+            ParameterName: !Sub '${ProjectName}/${Environment}/*'
+      Tags:
+        Environment: !Ref Environment
+        ModuleName: dept-academics-management
+        ManagedBy: CloudFormation
+
+  DeptAcademicsDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      Name: DeptAcademicsDataSource
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !GetAtt AppSyncServiceRole.Arn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt DeptAcademicsFunction.Arn
+
+  DeptAcademicsGetDeptCourseResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: getDeptCourse
+      DataSourceName: !GetAtt DeptAcademicsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-academics-management/resolvers/getDeptCourse.js
+
+  DeptAcademicsListDeptCoursesResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listDeptCourses
+      DataSourceName: !GetAtt DeptAcademicsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-academics-management/resolvers/listDeptCourses.js
+
+  DeptAcademicsListDeptTimetablesResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listDeptTimetables
+      DataSourceName: !GetAtt DeptAcademicsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-academics-management/resolvers/listDeptTimetables.js
+
+  DeptAcademicsListLearningMaterialsResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listLearningMaterials
+      DataSourceName: !GetAtt DeptAcademicsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-academics-management/resolvers/listLearningMaterials.js
+
+  DeptAcademicsListInnovativeTeachingResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listInnovativeTeaching
+      DataSourceName: !GetAtt DeptAcademicsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-academics-management/resolvers/listInnovativeTeaching.js
+
+  DeptAcademicsListResultAnalysesResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listResultAnalyses
+      DataSourceName: !GetAtt DeptAcademicsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-academics-management/resolvers/listResultAnalyses.js
+
+  DeptAcademicsCreateDeptCourseResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createDeptCourse
+      DataSourceName: !GetAtt DeptAcademicsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-academics-management/resolvers/createDeptCourse.js
+
+  DeptAcademicsUpdateDeptCourseResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateDeptCourse
+      DataSourceName: !GetAtt DeptAcademicsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-academics-management/resolvers/updateDeptCourse.js
+
+  DeptAcademicsDeleteDeptCourseResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteDeptCourse
+      DataSourceName: !GetAtt DeptAcademicsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-academics-management/resolvers/deleteDeptCourse.js
+
+  DeptAcademicsCreateDeptTimetableResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createDeptTimetable
+      DataSourceName: !GetAtt DeptAcademicsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-academics-management/resolvers/createDeptTimetable.js
+
+  DeptAcademicsUpdateDeptTimetableResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateDeptTimetable
+      DataSourceName: !GetAtt DeptAcademicsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-academics-management/resolvers/updateDeptTimetable.js
+
+  DeptAcademicsDeleteDeptTimetableResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteDeptTimetable
+      DataSourceName: !GetAtt DeptAcademicsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-academics-management/resolvers/deleteDeptTimetable.js
+
+  DeptAcademicsCreateLearningMaterialResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createLearningMaterial
+      DataSourceName: !GetAtt DeptAcademicsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-academics-management/resolvers/createLearningMaterial.js
+
+  DeptAcademicsUpdateLearningMaterialResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateLearningMaterial
+      DataSourceName: !GetAtt DeptAcademicsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-academics-management/resolvers/updateLearningMaterial.js
+
+  DeptAcademicsDeleteLearningMaterialResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteLearningMaterial
+      DataSourceName: !GetAtt DeptAcademicsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-academics-management/resolvers/deleteLearningMaterial.js
+
+  DeptAcademicsCreateInnovativeTeachingResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createInnovativeTeaching
+      DataSourceName: !GetAtt DeptAcademicsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-academics-management/resolvers/createInnovativeTeaching.js
+
+  DeptAcademicsUpdateInnovativeTeachingResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateInnovativeTeaching
+      DataSourceName: !GetAtt DeptAcademicsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-academics-management/resolvers/updateInnovativeTeaching.js
+
+  DeptAcademicsDeleteInnovativeTeachingResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteInnovativeTeaching
+      DataSourceName: !GetAtt DeptAcademicsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-academics-management/resolvers/deleteInnovativeTeaching.js
+
+  DeptAcademicsCreateResultAnalysisResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createResultAnalysis
+      DataSourceName: !GetAtt DeptAcademicsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-academics-management/resolvers/createResultAnalysis.js
+
+  DeptAcademicsUpdateResultAnalysisResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateResultAnalysis
+      DataSourceName: !GetAtt DeptAcademicsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-academics-management/resolvers/updateResultAnalysis.js
+
+  DeptAcademicsDeleteResultAnalysisResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteResultAnalysis
+      DataSourceName: !GetAtt DeptAcademicsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-academics-management/resolvers/deleteResultAnalysis.js

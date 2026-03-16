@@ -175,63 +175,32 @@ const HonorSchema = new mongoose.Schema({
 
 const FacultySchema = new mongoose.Schema({
 
-  name: {
+  faculty_id: {
     type: String,
-    required: true
+    index: true
   },
 
-  designation: {
+  tenant_id: {
     type: String,
-    enum: [
-      "Professor",
-      "Associate Professor",
-      "Assistant Professor",
-      "HOD",
-      "Principal"
-    ],
-    required: true
+    index: true
   },
 
-  departmentId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Department",
-    required: true
-  },
-
-  qualification: {
-    type: String,
-    required: true
-  },
-
-  experience: {
-    type: Number,
-    required: true,
-    min: 0,
-    max: 60
-  },
-
-  email: {
-    type: String,
-    required: true,
-    unique: true
-  },
-
-  phone: {
+  created_by: {
     type: String
   },
 
-  specialization: {
-    type: String,
-    required: true
-  },
-
-  officeLocation: {
-    type: String
-  },
-
-  profilePicture: {
-    type: String
-  },
+  // Fields aligned with GraphQL schema
+  firstName: { type: String, required: true },
+  lastName: { type: String, required: true },
+  email: { type: String, required: true },
+  title: { type: String },
+  department: { type: String },
+  designation: { type: String },
+  bio: { type: String },
+  profileImage: { type: String },
+  phone: { type: String },
+  officeLocation: { type: String },
+  website: { type: String },
 
   publications: [PublicationSchema],
 

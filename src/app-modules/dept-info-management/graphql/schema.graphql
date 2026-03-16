@@ -1,0 +1,194 @@
+type DeptIntroduction {
+  deptId:         ID!
+  departmentName: String
+  logoUrl:        String
+  imageUrl:       String
+  description:    String
+  updatedAt:      AWSDateTime
+}
+
+type DeptAbout {
+  deptId:    ID!
+  vision:    String
+  mission:   String
+  updatedAt: AWSDateTime
+}
+
+type DeptSwot {
+  deptId:        ID!
+  strengths:     [String]
+  weaknesses:    [String]
+  opportunities: [String]
+  threats:       [String]
+  updatedAt:     AWSDateTime
+}
+
+type HodProfile {
+  deptId:         ID!
+  name:           String
+  title:          String
+  designation:    String
+  qualification:  String
+  experience:     String
+  specialization: String
+  message:        String
+  profileSummary: String
+  email:          String
+  phone:          String
+  imageUrl:       String
+  cvUrl:          String
+  updatedAt:      AWSDateTime
+}
+
+type ProgramOutcome {
+  programOutcomeId: ID!
+  deptId:           ID!
+  type:             String
+  statement:        String
+  order:            Int
+  createdAt:        AWSDateTime
+  updatedAt:        AWSDateTime
+}
+
+type CommitteeMember {
+  committeeMemberId: ID!
+  deptId:            ID!
+  committee:         String
+  name:              String
+  designation:       String
+  order:             Int
+}
+
+type DistinguishedAlumnus {
+  distinguishedAlumnusId: ID!
+  deptId:                 ID!
+  name:                   String!
+  batch:                  String
+  currentRole:            String
+  organization:           String
+  achievement:            String
+  imageUrl:               String
+  linkedInUrl:            String
+}
+
+type ProgramOutcomeList      { items: [ProgramOutcome]       nextToken: String }
+type CommitteeMemberList     { items: [CommitteeMember]      nextToken: String }
+type DistinguishedAlumniList { items: [DistinguishedAlumnus] nextToken: String }
+
+# ── Inputs ──────────────────────────────────────────────────────────────────
+
+input SaveDeptIntroductionInput {
+  departmentName: String
+  logoUrl:        String
+  imageUrl:       String
+  description:    String
+}
+
+input SaveDeptAboutInput {
+  vision:  String
+  mission: String
+}
+
+input SaveDeptSwotInput {
+  strengths:     [String]
+  weaknesses:    [String]
+  opportunities: [String]
+  threats:       [String]
+}
+
+input SaveHodProfileInput {
+  name:           String
+  title:          String
+  designation:    String
+  qualification:  String
+  experience:     String
+  specialization: String
+  message:        String
+  profileSummary: String
+  email:          String
+  phone:          String
+  imageUrl:       String
+  cvUrl:          String
+}
+
+input CreateProgramOutcomeInput {
+  deptId:    ID!
+  type:      String!
+  statement: String!
+  order:     Int!
+}
+input UpdateProgramOutcomeInput {
+  programOutcomeId: ID!
+  statement:        String
+  order:            Int
+}
+input ReorderProgramOutcomesInput {
+  deptId:     ID!
+  type:       String!
+  orderedIds: [ID!]!
+}
+
+input CreateCommitteeMemberInput {
+  deptId:      ID!
+  committee:   String!
+  name:        String!
+  designation: String
+  order:       Int
+}
+input UpdateCommitteeMemberInput {
+  committeeMemberId: ID!
+  name:              String
+  designation:       String
+  order:             Int
+}
+
+input CreateDistinguishedAlumnusInput {
+  deptId:       ID!
+  name:         String!
+  batch:        String
+  currentRole:  String
+  organization: String
+  achievement:  String
+  imageUrl:     String
+  linkedInUrl:  String
+}
+input UpdateDistinguishedAlumnusInput {
+  distinguishedAlumnusId: ID!
+  name:                   String
+  batch:                  String
+  currentRole:            String
+  organization:           String
+  achievement:            String
+  imageUrl:               String
+  linkedInUrl:            String
+}
+
+extend type Query {
+  getDeptIntroduction(deptId: ID!): DeptIntroduction
+  getDeptAbout(deptId: ID!): DeptAbout
+  getDeptSwot(deptId: ID!): DeptSwot
+  getHodProfile(deptId: ID!): HodProfile
+  listProgramOutcomes(deptId: ID!, type: String, limit: Int, nextToken: String): ProgramOutcomeList
+  listCommitteeMembers(deptId: ID!, committee: String): CommitteeMemberList
+  listDistinguishedAlumni(deptId: ID!): DistinguishedAlumniList
+}
+
+extend type Mutation {
+  saveDeptIntroduction(deptId: ID!, input: SaveDeptIntroductionInput!): DeptIntroduction
+  saveDeptAbout(deptId: ID!, input: SaveDeptAboutInput!): DeptAbout
+  saveDeptSwot(deptId: ID!, input: SaveDeptSwotInput!): DeptSwot
+  saveHodProfile(deptId: ID!, input: SaveHodProfileInput!): HodProfile
+
+  createProgramOutcome(input: CreateProgramOutcomeInput!): ProgramOutcome
+  updateProgramOutcome(input: UpdateProgramOutcomeInput!): ProgramOutcome
+  deleteProgramOutcome(programOutcomeId: ID!): ProgramOutcome
+  reorderProgramOutcomes(input: ReorderProgramOutcomesInput!): Boolean
+
+  createCommitteeMember(input: CreateCommitteeMemberInput!): CommitteeMember
+  updateCommitteeMember(input: UpdateCommitteeMemberInput!): CommitteeMember
+  deleteCommitteeMember(committeeMemberId: ID!): CommitteeMember
+
+  createDistinguishedAlumnus(input: CreateDistinguishedAlumnusInput!): DistinguishedAlumnus
+  updateDistinguishedAlumnus(input: UpdateDistinguishedAlumnusInput!): DistinguishedAlumnus
+  deleteDistinguishedAlumnus(distinguishedAlumnusId: ID!): DistinguishedAlumnus
+}

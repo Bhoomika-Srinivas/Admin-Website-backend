@@ -1,0 +1,393 @@
+
+  DeptResearchFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-dept-research-${Environment}'
+      CodeUri: src/app-modules/dept-research-management/
+      Handler: functions/handler.handler
+      Layers:
+        - !Ref CommonLayer
+        - !Ref PackagesLayer
+      Policies:
+        - EventBridgePutEventsPolicy:
+            EventBusName: !Ref AppEventBus
+        - SSMParameterReadPolicy:
+            ParameterName: !Sub '${ProjectName}/${Environment}/*'
+      Tags:
+        Environment: !Ref Environment
+        ModuleName: dept-research-management
+        ManagedBy: CloudFormation
+
+  DeptResearchDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      Name: DeptResearchDataSource
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !GetAtt AppSyncServiceRole.Arn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt DeptResearchFunction.Arn
+
+  DeptResearchListDeptPublicationsResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listDeptPublications
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/listDeptPublications.js
+
+  DeptResearchCreateDeptPublicationResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createDeptPublication
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/createDeptPublication.js
+
+  DeptResearchUpdateDeptPublicationResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateDeptPublication
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/updateDeptPublication.js
+
+  DeptResearchDeleteDeptPublicationResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteDeptPublication
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/deleteDeptPublication.js
+
+  DeptResearchListPublicationProfilesResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listPublicationProfiles
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/listPublicationProfiles.js
+
+  DeptResearchSavePublicationProfileResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: savePublicationProfile
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/savePublicationProfile.js
+
+  DeptResearchListResearchGrantsResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listResearchGrants
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/listResearchGrants.js
+
+  DeptResearchCreateResearchGrantResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createResearchGrant
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/createResearchGrant.js
+
+  DeptResearchUpdateResearchGrantResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateResearchGrant
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/updateResearchGrant.js
+
+  DeptResearchDeleteResearchGrantResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteResearchGrant
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/deleteResearchGrant.js
+
+  DeptResearchListPatentsResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listPatents
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/listPatents.js
+
+  DeptResearchCreatePatentResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createPatent
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/createPatent.js
+
+  DeptResearchUpdatePatentResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updatePatent
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/updatePatent.js
+
+  DeptResearchDeletePatentResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deletePatent
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/deletePatent.js
+
+  DeptResearchListFacultyResearchSummariesResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listFacultyResearchSummaries
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/listFacultyResearchSummaries.js
+
+  DeptResearchCreateFacultyResearchSummaryResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createFacultyResearchSummary
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/createFacultyResearchSummary.js
+
+  DeptResearchUpdateFacultyResearchSummaryResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateFacultyResearchSummary
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/updateFacultyResearchSummary.js
+
+  DeptResearchDeleteFacultyResearchSummaryResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteFacultyResearchSummary
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/deleteFacultyResearchSummary.js
+
+  DeptResearchListPhdGuidesResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listPhdGuides
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/listPhdGuides.js
+
+  DeptResearchCreatePhdGuideResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createPhdGuide
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/createPhdGuide.js
+
+  DeptResearchUpdatePhdGuideResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updatePhdGuide
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/updatePhdGuide.js
+
+  DeptResearchDeletePhdGuideResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deletePhdGuide
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/deletePhdGuide.js
+
+  DeptResearchListPhdScholarsResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listPhdScholars
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/listPhdScholars.js
+
+  DeptResearchCreatePhdScholarResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createPhdScholar
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/createPhdScholar.js
+
+  DeptResearchUpdatePhdScholarResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updatePhdScholar
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/updatePhdScholar.js
+
+  DeptResearchDeletePhdScholarResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deletePhdScholar
+      DataSourceName: !GetAtt DeptResearchDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-research-management/resolvers/deletePhdScholar.js

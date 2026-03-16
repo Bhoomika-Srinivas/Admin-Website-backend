@@ -1,0 +1,251 @@
+type PlacementOverview {
+  placementOverviewId: ID!
+  deptId:              ID!
+  title:               String
+  academicYear:        String
+  companiesVisited:    Int
+  studentsInCampus:    Int
+  studentsOffCampus:   Int
+  highestPackage:      String
+  createdAt:           AWSDateTime
+}
+
+type StudentPlacement {
+  studentPlacementId: ID!
+  deptId:             ID!
+  studentName:        String!
+  usn:                String
+  batch:              String
+  company:            String
+  role:               String
+  package:            Float
+  imageUrl:           String
+  createdAt:          AWSDateTime
+}
+
+type Achievement {
+  achievementId: ID!
+  deptId:        ID!
+  type:          String
+  text:          String!
+  createdAt:     AWSDateTime
+}
+
+type DeptActivity {
+  deptActivityId: ID!
+  deptId:         ID!
+  type:           String
+  name:           String!
+  description:    String
+  date:           String
+  venue:          String
+  organizer:      String
+  participants:   Int
+  createdAt:      AWSDateTime
+}
+
+type ForumSection {
+  forumSectionId: ID
+  deptId:         ID!
+  title:          String!
+  description:    String
+  createdAt:      AWSDateTime
+}
+
+type ForumEvent {
+  forumEventId: ID!
+  deptId:       ID!
+  title:        String!
+  description:  String
+  createdAt:    AWSDateTime
+}
+
+type DepartmentActivityLog {
+  deptActivityLogId: ID!
+  deptId:            ID!
+  text:              String!
+  createdBy:         String
+  createdAt:         AWSDateTime
+}
+
+type Newsletter {
+  newsletterId:  ID!
+  deptId:        ID!
+  title:         String!
+  volume:        String
+  issue:         String
+  publishedDate: String
+  fileUrl:       String
+  createdAt:     AWSDateTime
+}
+
+type GalleryPhoto {
+  galleryPhotoId: ID!
+  deptId:         ID!
+  title:          String
+  category:       String
+  imageUrl:       String!
+  capturedAt:     String
+  createdAt:      AWSDateTime
+}
+
+type PlacementOverviewList     { items: [PlacementOverview]     nextToken: String }
+type StudentPlacementList      { items: [StudentPlacement]      nextToken: String }
+type AchievementList           { items: [Achievement]           nextToken: String }
+type DeptActivityList          { items: [DeptActivity]          nextToken: String }
+type ForumEventList            { items: [ForumEvent]            nextToken: String }
+type DepartmentActivityLogList { items: [DepartmentActivityLog] nextToken: String }
+type NewsletterList            { items: [Newsletter]            nextToken: String }
+type GalleryPhotoList          { items: [GalleryPhoto]          nextToken: String }
+
+input CreatePlacementOverviewInput {
+  deptId:            ID!
+  title:             String
+  academicYear:      String
+  companiesVisited:  Int
+  studentsInCampus:  Int
+  studentsOffCampus: Int
+  highestPackage:    String
+}
+input UpdatePlacementOverviewInput {
+  placementOverviewId: ID!
+  title:               String
+  academicYear:        String
+  companiesVisited:    Int
+  studentsInCampus:    Int
+  studentsOffCampus:   Int
+  highestPackage:      String
+}
+
+input CreateStudentPlacementInput {
+  deptId:      ID!
+  studentName: String!
+  usn:         String
+  batch:       String
+  company:     String
+  role:        String
+  package:     Float
+  imageUrl:    String
+}
+input UpdateStudentPlacementInput {
+  studentPlacementId: ID!
+  studentName:        String
+  usn:                String
+  batch:              String
+  company:            String
+  role:               String
+  package:            Float
+  imageUrl:           String
+}
+
+input CreateAchievementInput { deptId: ID!  type: String  text: String! }
+input UpdateAchievementInput { achievementId: ID!  type: String  text: String }
+
+input CreateDeptActivityInput {
+  deptId:       ID!
+  type:         String
+  name:         String!
+  description:  String
+  date:         String
+  venue:        String
+  organizer:    String
+  participants: Int
+}
+input UpdateDeptActivityInput {
+  deptActivityId: ID!
+  type:           String
+  name:           String
+  description:    String
+  date:           String
+  venue:          String
+  organizer:      String
+  participants:   Int
+}
+
+input SaveForumSectionInput { deptId: ID!  title: String!  description: String }
+
+input CreateForumEventInput { deptId: ID!  title: String!  description: String }
+input UpdateForumEventInput { forumEventId: ID!  title: String  description: String }
+
+input CreateDepartmentActivityInput { deptId: ID!  text: String! }
+input UpdateDepartmentActivityInput { deptActivityLogId: ID!  text: String }
+
+input CreateNewsletterInput {
+  deptId:        ID!
+  title:         String!
+  volume:        String
+  issue:         String
+  publishedDate: String
+  fileUrl:       String
+}
+input UpdateNewsletterInput {
+  newsletterId:  ID!
+  title:         String
+  volume:        String
+  issue:         String
+  publishedDate: String
+  fileUrl:       String
+}
+
+input CreateGalleryPhotoInput {
+  deptId:     ID!
+  title:      String
+  category:   String
+  imageUrl:   String!
+  capturedAt: String
+}
+input UpdateGalleryPhotoInput {
+  galleryPhotoId: ID!
+  title:          String
+  category:       String
+  imageUrl:       String
+  capturedAt:     String
+}
+
+extend type Query {
+  listPlacementOverviews(deptId: ID!, academicYear: String): PlacementOverviewList
+  listStudentPlacements(deptId: ID!, batch: String, limit: Int, nextToken: String): StudentPlacementList
+  listAchievements(deptId: ID!, type: String): AchievementList
+  listDeptActivities(deptId: ID!, type: String, limit: Int, nextToken: String): DeptActivityList
+  getForumSection(deptId: ID!): ForumSection
+  listForumEvents(deptId: ID!, limit: Int, nextToken: String): ForumEventList
+  listDepartmentActivities(deptId: ID!, limit: Int, nextToken: String): DepartmentActivityLogList
+  listNewsletters(deptId: ID!): NewsletterList
+  listGalleryPhotos(deptId: ID!, category: String, limit: Int, nextToken: String): GalleryPhotoList
+}
+
+extend type Mutation {
+  createPlacementOverview(input: CreatePlacementOverviewInput!): PlacementOverview
+  updatePlacementOverview(input: UpdatePlacementOverviewInput!): PlacementOverview
+  deletePlacementOverview(placementOverviewId: ID!): PlacementOverview
+
+  createStudentPlacement(input: CreateStudentPlacementInput!): StudentPlacement
+  updateStudentPlacement(input: UpdateStudentPlacementInput!): StudentPlacement
+  deleteStudentPlacement(studentPlacementId: ID!): StudentPlacement
+
+  createAchievement(input: CreateAchievementInput!): Achievement
+  updateAchievement(input: UpdateAchievementInput!): Achievement
+  deleteAchievement(achievementId: ID!): Achievement
+
+  createDeptActivity(input: CreateDeptActivityInput!): DeptActivity
+  updateDeptActivity(input: UpdateDeptActivityInput!): DeptActivity
+  deleteDeptActivity(deptActivityId: ID!): DeptActivity
+
+  saveForumSection(input: SaveForumSectionInput!): ForumSection
+
+  createForumEvent(input: CreateForumEventInput!): ForumEvent
+  updateForumEvent(input: UpdateForumEventInput!): ForumEvent
+  deleteForumEvent(forumEventId: ID!): ForumEvent
+
+  createDepartmentActivity(input: CreateDepartmentActivityInput!): DepartmentActivityLog
+  updateDepartmentActivity(input: UpdateDepartmentActivityInput!): DepartmentActivityLog
+  deleteDepartmentActivity(deptActivityLogId: ID!): DepartmentActivityLog
+
+  createNewsletter(input: CreateNewsletterInput!): Newsletter
+  updateNewsletter(input: UpdateNewsletterInput!): Newsletter
+  deleteNewsletter(newsletterId: ID!): Newsletter
+
+  createGalleryPhoto(input: CreateGalleryPhotoInput!): GalleryPhoto
+  updateGalleryPhoto(input: UpdateGalleryPhotoInput!): GalleryPhoto
+  deleteGalleryPhoto(galleryPhotoId: ID!): GalleryPhoto
+}

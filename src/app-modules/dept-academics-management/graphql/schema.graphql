@@ -1,0 +1,182 @@
+type DeptCourse {
+  deptCourseId: ID!
+  deptId:       ID!
+  code:         String!
+  name:         String!
+  semester:     Int
+  credits:      Int
+  type:         String
+  scheme:       String
+  createdAt:    AWSDateTime
+  updatedAt:    AWSDateTime
+}
+
+type DeptTimetable {
+  deptTimetableId: ID!
+  deptId:          ID!
+  section:         String
+  semester:        Int
+  academicYear:    String
+  fileUrl:         String
+  uploadedAt:      String
+  createdAt:       AWSDateTime
+}
+
+type LearningMaterial {
+  learningMaterialId: ID!
+  deptId:             ID!
+  courseCode:         String
+  courseName:         String
+  title:              String!
+  type:               String
+  fileUrl:            String
+  uploadedBy:         String
+  createdAt:          AWSDateTime
+}
+
+type InnovativeTeaching {
+  innovativeTeachingId: ID!
+  deptId:               ID!
+  facultyName:          String
+  method:               String
+  description:          String
+  courseApplied:        String
+  year:                 String
+  outcome:              String
+  createdAt:            AWSDateTime
+}
+
+type ResultAnalysis {
+  resultAnalysisId: ID!
+  deptId:           ID!
+  title:            String!
+  semester:         Int
+  batch:            String
+  pdfUrl:           String
+  graphImageUrl:    String
+  createdAt:        AWSDateTime
+}
+
+type DeptCourseList         { items: [DeptCourse]         nextToken: String }
+type DeptTimetableList      { items: [DeptTimetable]      nextToken: String }
+type LearningMaterialList   { items: [LearningMaterial]   nextToken: String }
+type InnovativeTeachingList { items: [InnovativeTeaching] nextToken: String }
+type ResultAnalysisList     { items: [ResultAnalysis]     nextToken: String }
+
+input CreateDeptCourseInput {
+  deptId:   ID!
+  code:     String!
+  name:     String!
+  semester: Int
+  credits:  Int
+  type:     String
+  scheme:   String
+}
+input UpdateDeptCourseInput {
+  deptCourseId: ID!
+  code:         String
+  name:         String
+  semester:     Int
+  credits:      Int
+  type:         String
+  scheme:       String
+}
+
+input CreateDeptTimetableInput {
+  deptId:       ID!
+  section:      String
+  semester:     Int
+  academicYear: String
+  fileUrl:      String
+}
+input UpdateDeptTimetableInput {
+  deptTimetableId: ID!
+  section:         String
+  semester:        Int
+  academicYear:    String
+  fileUrl:         String
+}
+
+input CreateLearningMaterialInput {
+  deptId:     ID!
+  courseCode: String
+  courseName: String
+  title:      String!
+  type:       String
+  fileUrl:    String
+}
+input UpdateLearningMaterialInput {
+  learningMaterialId: ID!
+  courseCode:         String
+  courseName:         String
+  title:              String
+  type:               String
+  fileUrl:            String
+}
+
+input CreateInnovativeTeachingInput {
+  deptId:        ID!
+  facultyName:   String
+  method:        String
+  description:   String
+  courseApplied: String
+  year:          String
+  outcome:       String
+}
+input UpdateInnovativeTeachingInput {
+  innovativeTeachingId: ID!
+  facultyName:          String
+  method:               String
+  description:          String
+  courseApplied:        String
+  year:                 String
+  outcome:              String
+}
+
+input CreateResultAnalysisInput {
+  deptId:        ID!
+  title:         String!
+  semester:      Int
+  batch:         String
+  pdfUrl:        String
+  graphImageUrl: String
+}
+input UpdateResultAnalysisInput {
+  resultAnalysisId: ID!
+  title:            String
+  semester:         Int
+  batch:            String
+  pdfUrl:           String
+  graphImageUrl:    String
+}
+
+extend type Query {
+  listDeptCourses(deptId: ID!, semester: Int, type: String, limit: Int, nextToken: String): DeptCourseList
+  getDeptCourse(deptCourseId: ID!): DeptCourse
+  listDeptTimetables(deptId: ID!, semester: Int, academicYear: String): DeptTimetableList
+  listLearningMaterials(deptId: ID!, courseCode: String, type: String, limit: Int, nextToken: String): LearningMaterialList
+  listInnovativeTeaching(deptId: ID!): InnovativeTeachingList
+  listResultAnalyses(deptId: ID!, semester: Int, batch: String): ResultAnalysisList
+}
+
+extend type Mutation {
+  createDeptCourse(input: CreateDeptCourseInput!): DeptCourse
+  updateDeptCourse(input: UpdateDeptCourseInput!): DeptCourse
+  deleteDeptCourse(deptCourseId: ID!): DeptCourse
+
+  createDeptTimetable(input: CreateDeptTimetableInput!): DeptTimetable
+  updateDeptTimetable(input: UpdateDeptTimetableInput!): DeptTimetable
+  deleteDeptTimetable(deptTimetableId: ID!): DeptTimetable
+
+  createLearningMaterial(input: CreateLearningMaterialInput!): LearningMaterial
+  updateLearningMaterial(input: UpdateLearningMaterialInput!): LearningMaterial
+  deleteLearningMaterial(learningMaterialId: ID!): LearningMaterial
+
+  createInnovativeTeaching(input: CreateInnovativeTeachingInput!): InnovativeTeaching
+  updateInnovativeTeaching(input: UpdateInnovativeTeachingInput!): InnovativeTeaching
+  deleteInnovativeTeaching(innovativeTeachingId: ID!): InnovativeTeaching
+
+  createResultAnalysis(input: CreateResultAnalysisInput!): ResultAnalysis
+  updateResultAnalysis(input: UpdateResultAnalysisInput!): ResultAnalysis
+  deleteResultAnalysis(resultAnalysisId: ID!): ResultAnalysis
+}

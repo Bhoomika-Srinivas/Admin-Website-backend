@@ -237,6 +237,8 @@ Resources:
           listLearningMaterials(deptId: ID!, tenantId: ID, courseCode: String, type: String, limit: Int, nextToken: String): LearningMaterialList @aws_api_key @aws_cognito_user_pools
           listInnovativeTeaching(deptId: ID!, tenantId: ID): InnovativeTeachingList @aws_api_key @aws_cognito_user_pools
           listResultAnalyses(deptId: ID!, tenantId: ID, semester: Int, batch: String): ResultAnalysisList @aws_api_key @aws_cognito_user_pools
+          listEvents(deptId: ID, tenantId: ID, level: String, department: String, status: String, approvalStatus: String, pinned: Boolean, limit: Int, nextToken: String): EventList @aws_api_key @aws_cognito_user_pools
+          getEvent(eventId: ID!): Event @aws_api_key @aws_cognito_user_pools
           listPlacementOverviews(deptId: ID!, academicYear: String): PlacementOverviewList
           listStudentPlacements(deptId: ID!, batch: String, limit: Int, nextToken: String): StudentPlacementList
           listAchievements(deptId: ID!, type: String): AchievementList
@@ -318,6 +320,13 @@ Resources:
           createResultAnalysis(input: CreateResultAnalysisInput!): ResultAnalysis
           updateResultAnalysis(input: UpdateResultAnalysisInput!): ResultAnalysis
           deleteResultAnalysis(resultAnalysisId: ID!): ResultAnalysis
+          createEvent(input: CreateEventInput!): Event
+          updateEvent(input: UpdateEventInput!): Event
+          deleteEvent(eventId: ID!): Event
+          approveEvent(eventId: ID!): Event
+          rejectEvent(eventId: ID!): Event
+          cancelEvent(eventId: ID!): Event
+          togglePinEvent(eventId: ID!): Event
           createPlacementOverview(input: CreatePlacementOverviewInput!): PlacementOverview
           updatePlacementOverview(input: UpdatePlacementOverviewInput!): PlacementOverview
           deletePlacementOverview(placementOverviewId: ID!): PlacementOverview
@@ -1077,6 +1086,55 @@ Resources:
         
         
         # module: dept-activities-management
+        type Event @aws_api_key @aws_cognito_user_pools {
+          eventId:        ID!
+          deptId:         ID
+          title:          String!
+          date:           String
+          time:           String
+          venue:          String
+          description:    String
+          images:         [String]
+          pinned:         Boolean
+          level:          String!
+          department:     String
+          status:         String!
+          approvalStatus: String!
+          createdBy:      String
+          createdAt:      AWSDateTime
+          updatedAt:      AWSDateTime
+        }
+        
+        type EventList @aws_api_key @aws_cognito_user_pools { items: [Event] nextToken: String }
+        
+        input CreateEventInput {
+          deptId:      ID
+          title:       String!
+          date:        String
+          time:        String
+          venue:       String
+          description: String
+          images:      [String]
+          pinned:      Boolean
+          level:       String!
+          department:  String
+        }
+        
+        input UpdateEventInput {
+          eventId:        ID!
+          title:          String
+          date:           String
+          time:           String
+          venue:          String
+          description:    String
+          images:         [String]
+          pinned:         Boolean
+          level:          String
+          department:     String
+          status:         String
+          approvalStatus: String
+        }
+        
         type PlacementOverview {
           placementOverviewId: ID!
           deptId:              ID!
@@ -3364,6 +3422,132 @@ Resources:
         Name: APPSYNC_JS
         RuntimeVersion: 1.0.0
       CodeS3Location: src/app-modules/dept-activities-management/resolvers/deleteDepartmentActivity.js
+
+  DeptActivitiesListEventsResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listEvents
+      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-activities-management/resolvers/listEvents.js
+
+  DeptActivitiesGetEventResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: getEvent
+      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-activities-management/resolvers/getEvent.js
+
+  DeptActivitiesCreateEventResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createEvent
+      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-activities-management/resolvers/createEvent.js
+
+  DeptActivitiesUpdateEventResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateEvent
+      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-activities-management/resolvers/updateEvent.js
+
+  DeptActivitiesDeleteEventResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteEvent
+      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-activities-management/resolvers/deleteEvent.js
+
+  DeptActivitiesApproveEventResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: approveEvent
+      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-activities-management/resolvers/approveEvent.js
+
+  DeptActivitiesRejectEventResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: rejectEvent
+      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-activities-management/resolvers/rejectEvent.js
+
+  DeptActivitiesCancelEventResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: cancelEvent
+      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-activities-management/resolvers/cancelEvent.js
+
+  DeptActivitiesTogglePinEventResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: togglePinEvent
+      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/dept-activities-management/resolvers/togglePinEvent.js
 
   DeptAcademicsFunction:
     Type: AWS::Serverless::Function

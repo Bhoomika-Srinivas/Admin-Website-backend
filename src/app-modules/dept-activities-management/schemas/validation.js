@@ -1,14 +1,77 @@
 const Joi = require("joi")
 
 /* ─────────────────────────────
+   Event Schemas
+─────────────────────────────*/
+
+const listEventsSchema = Joi.object({
+  deptId:         Joi.string().optional().allow(null),
+  tenantId:       Joi.string().optional().allow(null),
+  level:          Joi.string().valid('institutional', 'department').optional().allow(null),
+  department:     Joi.string().optional().allow(null),
+  status:         Joi.string().valid('upcoming', 'completed', 'cancelled').optional().allow(null),
+  approvalStatus: Joi.string().valid('pending', 'approved', 'rejected').optional().allow(null),
+  pinned:         Joi.boolean().optional().allow(null),
+  limit:          Joi.number().integer().min(1).max(100).optional().allow(null),
+  nextToken:      Joi.string().optional().allow(null),
+  pagination:     Joi.object().optional().allow(null)
+})
+
+const getEventSchema = Joi.object({
+  eventId: Joi.string().required()
+})
+
+const createEventSchema = Joi.object({
+  input: Joi.object({
+    deptId:      Joi.string().optional().allow(null),
+    title:       Joi.string().required(),
+    date:        Joi.string().optional().allow(null),
+    time:        Joi.string().optional().allow(null),
+    venue:       Joi.string().optional().allow(null),
+    description: Joi.string().optional().allow(null),
+    images:      Joi.array().items(Joi.string()).optional().allow(null),
+    pinned:      Joi.boolean().optional().allow(null),
+    level:       Joi.string().valid('institutional', 'department').required(),
+    department:  Joi.string().optional().allow(null)
+  }).required()
+})
+
+const updateEventSchema = Joi.object({
+  input: Joi.object({
+    eventId:        Joi.string().required(),
+    title:          Joi.string().optional().allow(null),
+    date:           Joi.string().optional().allow(null),
+    time:           Joi.string().optional().allow(null),
+    venue:          Joi.string().optional().allow(null),
+    description:    Joi.string().optional().allow(null),
+    images:         Joi.array().items(Joi.string()).optional().allow(null),
+    pinned:         Joi.boolean().optional().allow(null),
+    level:          Joi.string().valid('institutional', 'department').optional().allow(null),
+    department:     Joi.string().optional().allow(null),
+    status:         Joi.string().valid('upcoming', 'completed', 'cancelled').optional().allow(null),
+    approvalStatus: Joi.string().valid('pending', 'approved', 'rejected').optional().allow(null)
+  }).required()
+})
+
+const deleteEventSchema = Joi.object({
+  eventId: Joi.string().required()
+})
+
+const approveEventSchema    = Joi.object({ eventId: Joi.string().required() })
+const rejectEventSchema     = Joi.object({ eventId: Joi.string().required() })
+const cancelEventSchema     = Joi.object({ eventId: Joi.string().required() })
+const togglePinEventSchema  = Joi.object({ eventId: Joi.string().required() })
+
+
+/* ─────────────────────────────
    PlacementOverview Schemas
 ─────────────────────────────*/
 
 const listPlacementOverviewsSchema = Joi.object({
   deptId:       Joi.string().required(),
-  academicYear: Joi.string().optional(),
-  sortBy:       Joi.string().valid("academicYear", "companiesVisited", "highestPackage", "createdAt").optional(),
-  sortOrder:    Joi.string().valid("asc", "desc").optional()
+  academicYear: Joi.string().optional().allow(null),
+  sortBy:       Joi.string().valid("academicYear", "companiesVisited", "highestPackage", "createdAt").optional().allow(null),
+  sortOrder:    Joi.string().valid("asc", "desc").optional().allow(null)
 })
 
 const createPlacementOverviewSchema = Joi.object({
@@ -46,13 +109,13 @@ const deletePlacementOverviewSchema = Joi.object({
 
 const listStudentPlacementsSchema = Joi.object({
   deptId:     Joi.string().required(),
-  search:     Joi.string().optional().allow(""),
-  batch:      Joi.string().optional(),
-  sortBy:     Joi.string().valid("studentName", "company", "package", "batch", "createdAt").optional(),
-  sortOrder:  Joi.string().valid("asc", "desc").optional(),
-  limit:      Joi.number().integer().min(1).max(100).optional(),
-  nextToken:  Joi.string().optional(),
-  pagination: Joi.object().optional()
+  search:     Joi.string().optional().allow("", null),
+  batch:      Joi.string().optional().allow(null),
+  sortBy:     Joi.string().valid("studentName", "company", "package", "batch", "createdAt").optional().allow(null),
+  sortOrder:  Joi.string().valid("asc", "desc").optional().allow(null),
+  limit:      Joi.number().integer().min(1).max(100).optional().allow(null),
+  nextToken:  Joi.string().optional().allow(null),
+  pagination: Joi.object().optional().allow(null)
 })
 
 const createStudentPlacementSchema = Joi.object({
@@ -92,10 +155,10 @@ const deleteStudentPlacementSchema = Joi.object({
 
 const listAchievementsSchema = Joi.object({
   deptId:    Joi.string().required(),
-  search:    Joi.string().optional().allow(""),
-  type:      Joi.string().valid("student", "staff").optional(),
-  sortBy:    Joi.string().valid("type", "createdAt").optional(),
-  sortOrder: Joi.string().valid("asc", "desc").optional()
+  search:    Joi.string().optional().allow("", null),
+  type:      Joi.string().valid("student", "staff").optional().allow(null),
+  sortBy:    Joi.string().valid("type", "createdAt").optional().allow(null),
+  sortOrder: Joi.string().valid("asc", "desc").optional().allow(null)
 })
 
 const createAchievementSchema = Joi.object({
@@ -125,13 +188,13 @@ const deleteAchievementSchema = Joi.object({
 
 const listDeptActivitiesSchema = Joi.object({
   deptId:     Joi.string().required(),
-  search:     Joi.string().optional().allow(""),
-  type:       Joi.string().valid("forum", "department").optional(),
-  sortBy:     Joi.string().valid("name", "date", "participants", "createdAt").optional(),
-  sortOrder:  Joi.string().valid("asc", "desc").optional(),
-  limit:      Joi.number().integer().min(1).max(100).optional(),
-  nextToken:  Joi.string().optional(),
-  pagination: Joi.object().optional()
+  search:     Joi.string().optional().allow("", null),
+  type:       Joi.string().valid("forum", "department").optional().allow(null),
+  sortBy:     Joi.string().valid("name", "date", "participants", "createdAt").optional().allow(null),
+  sortOrder:  Joi.string().valid("asc", "desc").optional().allow(null),
+  limit:      Joi.number().integer().min(1).max(100).optional().allow(null),
+  nextToken:  Joi.string().optional().allow(null),
+  pagination: Joi.object().optional().allow(null)
 })
 
 const createDeptActivitySchema = Joi.object({
@@ -171,9 +234,9 @@ const deleteDeptActivitySchema = Joi.object({
 
 const listForumSectionsSchema = Joi.object({
   deptId:    Joi.string().required(),
-  search:    Joi.string().optional().allow(""),
-  sortBy:    Joi.string().valid("title", "createdAt").optional(),
-  sortOrder: Joi.string().valid("asc", "desc").optional()
+  search:    Joi.string().optional().allow("", null),
+  sortBy:    Joi.string().valid("title", "createdAt").optional().allow(null),
+  sortOrder: Joi.string().valid("asc", "desc").optional().allow(null)
 })
 
 const createForumSectionSchema = Joi.object({
@@ -203,12 +266,12 @@ const deleteForumSectionSchema = Joi.object({
 
 const listForumEventsSchema = Joi.object({
   deptId:     Joi.string().required(),
-  search:     Joi.string().optional().allow(""),
-  sortBy:     Joi.string().valid("title", "createdAt").optional(),
-  sortOrder:  Joi.string().valid("asc", "desc").optional(),
-  limit:      Joi.number().integer().min(1).max(100).optional(),
-  nextToken:  Joi.string().optional(),
-  pagination: Joi.object().optional()
+  search:     Joi.string().optional().allow("", null),
+  sortBy:     Joi.string().valid("title", "createdAt").optional().allow(null),
+  sortOrder:  Joi.string().valid("asc", "desc").optional().allow(null),
+  limit:      Joi.number().integer().min(1).max(100).optional().allow(null),
+  nextToken:  Joi.string().optional().allow(null),
+  pagination: Joi.object().optional().allow(null)
 })
 
 const createForumEventSchema = Joi.object({
@@ -238,14 +301,27 @@ const deleteForumEventSchema = Joi.object({
 
 const listDepartmentActivityLogSchema = Joi.object({
   deptId:     Joi.string().required(),
-  limit:      Joi.number().integer().min(1).max(100).optional(),
-  nextToken:  Joi.string().optional(),
-  pagination: Joi.object().optional()
+  limit:      Joi.number().integer().min(1).max(100).optional().allow(null),
+  nextToken:  Joi.string().optional().allow(null),
+  pagination: Joi.object().optional().allow(null)
 })
 
 const appendDepartmentActivitySchema = Joi.object({
-  deptId: Joi.string().required(),
-  text:   Joi.string().min(3).required()
+  input: Joi.object({
+    deptId: Joi.string().required(),
+    text:   Joi.string().min(3).required()
+  }).required()
+})
+
+const updateDepartmentActivitySchema = Joi.object({
+  input: Joi.object({
+    deptActivityLogId: Joi.string().required(),
+    text:              Joi.string().min(3).optional()
+  }).required()
+})
+
+const deleteDepartmentActivitySchema = Joi.object({
+  deptActivityLogId: Joi.string().required()
 })
 
 
@@ -255,9 +331,9 @@ const appendDepartmentActivitySchema = Joi.object({
 
 const listDeptNewslettersSchema = Joi.object({
   deptId:    Joi.string().required(),
-  search:    Joi.string().optional().allow(""),
-  sortBy:    Joi.string().valid("title", "publishedDate", "volume", "createdAt").optional(),
-  sortOrder: Joi.string().valid("asc", "desc").optional()
+  search:    Joi.string().optional().allow("", null),
+  sortBy:    Joi.string().valid("title", "publishedDate", "volume", "createdAt").optional().allow(null),
+  sortOrder: Joi.string().valid("asc", "desc").optional().allow(null)
 })
 
 const createDeptNewsletterSchema = Joi.object({
@@ -273,17 +349,17 @@ const createDeptNewsletterSchema = Joi.object({
 
 const updateDeptNewsletterSchema = Joi.object({
   input: Joi.object({
-    deptNewsletterId: Joi.string().required(),
-    title:            Joi.string().min(2).optional(),
-    volume:           Joi.string().optional(),
-    issue:            Joi.string().optional(),
-    publishedDate:    Joi.string().optional(),
-    fileUrl:          Joi.string().optional().allow("")
+    newsletterId:  Joi.string().required(),
+    title:         Joi.string().min(2).optional(),
+    volume:        Joi.string().optional(),
+    issue:         Joi.string().optional(),
+    publishedDate: Joi.string().optional(),
+    fileUrl:       Joi.string().optional().allow("")
   }).required()
 })
 
 const deleteDeptNewsletterSchema = Joi.object({
-  deptNewsletterId: Joi.string().required()
+  newsletterId: Joi.string().required()
 })
 
 
@@ -293,13 +369,13 @@ const deleteDeptNewsletterSchema = Joi.object({
 
 const listDeptGalleryPhotosSchema = Joi.object({
   deptId:     Joi.string().required(),
-  search:     Joi.string().optional().allow(""),
-  category:   Joi.string().optional(),
-  sortBy:     Joi.string().valid("title", "category", "capturedAt", "createdAt").optional(),
-  sortOrder:  Joi.string().valid("asc", "desc").optional(),
-  limit:      Joi.number().integer().min(1).max(100).optional(),
-  nextToken:  Joi.string().optional(),
-  pagination: Joi.object().optional()
+  search:     Joi.string().optional().allow("", null),
+  category:   Joi.string().optional().allow(null),
+  sortBy:     Joi.string().valid("title", "category", "capturedAt", "createdAt").optional().allow(null),
+  sortOrder:  Joi.string().valid("asc", "desc").optional().allow(null),
+  limit:      Joi.number().integer().min(1).max(100).optional().allow(null),
+  nextToken:  Joi.string().optional().allow(null),
+  pagination: Joi.object().optional().allow(null)
 })
 
 const createDeptGalleryPhotoSchema = Joi.object({
@@ -314,15 +390,15 @@ const createDeptGalleryPhotoSchema = Joi.object({
 
 const updateDeptGalleryPhotoSchema = Joi.object({
   input: Joi.object({
-    deptGalleryPhotoId: Joi.string().required(),
-    title:              Joi.string().optional(),
-    category:           Joi.string().optional(),
-    imageUrl:           Joi.string().optional()
+    galleryPhotoId: Joi.string().required(),
+    title:          Joi.string().optional(),
+    category:       Joi.string().optional(),
+    imageUrl:       Joi.string().optional()
   }).required()
 })
 
 const deleteDeptGalleryPhotoSchema = Joi.object({
-  deptGalleryPhotoId: Joi.string().required()
+  galleryPhotoId: Joi.string().required()
 })
 
 
@@ -351,9 +427,10 @@ module.exports = {
   updateDeptActivitySchema,
   deleteDeptActivitySchema,
 
-  // ForumSection
+  // ForumSection (alias: saveForumSectionSchema → createForumSectionSchema)
   listForumSectionsSchema,
   createForumSectionSchema,
+  saveForumSectionSchema: createForumSectionSchema,
   updateForumSectionSchema,
   deleteForumSectionSchema,
 
@@ -363,19 +440,42 @@ module.exports = {
   updateForumEventSchema,
   deleteForumEventSchema,
 
-  // DepartmentActivityLog
+  // DepartmentActivityLog (aliases for handler names)
   listDepartmentActivityLogSchema,
+  listDepartmentActivitiesSchema: listDepartmentActivityLogSchema,
   appendDepartmentActivitySchema,
+  createDepartmentActivitySchema: appendDepartmentActivitySchema,
+  updateDepartmentActivitySchema,
+  deleteDepartmentActivitySchema,
 
-  // DeptNewsletter
+  // DeptNewsletter (aliases: listNewslettersSchema etc.)
   listDeptNewslettersSchema,
+  listNewslettersSchema:    listDeptNewslettersSchema,
   createDeptNewsletterSchema,
+  createNewsletterSchema:   createDeptNewsletterSchema,
   updateDeptNewsletterSchema,
+  updateNewsletterSchema:   updateDeptNewsletterSchema,
   deleteDeptNewsletterSchema,
+  deleteNewsletterSchema:   deleteDeptNewsletterSchema,
 
-  // DeptGalleryPhoto
+  // DeptGalleryPhoto (aliases: listGalleryPhotosSchema etc.)
   listDeptGalleryPhotosSchema,
+  listGalleryPhotosSchema:  listDeptGalleryPhotosSchema,
   createDeptGalleryPhotoSchema,
+  createGalleryPhotoSchema: createDeptGalleryPhotoSchema,
   updateDeptGalleryPhotoSchema,
-  deleteDeptGalleryPhotoSchema
+  updateGalleryPhotoSchema: updateDeptGalleryPhotoSchema,
+  deleteDeptGalleryPhotoSchema,
+  deleteGalleryPhotoSchema: deleteDeptGalleryPhotoSchema,
+
+  // Event
+  listEventsSchema,
+  getEventSchema,
+  createEventSchema,
+  updateEventSchema,
+  deleteEventSchema,
+  approveEventSchema,
+  rejectEventSchema,
+  cancelEventSchema,
+  togglePinEventSchema,
 }

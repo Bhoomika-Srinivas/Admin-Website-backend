@@ -9,6 +9,16 @@ const { NotFoundError }       = require('/opt/nodejs/middleware/error-handler')
 const { normalizePagination } = require('/opt/nodejs/utils/pagination')
 
 const {
+  listDeptSlotsSchema,
+  createDeptSlotSchema,
+  updateDeptSlotSchema,
+  deleteDeptSlotSchema,
+  listDeptSectionsSchema,
+  createDeptSectionSchema,
+  deleteDeptSectionSchema,
+  listDeptBatchesSchema,
+  createDeptBatchSchema,
+  deleteDeptBatchSchema,
   getDeptCourseSchema,
   listDeptCoursesSchema,
   createDeptCourseSchema,
@@ -33,6 +43,9 @@ const {
 } = require('../schemas/validation')
 
 const {
+  DeptSlot,
+  DeptSection,
+  DeptBatch,
   DeptCourse,
   DeptTimetable,
   LearningMaterial,
@@ -44,6 +57,9 @@ const {
    Repositories
 ─────────────────────────────*/
 
+const deptSlotRepo           = new MongoRepository({ model: DeptSlot,           primaryKey: 'dept_slot_id' })
+const deptSectionRepo        = new MongoRepository({ model: DeptSection,        primaryKey: 'dept_section_id' })
+const deptBatchRepo          = new MongoRepository({ model: DeptBatch,          primaryKey: 'dept_batch_id' })
 const deptCourseRepo         = new MongoRepository({ model: DeptCourse,         primaryKey: 'dept_course_id' })
 const deptTimetableRepo      = new MongoRepository({ model: DeptTimetable,      primaryKey: 'dept_timetable_id' })
 const learningMaterialRepo   = new MongoRepository({ model: LearningMaterial,   primaryKey: 'learning_material_id' })
@@ -53,6 +69,21 @@ const resultAnalysisRepo     = new MongoRepository({ model: ResultAnalysis,     
 /* ─────────────────────────────
    Response Normalizers
 ─────────────────────────────*/
+
+function toDeptSlotResponse(doc) {
+  const plain = doc && doc.toObject ? doc.toObject() : { ...doc }
+  return { ...plain, deptSlotId: plain.dept_slot_id || (plain._id ? plain._id.toString() : null) }
+}
+
+function toDeptSectionResponse(doc) {
+  const plain = doc && doc.toObject ? doc.toObject() : { ...doc }
+  return { ...plain, deptSectionId: plain.dept_section_id || (plain._id ? plain._id.toString() : null) }
+}
+
+function toDeptBatchResponse(doc) {
+  const plain = doc && doc.toObject ? doc.toObject() : { ...doc }
+  return { ...plain, deptBatchId: plain.dept_batch_id || (plain._id ? plain._id.toString() : null) }
+}
 
 function toDeptCourseResponse(doc) {
   const plain = doc && doc.toObject ? doc.toObject() : { ...doc }
@@ -176,13 +207,51 @@ async function handleEvent(event) {
 
   switch (event.field) {
 
+    // ── DeptSlot ──────────────────────────────────
+    case 'listDeptSlots':
+      return await listDeptSlots(ctx, event.arguments)
+
+    case 'createDeptSlot':
+      await requirePermission(ctx, 'dept-academics:slot:create')
+      return await createDeptSlot(ctx, event.arguments)
+
+    case 'updateDeptSlot':
+      await requirePermission(ctx, 'dept-academics:slot:update')
+      return await updateDeptSlot(ctx, event.arguments)
+
+    case 'deleteDeptSlot':
+      await requirePermission(ctx, 'dept-academics:slot:delete')
+      return await deleteDeptSlot(ctx, event.arguments)
+
+    // ── DeptSection ───────────────────────────────
+    case 'listDeptSections':
+      return await listDeptSections(ctx, event.arguments)
+
+    case 'createDeptSection':
+      await requirePermission(ctx, 'dept-academics:section:create')
+      return await createDeptSection(ctx, event.arguments)
+
+    case 'deleteDeptSection':
+      await requirePermission(ctx, 'dept-academics:section:delete')
+      return await deleteDeptSection(ctx, event.arguments)
+
+    // ── DeptBatch ─────────────────────────────────
+    case 'listDeptBatches':
+      return await listDeptBatches(ctx, event.arguments)
+
+    case 'createDeptBatch':
+      await requirePermission(ctx, 'dept-academics:batch:create')
+      return await createDeptBatch(ctx, event.arguments)
+
+    case 'deleteDeptBatch':
+      await requirePermission(ctx, 'dept-academics:batch:delete')
+      return await deleteDeptBatch(ctx, event.arguments)
+
     // ── DeptCourse ────────────────────────────────
     case 'getDeptCourse':
-      await requirePermission(ctx, 'dept-academics:course:read')
       return await getDeptCourse(ctx, event.arguments)
 
     case 'listDeptCourses':
-      await requirePermission(ctx, 'dept-academics:course:list')
       return await listDeptCourses(ctx, event.arguments)
 
     case 'createDeptCourse':
@@ -199,7 +268,6 @@ async function handleEvent(event) {
 
     // ── DeptTimetable ─────────────────────────────
     case 'listDeptTimetables':
-      await requirePermission(ctx, 'dept-academics:timetable:list')
       return await listDeptTimetables(ctx, event.arguments)
 
     case 'createDeptTimetable':
@@ -216,7 +284,6 @@ async function handleEvent(event) {
 
     // ── LearningMaterial ──────────────────────────
     case 'listLearningMaterials':
-      await requirePermission(ctx, 'dept-academics:material:list')
       return await listLearningMaterials(ctx, event.arguments)
 
     case 'createLearningMaterial':
@@ -233,7 +300,6 @@ async function handleEvent(event) {
 
     // ── InnovativeTeaching ────────────────────────
     case 'listInnovativeTeaching':
-      await requirePermission(ctx, 'dept-academics:innovative-teaching:list')
       return await listInnovativeTeaching(ctx, event.arguments)
 
     case 'createInnovativeTeaching':
@@ -250,7 +316,6 @@ async function handleEvent(event) {
 
     // ── ResultAnalysis ────────────────────────────
     case 'listResultAnalyses':
-      await requirePermission(ctx, 'dept-academics:result-analysis:list')
       return await listResultAnalyses(ctx, event.arguments)
 
     case 'createResultAnalysis':
@@ -274,6 +339,190 @@ exports.handler = withConnection(handleEvent)
 
 
 /* ─────────────────────────────
+   DeptSlot
+─────────────────────────────*/
+
+async function listDeptSlots(ctx, args) {
+  const validated   = validate(listDeptSlotsSchema, args || {})
+  const resolvedCtx = validated.tenantId ? { ...ctx, tenant_id: validated.tenantId } : ctx
+
+  const result = await deptSlotRepo.findMany(resolvedCtx, {
+    deptId:    validated.deptId,
+    sectionId: validated.sectionId
+  }, { sort: { day: 1, period: 1 } })
+
+  return {
+    items:     result.items.map(toDeptSlotResponse),
+    nextToken: result.nextCursor
+  }
+}
+
+async function createDeptSlot(ctx, args) {
+  const input = validate(createDeptSlotSchema, args || {})
+  const { deptId, sectionId, day, period, courseCode, courseName, type, facultyId } = input.input
+
+  // Validate Saturday period limit
+  if (day === 'Sat' && period > 4) {
+    throw new Error('Saturday slots are limited to periods 1–4')
+  }
+
+  // Check for duplicate slot (same section, day, period)
+  const existing = await DeptSlot.findOne({ tenant_id: ctx.tenant_id, sectionId, day, period })
+  if (existing) {
+    throw new Error(`A slot already exists for ${day} period ${period} in this section`)
+  }
+
+  const dept_slot_id = generateId()
+
+  const created = await deptSlotRepo.create(ctx, {
+    dept_slot_id,
+    deptId,
+    sectionId,
+    day,
+    period,
+    courseCode,
+    courseName,
+    type,
+    facultyId:  facultyId ?? null,
+    created_by: ctx.user_id
+  })
+
+  return toDeptSlotResponse(created)
+}
+
+async function updateDeptSlot(ctx, args) {
+  const input = validate(updateDeptSlotSchema, args || {})
+  const { deptSlotId, ...fields } = input.input
+
+  const existing = await deptSlotRepo.findById(ctx, deptSlotId)
+  if (!existing) throw new NotFoundError('Slot not found')
+
+  const updates = {}
+  if (fields.courseCode !== undefined) updates.courseCode = fields.courseCode
+  if (fields.courseName !== undefined) updates.courseName = fields.courseName
+  if (fields.type       !== undefined) updates.type       = fields.type
+  if (fields.facultyId  !== undefined) updates.facultyId  = fields.facultyId
+
+  const updated = await deptSlotRepo.updateById(ctx, deptSlotId, updates)
+
+  return toDeptSlotResponse(updated)
+}
+
+async function deleteDeptSlot(ctx, args) {
+  const { deptSlotId } = validate(deleteDeptSlotSchema, args || {})
+
+  const existing = await deptSlotRepo.findById(ctx, deptSlotId)
+  if (!existing) throw new NotFoundError('Slot not found')
+
+  await deptSlotRepo.deleteById(ctx, deptSlotId)
+
+  return toDeptSlotResponse(existing)
+}
+
+
+/* ─────────────────────────────
+   DeptSection
+─────────────────────────────*/
+
+async function listDeptSections(ctx, args) {
+  const validated   = validate(listDeptSectionsSchema, args || {})
+  const resolvedCtx = validated.tenantId ? { ...ctx, tenant_id: validated.tenantId } : ctx
+
+  const query = { deptId: validated.deptId }
+  if (validated.programId) query.programId = validated.programId
+  if (validated.semester)  query.semester  = validated.semester
+  if (validated.batchName) query.batchName = validated.batchName
+
+  const result = await deptSectionRepo.findMany(resolvedCtx, query, { sort: { semester: 1, name: 1 } })
+
+  return {
+    items:     result.items.map(toDeptSectionResponse),
+    nextToken: result.nextCursor
+  }
+}
+
+async function createDeptSection(ctx, args) {
+  const input = validate(createDeptSectionSchema, args || {})
+  const { deptId, programId, batchName, semester, name } = input.input
+
+  const dept_section_id = generateId()
+
+  const created = await deptSectionRepo.create(ctx, {
+    dept_section_id,
+    deptId,
+    programId:  programId ?? null,
+    batchName,
+    semester,
+    name,
+    created_by: ctx.user_id
+  })
+
+  return toDeptSectionResponse(created)
+}
+
+async function deleteDeptSection(ctx, args) {
+  const { deptSectionId } = validate(deleteDeptSectionSchema, args || {})
+
+  const existing = await deptSectionRepo.findById(ctx, deptSectionId)
+  if (!existing) throw new NotFoundError('Section not found')
+
+  await deptSectionRepo.deleteById(ctx, deptSectionId)
+
+  return toDeptSectionResponse(existing)
+}
+
+
+/* ─────────────────────────────
+   DeptBatch
+─────────────────────────────*/
+
+async function listDeptBatches(ctx, args) {
+  const validated   = validate(listDeptBatchesSchema, args || {})
+  const resolvedCtx = validated.tenantId ? { ...ctx, tenant_id: validated.tenantId } : ctx
+
+  const query = { deptId: validated.deptId }
+  if (validated.programId) query.programId = validated.programId
+
+  const result = await deptBatchRepo.findMany(resolvedCtx, query, { sort: { startYear: 1 } })
+
+  return {
+    items:     result.items.map(toDeptBatchResponse),
+    nextToken: result.nextCursor
+  }
+}
+
+async function createDeptBatch(ctx, args) {
+  const input = validate(createDeptBatchSchema, args || {})
+  const { deptId, programId, name, startYear, endYear } = input.input
+
+  const dept_batch_id = generateId()
+
+  const created = await deptBatchRepo.create(ctx, {
+    dept_batch_id,
+    deptId,
+    programId:  programId  ?? null,
+    name,
+    startYear:  startYear  ?? null,
+    endYear:    endYear    ?? null,
+    created_by: ctx.user_id
+  })
+
+  return toDeptBatchResponse(created)
+}
+
+async function deleteDeptBatch(ctx, args) {
+  const { deptBatchId } = validate(deleteDeptBatchSchema, args || {})
+
+  const existing = await deptBatchRepo.findById(ctx, deptBatchId)
+  if (!existing) throw new NotFoundError('Batch not found')
+
+  await deptBatchRepo.deleteById(ctx, deptBatchId)
+
+  return toDeptBatchResponse(existing)
+}
+
+
+/* ─────────────────────────────
    DeptCourse
 ─────────────────────────────*/
 
@@ -285,12 +534,13 @@ async function getDeptCourse(ctx, args) {
 }
 
 async function listDeptCourses(ctx, args) {
-  const validated  = validate(listDeptCoursesSchema, args || {})
-  const query      = buildCourseQuery(validated)
-  const sort       = buildSort(validated.sortBy, validated.sortOrder)
-  const pagination = normalizePagination(validated)
+  const validated   = validate(listDeptCoursesSchema, args || {})
+  const resolvedCtx = validated.tenantId ? { ...ctx, tenant_id: validated.tenantId } : ctx
+  const query       = buildCourseQuery(validated)
+  const sort        = buildSort(validated.sortBy, validated.sortOrder)
+  const pagination  = normalizePagination(validated)
 
-  const result = await deptCourseRepo.findMany(ctx, query, { ...pagination, sort })
+  const result = await deptCourseRepo.findMany(resolvedCtx, query, { ...pagination, sort })
 
   return {
     items:     result.items.map(toDeptCourseResponse),
@@ -356,11 +606,12 @@ async function deleteDeptCourse(ctx, args) {
 ─────────────────────────────*/
 
 async function listDeptTimetables(ctx, args) {
-  const validated = validate(listDeptTimetablesSchema, args || {})
-  const query     = buildTimetableQuery(validated)
-  const sort      = buildSort(validated.sortBy, validated.sortOrder)
+  const validated   = validate(listDeptTimetablesSchema, args || {})
+  const resolvedCtx = validated.tenantId ? { ...ctx, tenant_id: validated.tenantId } : ctx
+  const query       = buildTimetableQuery(validated)
+  const sort        = buildSort(validated.sortBy, validated.sortOrder)
 
-  const result = await deptTimetableRepo.findMany(ctx, query, { sort })
+  const result = await deptTimetableRepo.findMany(resolvedCtx, query, { sort })
 
   return {
     items:     result.items.map(toDeptTimetableResponse),
@@ -423,12 +674,13 @@ async function deleteDeptTimetable(ctx, args) {
 ─────────────────────────────*/
 
 async function listLearningMaterials(ctx, args) {
-  const validated  = validate(listLearningMaterialsSchema, args || {})
-  const query      = buildMaterialQuery(validated)
-  const sort       = buildSort(validated.sortBy, validated.sortOrder)
-  const pagination = normalizePagination(validated)
+  const validated   = validate(listLearningMaterialsSchema, args || {})
+  const resolvedCtx = validated.tenantId ? { ...ctx, tenant_id: validated.tenantId } : ctx
+  const query       = buildMaterialQuery(validated)
+  const sort        = buildSort(validated.sortBy, validated.sortOrder)
+  const pagination  = normalizePagination(validated)
 
-  const result = await learningMaterialRepo.findMany(ctx, query, { ...pagination, sort })
+  const result = await learningMaterialRepo.findMany(resolvedCtx, query, { ...pagination, sort })
 
   return {
     items:     result.items.map(toLearningMaterialResponse),
@@ -438,7 +690,7 @@ async function listLearningMaterials(ctx, args) {
 
 async function createLearningMaterial(ctx, args) {
   const input = validate(createLearningMaterialSchema, args || {})
-  const { deptId, courseCode, courseName, title, type, fileUrl } = input.input
+  const { deptId, courseCode, courseName, title, type, fileUrl, uploadedBy } = input.input
 
   const learning_material_id = generateId()
 
@@ -450,7 +702,7 @@ async function createLearningMaterial(ctx, args) {
     title,
     type:        type        ?? 'notes',
     fileUrl:     fileUrl     ?? '',
-    uploadedBy:  ctx.user_id,
+    uploadedBy:  uploadedBy  ?? ctx.user_id,
     created_by:  ctx.user_id
   })
 
@@ -493,11 +745,12 @@ async function deleteLearningMaterial(ctx, args) {
 ─────────────────────────────*/
 
 async function listInnovativeTeaching(ctx, args) {
-  const validated = validate(listInnovativeTeachingSchema, args || {})
-  const query     = buildInnovativeTeachingQuery(validated)
-  const sort      = buildSort(validated.sortBy, validated.sortOrder)
+  const validated   = validate(listInnovativeTeachingSchema, args || {})
+  const resolvedCtx = validated.tenantId ? { ...ctx, tenant_id: validated.tenantId } : ctx
+  const query       = buildInnovativeTeachingQuery(validated)
+  const sort        = buildSort(validated.sortBy, validated.sortOrder)
 
-  const result = await innovativeTeachingRepo.findMany(ctx, query, { sort })
+  const result = await innovativeTeachingRepo.findMany(resolvedCtx, query, { sort })
 
   return {
     items:     result.items.map(toInnovativeTeachingResponse),
@@ -563,11 +816,12 @@ async function deleteInnovativeTeaching(ctx, args) {
 ─────────────────────────────*/
 
 async function listResultAnalyses(ctx, args) {
-  const validated = validate(listResultAnalysesSchema, args || {})
-  const query     = buildResultAnalysisQuery(validated)
-  const sort      = buildSort(validated.sortBy, validated.sortOrder)
+  const validated   = validate(listResultAnalysesSchema, args || {})
+  const resolvedCtx = validated.tenantId ? { ...ctx, tenant_id: validated.tenantId } : ctx
+  const query       = buildResultAnalysisQuery(validated)
+  const sort        = buildSort(validated.sortBy, validated.sortOrder)
 
-  const result = await resultAnalysisRepo.findMany(ctx, query, { sort })
+  const result = await resultAnalysisRepo.findMany(resolvedCtx, query, { sort })
 
   return {
     items:     result.items.map(toResultAnalysisResponse),

@@ -1,4 +1,4 @@
-type Department {
+type Department @aws_cognito_user_pools @aws_api_key {
   departmentId:  ID!
   tenantId:      ID!
   name:          String!
@@ -14,7 +14,7 @@ type Department {
   updatedAt:     AWSDateTime
 }
 
-type DepartmentList {
+type DepartmentList @aws_cognito_user_pools @aws_api_key {
   items:     [Department]
   nextToken: String
 }
@@ -43,8 +43,8 @@ input UpdateDepartmentInput {
 }
 
 extend type Query {
-  getDepartment(departmentId: ID!): Department
-  listDepartments(limit: Int, nextToken: String): DepartmentList
+  getDepartment(departmentId: ID!): Department @aws_cognito_user_pools @aws_api_key
+  listDepartments(limit: Int, nextToken: String): DepartmentList @aws_cognito_user_pools @aws_api_key
 }
 
 extend type Mutation {

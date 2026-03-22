@@ -1,4 +1,4 @@
-type DeptIntroduction {
+type DeptIntroduction @aws_api_key @aws_cognito_user_pools {
   deptId:         ID!
   departmentName: String
   logoUrl:        String
@@ -7,14 +7,14 @@ type DeptIntroduction {
   updatedAt:      AWSDateTime
 }
 
-type DeptAbout {
+type DeptAbout @aws_api_key @aws_cognito_user_pools {
   deptId:    ID!
   vision:    String
   mission:   String
   updatedAt: AWSDateTime
 }
 
-type DeptSwot {
+type DeptSwot @aws_api_key @aws_cognito_user_pools {
   deptId:        ID!
   strengths:     [String]
   weaknesses:    [String]
@@ -23,7 +23,7 @@ type DeptSwot {
   updatedAt:     AWSDateTime
 }
 
-type HodProfile {
+type HodProfile @aws_api_key @aws_cognito_user_pools {
   deptId:         ID!
   name:           String
   title:          String
@@ -40,7 +40,7 @@ type HodProfile {
   updatedAt:      AWSDateTime
 }
 
-type ProgramOutcome {
+type ProgramOutcome @aws_api_key @aws_cognito_user_pools {
   programOutcomeId: ID!
   deptId:           ID!
   type:             String
@@ -50,7 +50,7 @@ type ProgramOutcome {
   updatedAt:        AWSDateTime
 }
 
-type CommitteeMember {
+type CommitteeMember @aws_api_key @aws_cognito_user_pools {
   committeeMemberId: ID!
   deptId:            ID!
   committee:         String
@@ -59,7 +59,7 @@ type CommitteeMember {
   order:             Int
 }
 
-type DistinguishedAlumnus {
+type DistinguishedAlumnus @aws_api_key @aws_cognito_user_pools {
   distinguishedAlumnusId: ID!
   deptId:                 ID!
   name:                   String!
@@ -71,9 +71,9 @@ type DistinguishedAlumnus {
   linkedInUrl:            String
 }
 
-type ProgramOutcomeList      { items: [ProgramOutcome]       nextToken: String }
-type CommitteeMemberList     { items: [CommitteeMember]      nextToken: String }
-type DistinguishedAlumniList { items: [DistinguishedAlumnus] nextToken: String }
+type ProgramOutcomeList      @aws_api_key @aws_cognito_user_pools { items: [ProgramOutcome]       nextToken: String }
+type CommitteeMemberList     @aws_api_key @aws_cognito_user_pools { items: [CommitteeMember]      nextToken: String }
+type DistinguishedAlumniList @aws_api_key @aws_cognito_user_pools { items: [DistinguishedAlumnus] nextToken: String }
 
 # ── Inputs ──────────────────────────────────────────────────────────────────
 
@@ -164,13 +164,13 @@ input UpdateDistinguishedAlumnusInput {
 }
 
 extend type Query {
-  getDeptIntroduction(deptId: ID!): DeptIntroduction
-  getDeptAbout(deptId: ID!): DeptAbout
-  getDeptSwot(deptId: ID!): DeptSwot
-  getHodProfile(deptId: ID!): HodProfile
-  listProgramOutcomes(deptId: ID!, type: String, limit: Int, nextToken: String): ProgramOutcomeList
-  listCommitteeMembers(deptId: ID!, committee: String): CommitteeMemberList
-  listDistinguishedAlumni(deptId: ID!): DistinguishedAlumniList
+  getDeptIntroduction(deptId: ID!, tenantId: ID): DeptIntroduction @aws_api_key @aws_cognito_user_pools
+  getDeptAbout(deptId: ID!, tenantId: ID): DeptAbout               @aws_api_key @aws_cognito_user_pools
+  getDeptSwot(deptId: ID!, tenantId: ID): DeptSwot                 @aws_api_key @aws_cognito_user_pools
+  getHodProfile(deptId: ID!, tenantId: ID): HodProfile             @aws_api_key @aws_cognito_user_pools
+  listProgramOutcomes(deptId: ID!, tenantId: ID, type: String, limit: Int, nextToken: String): ProgramOutcomeList @aws_api_key @aws_cognito_user_pools
+  listCommitteeMembers(deptId: ID!, tenantId: ID, committee: String): CommitteeMemberList                        @aws_api_key @aws_cognito_user_pools
+  listDistinguishedAlumni(deptId: ID!, tenantId: ID): DistinguishedAlumniList                                    @aws_api_key @aws_cognito_user_pools
 }
 
 extend type Mutation {

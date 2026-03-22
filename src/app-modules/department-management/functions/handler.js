@@ -74,11 +74,9 @@ async function handleEvent(event) {
 
   switch (event.field) {
     case 'getDepartment':
-      await requirePermission(ctx, 'department:department:read')
       return await getDepartment(ctx, event.arguments)
 
     case 'listDepartments':
-      await requirePermission(ctx, 'department:department:list')
       return await listDepartments(ctx, event.arguments)
 
     case 'createDepartment':
@@ -107,7 +105,8 @@ exports.handler = withConnection(handleEvent)
 
 async function getDepartment(ctx, args) {
   const { departmentId } = validate(getDepartmentSchema, args || {})
-  const doc = await departmentRepo.findById(ctx, departmentId)
+  // tenant filter skipped — public query
+  const doc = await Department.findOne({ department_id: departmentId }).lean()
   if (!doc) throw new NotFoundError('Department not found')
   return toDepartmentResponse(doc)
 }
@@ -118,16 +117,16 @@ async function getDepartment(ctx, args) {
 ─────────────────────────────*/
 
 async function listDepartments(ctx, args) {
-  const validated  = validate(listDepartmentsSchema, args || {})
-  const query      = buildQuery(validated)
-  const sort       = buildSort(validated.sortBy, validated.sortOrder)
-  const pagination = normalizePagination(validated)
+  const validated = validate(listDepartmentsSchema, args || {})
+  const query     = buildQuery(validated)
+  const sort      = buildSort(validated.sortBy, validated.sortOrder)
 
-  const result = await departmentRepo.findMany(ctx, query, { ...pagination, sort })
+  // tenant filter skipped — public query
+  const docs = await Department.find(query).sort(sort).lean()
 
   return {
-    items:     result.items.map(toDepartmentResponse),
-    nextToken: result.nextCursor
+    items:     docs.map(toDepartmentResponse),
+    nextToken: null
   }
 }
 

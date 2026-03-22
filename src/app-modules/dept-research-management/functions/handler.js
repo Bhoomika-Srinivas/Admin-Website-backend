@@ -197,7 +197,6 @@ async function handleEvent(event) {
 
     // ── DeptPublication ───────────────────────────
     case 'listDeptPublications':
-      await requirePermission(ctx, 'dept-research:publication:list')
       return await listDeptPublications(ctx, event.arguments)
 
     case 'createDeptPublication':
@@ -214,7 +213,6 @@ async function handleEvent(event) {
 
     // ── PublicationProfile ────────────────────────
     case 'listPublicationProfiles':
-      await requirePermission(ctx, 'dept-research:pub-profile:list')
       return await listPublicationProfiles(ctx, event.arguments)
 
     case 'savePublicationProfile':
@@ -223,7 +221,6 @@ async function handleEvent(event) {
 
     // ── ResearchGrant ─────────────────────────────
     case 'listResearchGrants':
-      await requirePermission(ctx, 'dept-research:grant:list')
       return await listResearchGrants(ctx, event.arguments)
 
     case 'createResearchGrant':
@@ -240,7 +237,6 @@ async function handleEvent(event) {
 
     // ── Patent ────────────────────────────────────
     case 'listPatents':
-      await requirePermission(ctx, 'dept-research:patent:list')
       return await listPatents(ctx, event.arguments)
 
     case 'createPatent':
@@ -257,7 +253,6 @@ async function handleEvent(event) {
 
     // ── FacultyResearchSummary ────────────────────
     case 'listFacultyResearchSummaries':
-      await requirePermission(ctx, 'dept-research:research-summary:list')
       return await listFacultyResearchSummaries(ctx, event.arguments)
 
     case 'createFacultyResearchSummary':
@@ -274,7 +269,6 @@ async function handleEvent(event) {
 
     // ── PhdGuide ──────────────────────────────────
     case 'listPhdGuides':
-      await requirePermission(ctx, 'dept-research:phd-guide:list')
       return await listPhdGuides(ctx, event.arguments)
 
     case 'createPhdGuide':
@@ -291,7 +285,6 @@ async function handleEvent(event) {
 
     // ── PhdScholar ────────────────────────────────
     case 'listPhdScholars':
-      await requirePermission(ctx, 'dept-research:phd-scholar:list')
       return await listPhdScholars(ctx, event.arguments)
 
     case 'createPhdScholar':
@@ -319,12 +312,13 @@ exports.handler = withConnection(handleEvent)
 ─────────────────────────────*/
 
 async function listDeptPublications(ctx, args) {
-  const validated  = validate(listDeptPublicationsSchema, args || {})
-  const query      = buildPublicationQuery(validated)
-  const sort       = buildSort(validated.sortBy, validated.sortOrder)
-  const pagination = normalizePagination(validated)
+  const validated   = validate(listDeptPublicationsSchema, args || {})
+  const resolvedCtx = validated.tenantId ? { ...ctx, tenant_id: validated.tenantId } : ctx
+  const query       = buildPublicationQuery(validated)
+  const sort        = buildSort(validated.sortBy, validated.sortOrder)
+  const pagination  = normalizePagination(validated)
 
-  const result = await deptPublicationRepo.findMany(ctx, query, { ...pagination, sort })
+  const result = await deptPublicationRepo.findMany(resolvedCtx, query, { ...pagination, sort })
 
   return {
     items:     result.items.map(toDeptPublicationResponse),
@@ -398,12 +392,13 @@ async function deleteDeptPublication(ctx, args) {
 ─────────────────────────────*/
 
 async function listPublicationProfiles(ctx, args) {
-  const validated = validate(listPublicationProfilesSchema, args || {})
+  const validated   = validate(listPublicationProfilesSchema, args || {})
+  const resolvedCtx = validated.tenantId ? { ...ctx, tenant_id: validated.tenantId } : ctx
 
   const query = { deptId: validated.deptId }
   const sort  = buildSort('createdAt', 'asc')
 
-  const result = await publicationProfileRepo.findMany(ctx, query, { sort })
+  const result = await publicationProfileRepo.findMany(resolvedCtx, query, { sort })
 
   return {
     items:     result.items.map(toPublicationProfileResponse),
@@ -439,11 +434,12 @@ async function savePublicationProfile(ctx, args) {
 ─────────────────────────────*/
 
 async function listResearchGrants(ctx, args) {
-  const validated = validate(listResearchGrantsSchema, args || {})
-  const query     = buildTextQuery(validated)
-  const sort      = buildSort(validated.sortBy, validated.sortOrder)
+  const validated   = validate(listResearchGrantsSchema, args || {})
+  const resolvedCtx = validated.tenantId ? { ...ctx, tenant_id: validated.tenantId } : ctx
+  const query       = buildTextQuery(validated)
+  const sort        = buildSort(validated.sortBy, validated.sortOrder)
 
-  const result = await researchGrantRepo.findMany(ctx, query, { sort })
+  const result = await researchGrantRepo.findMany(resolvedCtx, query, { sort })
 
   return {
     items:     result.items.map(toResearchGrantResponse),
@@ -494,11 +490,12 @@ async function deleteResearchGrant(ctx, args) {
 ─────────────────────────────*/
 
 async function listPatents(ctx, args) {
-  const validated = validate(listPatentsSchema, args || {})
-  const query     = buildTextQuery(validated)
-  const sort      = buildSort(validated.sortBy, validated.sortOrder)
+  const validated   = validate(listPatentsSchema, args || {})
+  const resolvedCtx = validated.tenantId ? { ...ctx, tenant_id: validated.tenantId } : ctx
+  const query       = buildTextQuery(validated)
+  const sort        = buildSort(validated.sortBy, validated.sortOrder)
 
-  const result = await patentRepo.findMany(ctx, query, { sort })
+  const result = await patentRepo.findMany(resolvedCtx, query, { sort })
 
   return {
     items:     result.items.map(toPatentResponse),
@@ -549,12 +546,13 @@ async function deletePatent(ctx, args) {
 ─────────────────────────────*/
 
 async function listFacultyResearchSummaries(ctx, args) {
-  const validated  = validate(listFacultyResearchSummariesSchema, args || {})
-  const query      = buildResearchSummaryQuery(validated)
-  const sort       = buildSort(validated.sortBy, validated.sortOrder)
-  const pagination = normalizePagination(validated)
+  const validated   = validate(listFacultyResearchSummariesSchema, args || {})
+  const resolvedCtx = validated.tenantId ? { ...ctx, tenant_id: validated.tenantId } : ctx
+  const query       = buildResearchSummaryQuery(validated)
+  const sort        = buildSort(validated.sortBy, validated.sortOrder)
+  const pagination  = normalizePagination(validated)
 
-  const result = await facultyResearchSummaryRepo.findMany(ctx, query, { ...pagination, sort })
+  const result = await facultyResearchSummaryRepo.findMany(resolvedCtx, query, { ...pagination, sort })
 
   return {
     items:     result.items.map(toFacultyResearchSummaryResponse),
@@ -638,11 +636,12 @@ async function deleteFacultyResearchSummary(ctx, args) {
 ─────────────────────────────*/
 
 async function listPhdGuides(ctx, args) {
-  const validated = validate(listPhdGuidesSchema, args || {})
-  const query     = buildPhdGuideQuery(validated)
-  const sort      = buildSort(validated.sortBy, validated.sortOrder)
+  const validated   = validate(listPhdGuidesSchema, args || {})
+  const resolvedCtx = validated.tenantId ? { ...ctx, tenant_id: validated.tenantId } : ctx
+  const query       = buildPhdGuideQuery(validated)
+  const sort        = buildSort(validated.sortBy, validated.sortOrder)
 
-  const result = await phdGuideRepo.findMany(ctx, query, { sort })
+  const result = await phdGuideRepo.findMany(resolvedCtx, query, { sort })
 
   return {
     items:     result.items.map(toPhdGuideResponse),
@@ -706,11 +705,12 @@ async function deletePhdGuide(ctx, args) {
 ─────────────────────────────*/
 
 async function listPhdScholars(ctx, args) {
-  const validated = validate(listPhdScholarsSchema, args || {})
-  const query     = buildPhdScholarQuery(validated)
-  const sort      = buildSort(validated.sortBy, validated.sortOrder)
+  const validated   = validate(listPhdScholarsSchema, args || {})
+  const resolvedCtx = validated.tenantId ? { ...ctx, tenant_id: validated.tenantId } : ctx
+  const query       = buildPhdScholarQuery(validated)
+  const sort        = buildSort(validated.sortBy, validated.sortOrder)
 
-  const result = await phdScholarRepo.findMany(ctx, query, { sort })
+  const result = await phdScholarRepo.findMany(resolvedCtx, query, { sort })
 
   return {
     items:     result.items.map(toPhdScholarResponse),

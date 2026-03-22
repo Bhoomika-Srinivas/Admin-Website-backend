@@ -7,6 +7,7 @@ const currentYear = new Date().getFullYear()
 
 const listDeptPublicationsSchema = Joi.object({
   deptId:     Joi.string().required(),
+  tenantId:   Joi.string().optional(),
   search:     Joi.string().optional().allow(""),
   type:       Joi.string().valid("journal", "conference", "book").optional(),
   year:       Joi.number().integer().min(1950).max(currentYear).optional(),
@@ -51,7 +52,8 @@ const deleteDeptPublicationSchema = Joi.object({
 ─────────────────────────────*/
 
 const listPublicationProfilesSchema = Joi.object({
-  deptId: Joi.string().required()
+  deptId:   Joi.string().required(),
+  tenantId: Joi.string().optional()
 })
 
 const savePublicationProfileSchema = Joi.object({
@@ -70,6 +72,7 @@ const savePublicationProfileSchema = Joi.object({
 
 const listResearchGrantsSchema = Joi.object({
   deptId:    Joi.string().required(),
+  tenantId:  Joi.string().optional(),
   search:    Joi.string().optional().allow(""),
   sortBy:    Joi.string().valid("createdAt").optional(),
   sortOrder: Joi.string().valid("asc", "desc").optional()
@@ -96,6 +99,7 @@ const deleteResearchGrantSchema = Joi.object({
 
 const listPatentsSchema = Joi.object({
   deptId:    Joi.string().required(),
+  tenantId:  Joi.string().optional(),
   search:    Joi.string().optional().allow(""),
   sortBy:    Joi.string().valid("createdAt").optional(),
   sortOrder: Joi.string().valid("asc", "desc").optional()
@@ -122,6 +126,7 @@ const deletePatentSchema = Joi.object({
 
 const listFacultyResearchSummariesSchema = Joi.object({
   deptId:     Joi.string().required(),
+  tenantId:   Joi.string().optional(),
   search:     Joi.string().optional().allow(""),
   guideType:  Joi.string().valid("internal", "external").optional(),
   sortBy:     Joi.string().valid("yearOfRegistration", "yearOfDegreeAwarded", "createdAt").optional(),
@@ -184,6 +189,7 @@ const deleteFacultyResearchSummarySchema = Joi.object({
 
 const listPhdGuidesSchema = Joi.object({
   deptId:    Joi.string().required(),
+  tenantId:  Joi.string().optional(),
   search:    Joi.string().optional().allow(""),
   sortBy:    Joi.string().valid("facultyName", "recognizedYear", "scholarsGuided").optional(),
   sortOrder: Joi.string().valid("asc", "desc").optional()
@@ -222,6 +228,7 @@ const deletePhdGuideSchema = Joi.object({
 
 const listPhdScholarsSchema = Joi.object({
   deptId:         Joi.string().required(),
+  tenantId:       Joi.string().optional(),
   search:         Joi.string().optional().allow(""),
   guideFacultyId: Joi.string().optional(),
   status:         Joi.string().valid("guided", "guiding").optional(),

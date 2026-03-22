@@ -145,7 +145,6 @@ async function handleEvent(event) {
 
     // ── Introduction ──────────────────────────────
     case 'getDeptIntroduction':
-      await requirePermission(ctx, 'dept-info:introduction:read')
       return await getDeptIntroduction(ctx, event.arguments)
 
     case 'saveDeptIntroduction':
@@ -154,7 +153,6 @@ async function handleEvent(event) {
 
     // ── About ─────────────────────────────────────
     case 'getDeptAbout':
-      await requirePermission(ctx, 'dept-info:about:read')
       return await getDeptAbout(ctx, event.arguments)
 
     case 'saveDeptAbout':
@@ -163,7 +161,6 @@ async function handleEvent(event) {
 
     // ── SWOT ──────────────────────────────────────
     case 'getDeptSwot':
-      await requirePermission(ctx, 'dept-info:swot:read')
       return await getDeptSwot(ctx, event.arguments)
 
     case 'saveDeptSwot':
@@ -172,7 +169,6 @@ async function handleEvent(event) {
 
     // ── HOD Profile ───────────────────────────────
     case 'getHodProfile':
-      await requirePermission(ctx, 'dept-info:hod:read')
       return await getHodProfile(ctx, event.arguments)
 
     case 'saveHodProfile':
@@ -181,7 +177,6 @@ async function handleEvent(event) {
 
     // ── Program Outcomes ──────────────────────────
     case 'listProgramOutcomes':
-      await requirePermission(ctx, 'dept-info:program-outcomes:list')
       return await listProgramOutcomes(ctx, event.arguments)
 
     case 'createProgramOutcome':
@@ -202,7 +197,6 @@ async function handleEvent(event) {
 
     // ── Committee Members ─────────────────────────
     case 'listCommitteeMembers':
-      await requirePermission(ctx, 'dept-info:committee:list')
       return await listCommitteeMembers(ctx, event.arguments)
 
     case 'createCommitteeMember':
@@ -219,7 +213,6 @@ async function handleEvent(event) {
 
     // ── Distinguished Alumni ───────────────────────
     case 'listDistinguishedAlumni':
-      await requirePermission(ctx, 'dept-info:alumni:list')
       return await listDistinguishedAlumni(ctx, event.arguments)
 
     case 'createDistinguishedAlumnus':
@@ -247,8 +240,9 @@ exports.handler = withConnection(handleEvent)
 ─────────────────────────────*/
 
 async function getDeptIntroduction(ctx, args) {
-  const { deptId } = validate(getDeptIntroductionSchema, args || {})
-  const doc = await DeptIntroduction.findOne({ tenant_id: ctx.tenant_id, deptId })
+  const { deptId, tenantId } = validate(getDeptIntroductionSchema, args || {})
+  const tenant_id = tenantId ?? ctx.tenant_id
+  const doc = await DeptIntroduction.findOne({ tenant_id, deptId })
   if (!doc) return { deptId, departmentName: '', logoUrl: '', imageUrl: '', description: '' }
   return toIntroductionResponse(doc)
 }
@@ -270,7 +264,8 @@ async function saveDeptIntroduction(ctx, args) {
     timestamp:  new Date().toISOString()
   })
 
-  return toIntroductionResponse(doc)
+  const res = toIntroductionResponse(doc)
+  return { ...res, deptId: res.deptId ?? deptId }
 }
 
 
@@ -279,8 +274,9 @@ async function saveDeptIntroduction(ctx, args) {
 ─────────────────────────────*/
 
 async function getDeptAbout(ctx, args) {
-  const { deptId } = validate(getDeptAboutSchema, args || {})
-  const doc = await DeptAbout.findOne({ tenant_id: ctx.tenant_id, deptId })
+  const { deptId, tenantId } = validate(getDeptAboutSchema, args || {})
+  const tenant_id = tenantId ?? ctx.tenant_id
+  const doc = await DeptAbout.findOne({ tenant_id, deptId })
   if (!doc) return { deptId, vision: '', mission: '' }
   return toAboutResponse(doc)
 }
@@ -300,7 +296,8 @@ async function saveDeptAbout(ctx, args) {
     timestamp:  new Date().toISOString()
   })
 
-  return toAboutResponse(doc)
+  const res = toAboutResponse(doc)
+  return { ...res, deptId: res.deptId ?? deptId }
 }
 
 
@@ -309,8 +306,9 @@ async function saveDeptAbout(ctx, args) {
 ─────────────────────────────*/
 
 async function getDeptSwot(ctx, args) {
-  const { deptId } = validate(getDeptSwotSchema, args || {})
-  const doc = await DeptSwot.findOne({ tenant_id: ctx.tenant_id, deptId })
+  const { deptId, tenantId } = validate(getDeptSwotSchema, args || {})
+  const tenant_id = tenantId ?? ctx.tenant_id
+  const doc = await DeptSwot.findOne({ tenant_id, deptId })
   if (!doc) return { deptId, strengths: [], weaknesses: [], opportunities: [], threats: [] }
   return toSwotResponse(doc)
 }
@@ -332,7 +330,8 @@ async function saveDeptSwot(ctx, args) {
     timestamp:  new Date().toISOString()
   })
 
-  return toSwotResponse(doc)
+  const res = toSwotResponse(doc)
+  return { ...res, deptId: res.deptId ?? deptId }
 }
 
 
@@ -341,8 +340,9 @@ async function saveDeptSwot(ctx, args) {
 ─────────────────────────────*/
 
 async function getHodProfile(ctx, args) {
-  const { deptId } = validate(getHodProfileSchema, args || {})
-  const doc = await HodProfile.findOne({ tenant_id: ctx.tenant_id, deptId })
+  const { deptId, tenantId } = validate(getHodProfileSchema, args || {})
+  const tenant_id = tenantId ?? ctx.tenant_id
+  const doc = await HodProfile.findOne({ tenant_id, deptId })
   if (!doc) return {
     deptId, name: '', title: '', designation: 'Head of Department',
     qualification: '', experience: '', specialization: '',
@@ -377,7 +377,8 @@ async function saveHodProfile(ctx, args) {
     timestamp:  new Date().toISOString()
   })
 
-  return toHodProfileResponse(doc)
+  const res = toHodProfileResponse(doc)
+  return { ...res, deptId: res.deptId ?? deptId }
 }
 
 
@@ -388,13 +389,14 @@ async function saveHodProfile(ctx, args) {
 async function listProgramOutcomes(ctx, args) {
   const validated  = validate(listProgramOutcomesSchema, args || {})
   const pagination = normalizePagination(validated)
+  const resolvedCtx = validated.tenantId ? { ...ctx, tenant_id: validated.tenantId } : ctx
 
   const query = { deptId: validated.deptId }
   if (validated.type) query.type = validated.type
 
   const sort = { order: 1 }
 
-  const result = await programOutcomeRepo.findMany(ctx, query, { ...pagination, sort })
+  const result = await programOutcomeRepo.findMany(resolvedCtx, query, { ...pagination, sort })
 
   return {
     items:     result.items.map(toProgramOutcomeResponse),
@@ -469,14 +471,15 @@ async function reorderProgramOutcomes(ctx, args) {
 ─────────────────────────────*/
 
 async function listCommitteeMembers(ctx, args) {
-  const validated = validate(listCommitteeMembersSchema, args || {})
+  const validated   = validate(listCommitteeMembersSchema, args || {})
+  const resolvedCtx = validated.tenantId ? { ...ctx, tenant_id: validated.tenantId } : ctx
 
   const query = { deptId: validated.deptId }
   if (validated.committee) query.committee = validated.committee
 
   const sort = { order: 1 }
 
-  const result = await committeeMemberRepo.findMany(ctx, query, { sort })
+  const result = await committeeMemberRepo.findMany(resolvedCtx, query, { sort })
 
   return {
     items:     result.items.map(toCommitteeMemberResponse),
@@ -537,13 +540,14 @@ async function deleteCommitteeMember(ctx, args) {
 ─────────────────────────────*/
 
 async function listDistinguishedAlumni(ctx, args) {
-  const validated  = validate(listDistinguishedAlumniSchema, args || {})
-  const pagination = normalizePagination(validated)
+  const validated   = validate(listDistinguishedAlumniSchema, args || {})
+  const pagination  = normalizePagination(validated)
+  const resolvedCtx = validated.tenantId ? { ...ctx, tenant_id: validated.tenantId } : ctx
 
   const query = { deptId: validated.deptId }
   const sort  = buildSort('createdAt', 'desc')
 
-  const result = await distinguishedAlumnusRepo.findMany(ctx, query, { ...pagination, sort })
+  const result = await distinguishedAlumnusRepo.findMany(resolvedCtx, query, { ...pagination, sort })
 
   return {
     items:     result.items.map(toDistinguishedAlumnusResponse),

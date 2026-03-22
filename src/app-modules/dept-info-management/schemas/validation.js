@@ -5,7 +5,8 @@ const Joi = require("joi")
 ─────────────────────────────*/
 
 const getDeptIntroductionSchema = Joi.object({
-  deptId: Joi.string().required()
+  deptId:   Joi.string().required(),
+  tenantId: Joi.string().optional()
 })
 
 const saveDeptIntroductionSchema = Joi.object({
@@ -24,7 +25,8 @@ const saveDeptIntroductionSchema = Joi.object({
 ─────────────────────────────*/
 
 const getDeptAboutSchema = Joi.object({
-  deptId: Joi.string().required()
+  deptId:   Joi.string().required(),
+  tenantId: Joi.string().optional()
 })
 
 const saveDeptAboutSchema = Joi.object({
@@ -41,7 +43,8 @@ const saveDeptAboutSchema = Joi.object({
 ─────────────────────────────*/
 
 const getDeptSwotSchema = Joi.object({
-  deptId: Joi.string().required()
+  deptId:   Joi.string().required(),
+  tenantId: Joi.string().optional()
 })
 
 const saveDeptSwotSchema = Joi.object({
@@ -60,7 +63,8 @@ const saveDeptSwotSchema = Joi.object({
 ─────────────────────────────*/
 
 const getHodProfileSchema = Joi.object({
-  deptId: Joi.string().required()
+  deptId:   Joi.string().required(),
+  tenantId: Joi.string().optional()
 })
 
 const saveHodProfileSchema = Joi.object({
@@ -88,6 +92,7 @@ const saveHodProfileSchema = Joi.object({
 
 const listProgramOutcomesSchema = Joi.object({
   deptId:     Joi.string().required(),
+  tenantId:   Joi.string().optional(),
   type:       Joi.string().valid("PEO", "PSO").optional(),
   limit:      Joi.number().integer().min(1).max(100).optional().allow(null),
   nextToken:  Joi.string().optional().allow(null),
@@ -130,6 +135,7 @@ const reorderProgramOutcomesSchema = Joi.object({
 
 const listCommitteeMembersSchema = Joi.object({
   deptId:    Joi.string().required(),
+  tenantId:  Joi.string().optional(),
   committee: Joi.string().valid("DAB", "PAC").optional()
 })
 
@@ -162,7 +168,8 @@ const deleteCommitteeMemberSchema = Joi.object({
 ─────────────────────────────*/
 
 const listDistinguishedAlumniSchema = Joi.object({
-  deptId: Joi.string().required()
+  deptId:   Joi.string().required(),
+  tenantId: Joi.string().optional()
 })
 
 const createDistinguishedAlumnusSchema = Joi.object({

@@ -43,11 +43,9 @@ async function handleEvent(event) {
   switch (event.field) {
 
     case 'getFaculty':
-      await requirePermission(ctx, 'faculty:faculty:read')
       return await getFaculty(ctx, event.arguments)
 
     case 'listFaculty':
-      await requirePermission(ctx, 'faculty:faculty:list')
       return await listFaculty(ctx, event.arguments)
 
     case 'createFaculty':
@@ -77,9 +75,10 @@ exports.handler = withConnection(handleEvent)
 
 async function getFaculty(ctx, args) {
 
-  const { facultyId } = validate(getFacultySchema, args || {})
+  const { facultyId, tenantId } = validate(getFacultySchema, args || {})
+  const resolvedCtx = tenantId ? { ...ctx, tenant_id: tenantId } : ctx
 
-  const doc = await facultyRepo.findById(ctx, facultyId)
+  const doc = await facultyRepo.findById(resolvedCtx, facultyId)
 
   if (!doc) throw new NotFoundError('Faculty not found')
 
@@ -94,11 +93,12 @@ async function getFaculty(ctx, args) {
 
 async function listFaculty(ctx, args) {
 
-  const validated = validate(listFacultySchema, args || {})
+  const validated   = validate(listFacultySchema, args || {})
+  const resolvedCtx = validated.tenantId ? { ...ctx, tenant_id: validated.tenantId } : ctx
 
   const pagination = normalizePagination(validated.pagination)
 
-  const result = await facultyRepo.findMany(ctx, {}, pagination)
+  const result = await facultyRepo.findMany(resolvedCtx, {}, pagination)
 
   return {
     items: result.items.map(toFacultyResponse),

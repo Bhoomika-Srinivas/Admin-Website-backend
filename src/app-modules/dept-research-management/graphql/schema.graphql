@@ -1,4 +1,4 @@
-type DeptPublication {
+type DeptPublication @aws_api_key @aws_cognito_user_pools {
   deptPublicationId: ID!
   deptId:            ID!
   title:             String!
@@ -11,7 +11,7 @@ type DeptPublication {
   updatedAt:         AWSDateTime
 }
 
-type PublicationProfile {
+type PublicationProfile @aws_api_key @aws_cognito_user_pools {
   publicationProfileId: ID!
   deptId:               ID!
   facultyId:            ID!
@@ -20,21 +20,21 @@ type PublicationProfile {
   updatedAt:            AWSDateTime
 }
 
-type ResearchGrant {
+type ResearchGrant @aws_api_key @aws_cognito_user_pools {
   researchGrantId: ID!
   deptId:          ID!
   text:            String!
   createdAt:       AWSDateTime
 }
 
-type Patent {
+type Patent @aws_api_key @aws_cognito_user_pools {
   patentId:  ID!
   deptId:    ID!
   text:      String!
   createdAt: AWSDateTime
 }
 
-type FacultyResearchSummary {
+type FacultyResearchSummary @aws_api_key @aws_cognito_user_pools {
   facultyResearchSummaryId: ID!
   deptId:               ID!
   facultyId:            ID!
@@ -57,7 +57,7 @@ type FacultyResearchSummary {
   updatedAt:            AWSDateTime
 }
 
-type PhdGuide {
+type PhdGuide @aws_api_key @aws_cognito_user_pools {
   phdGuideId:      ID!
   deptId:          ID!
   facultyName:     String!
@@ -67,7 +67,7 @@ type PhdGuide {
   ongoingScholars: Int
 }
 
-type PhdScholar {
+type PhdScholar @aws_api_key @aws_cognito_user_pools {
   phdScholarId:         ID!
   deptId:               ID!
   guideFacultyId:       ID!
@@ -83,13 +83,13 @@ type PhdScholar {
   status:               String
 }
 
-type DeptPublicationList        { items: [DeptPublication]        nextToken: String }
-type PublicationProfileList     { items: [PublicationProfile]     nextToken: String }
-type ResearchGrantList          { items: [ResearchGrant]          nextToken: String }
-type PatentList                 { items: [Patent]                 nextToken: String }
-type FacultyResearchSummaryList { items: [FacultyResearchSummary] nextToken: String }
-type PhdGuideList               { items: [PhdGuide]               nextToken: String }
-type PhdScholarList             { items: [PhdScholar]             nextToken: String }
+type DeptPublicationList        @aws_api_key @aws_cognito_user_pools { items: [DeptPublication]        nextToken: String }
+type PublicationProfileList     @aws_api_key @aws_cognito_user_pools { items: [PublicationProfile]     nextToken: String }
+type ResearchGrantList          @aws_api_key @aws_cognito_user_pools { items: [ResearchGrant]          nextToken: String }
+type PatentList                 @aws_api_key @aws_cognito_user_pools { items: [Patent]                 nextToken: String }
+type FacultyResearchSummaryList @aws_api_key @aws_cognito_user_pools { items: [FacultyResearchSummary] nextToken: String }
+type PhdGuideList               @aws_api_key @aws_cognito_user_pools { items: [PhdGuide]               nextToken: String }
+type PhdScholarList             @aws_api_key @aws_cognito_user_pools { items: [PhdScholar]             nextToken: String }
 
 input CreateDeptPublicationInput {
   deptId:  ID!
@@ -205,13 +205,13 @@ input UpdatePhdScholarInput {
 }
 
 extend type Query {
-  listDeptPublications(deptId: ID!, type: String, year: Int, limit: Int, nextToken: String): DeptPublicationList
-  listPublicationProfiles(deptId: ID!): PublicationProfileList
-  listResearchGrants(deptId: ID!): ResearchGrantList
-  listPatents(deptId: ID!): PatentList
-  listFacultyResearchSummaries(deptId: ID!, limit: Int, nextToken: String): FacultyResearchSummaryList
-  listPhdGuides(deptId: ID!): PhdGuideList
-  listPhdScholars(deptId: ID!, guideFacultyId: ID, status: String): PhdScholarList
+  listDeptPublications(deptId: ID!, tenantId: ID, type: String, year: Int, limit: Int, nextToken: String): DeptPublicationList @aws_api_key @aws_cognito_user_pools
+  listPublicationProfiles(deptId: ID!, tenantId: ID): PublicationProfileList @aws_api_key @aws_cognito_user_pools
+  listResearchGrants(deptId: ID!, tenantId: ID): ResearchGrantList @aws_api_key @aws_cognito_user_pools
+  listPatents(deptId: ID!, tenantId: ID): PatentList @aws_api_key @aws_cognito_user_pools
+  listFacultyResearchSummaries(deptId: ID!, tenantId: ID, limit: Int, nextToken: String): FacultyResearchSummaryList @aws_api_key @aws_cognito_user_pools
+  listPhdGuides(deptId: ID!, tenantId: ID): PhdGuideList @aws_api_key @aws_cognito_user_pools
+  listPhdScholars(deptId: ID!, tenantId: ID, guideFacultyId: ID, status: String): PhdScholarList @aws_api_key @aws_cognito_user_pools
 }
 
 extend type Mutation {

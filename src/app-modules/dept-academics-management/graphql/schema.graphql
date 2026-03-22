@@ -1,4 +1,4 @@
-type DeptCourse {
+type DeptCourse @aws_api_key @aws_cognito_user_pools {
   deptCourseId: ID!
   deptId:       ID!
   code:         String!
@@ -11,7 +11,7 @@ type DeptCourse {
   updatedAt:    AWSDateTime
 }
 
-type DeptTimetable {
+type DeptTimetable @aws_api_key @aws_cognito_user_pools {
   deptTimetableId: ID!
   deptId:          ID!
   section:         String
@@ -22,7 +22,7 @@ type DeptTimetable {
   createdAt:       AWSDateTime
 }
 
-type LearningMaterial {
+type LearningMaterial @aws_api_key @aws_cognito_user_pools {
   learningMaterialId: ID!
   deptId:             ID!
   courseCode:         String
@@ -34,7 +34,7 @@ type LearningMaterial {
   createdAt:          AWSDateTime
 }
 
-type InnovativeTeaching {
+type InnovativeTeaching @aws_api_key @aws_cognito_user_pools {
   innovativeTeachingId: ID!
   deptId:               ID!
   facultyName:          String
@@ -46,7 +46,7 @@ type InnovativeTeaching {
   createdAt:            AWSDateTime
 }
 
-type ResultAnalysis {
+type ResultAnalysis @aws_api_key @aws_cognito_user_pools {
   resultAnalysisId: ID!
   deptId:           ID!
   title:            String!
@@ -57,11 +57,86 @@ type ResultAnalysis {
   createdAt:        AWSDateTime
 }
 
-type DeptCourseList         { items: [DeptCourse]         nextToken: String }
-type DeptTimetableList      { items: [DeptTimetable]      nextToken: String }
-type LearningMaterialList   { items: [LearningMaterial]   nextToken: String }
-type InnovativeTeachingList { items: [InnovativeTeaching] nextToken: String }
-type ResultAnalysisList     { items: [ResultAnalysis]     nextToken: String }
+type DeptSlot @aws_api_key @aws_cognito_user_pools {
+  deptSlotId: ID!
+  deptId:     ID!
+  sectionId:  ID!
+  day:        String!
+  period:     Int!
+  courseCode: String!
+  courseName: String!
+  type:       String!
+  facultyId:  ID
+  createdAt:  AWSDateTime
+  updatedAt:  AWSDateTime
+}
+
+type DeptSlotList @aws_api_key @aws_cognito_user_pools { items: [DeptSlot] nextToken: String }
+
+input CreateDeptSlotInput {
+  deptId:     ID!
+  sectionId:  ID!
+  day:        String!
+  period:     Int!
+  courseCode: String!
+  courseName: String!
+  type:       String!
+  facultyId:  ID
+}
+
+input UpdateDeptSlotInput {
+  deptSlotId: ID!
+  courseCode: String
+  courseName: String
+  type:       String
+  facultyId:  ID
+}
+
+type DeptSection @aws_api_key @aws_cognito_user_pools {
+  deptSectionId: ID!
+  deptId:        ID!
+  programId:     ID
+  batchName:     String!
+  semester:      Int!
+  name:          String!
+  createdAt:     AWSDateTime
+}
+
+type DeptSectionList @aws_api_key @aws_cognito_user_pools { items: [DeptSection] nextToken: String }
+
+input CreateDeptSectionInput {
+  deptId:    ID!
+  programId: ID
+  batchName: String!
+  semester:  Int!
+  name:      String!
+}
+
+type DeptBatch @aws_api_key @aws_cognito_user_pools {
+  deptBatchId: ID!
+  deptId:      ID!
+  programId:   ID
+  name:        String!
+  startYear:   Int
+  endYear:     Int
+  createdAt:   AWSDateTime
+}
+
+type DeptBatchList @aws_api_key @aws_cognito_user_pools { items: [DeptBatch] nextToken: String }
+
+input CreateDeptBatchInput {
+  deptId:    ID!
+  programId: ID
+  name:      String!
+  startYear: Int
+  endYear:   Int
+}
+
+type DeptCourseList         @aws_api_key @aws_cognito_user_pools { items: [DeptCourse]         nextToken: String }
+type DeptTimetableList      @aws_api_key @aws_cognito_user_pools { items: [DeptTimetable]      nextToken: String }
+type LearningMaterialList   @aws_api_key @aws_cognito_user_pools { items: [LearningMaterial]   nextToken: String }
+type InnovativeTeachingList @aws_api_key @aws_cognito_user_pools { items: [InnovativeTeaching] nextToken: String }
+type ResultAnalysisList     @aws_api_key @aws_cognito_user_pools { items: [ResultAnalysis]     nextToken: String }
 
 input CreateDeptCourseInput {
   deptId:   ID!
@@ -104,6 +179,7 @@ input CreateLearningMaterialInput {
   title:      String!
   type:       String
   fileUrl:    String
+  uploadedBy: String
 }
 input UpdateLearningMaterialInput {
   learningMaterialId: ID!
@@ -151,15 +227,25 @@ input UpdateResultAnalysisInput {
 }
 
 extend type Query {
-  listDeptCourses(deptId: ID!, semester: Int, type: String, limit: Int, nextToken: String): DeptCourseList
-  getDeptCourse(deptCourseId: ID!): DeptCourse
-  listDeptTimetables(deptId: ID!, semester: Int, academicYear: String): DeptTimetableList
-  listLearningMaterials(deptId: ID!, courseCode: String, type: String, limit: Int, nextToken: String): LearningMaterialList
-  listInnovativeTeaching(deptId: ID!): InnovativeTeachingList
-  listResultAnalyses(deptId: ID!, semester: Int, batch: String): ResultAnalysisList
+  listDeptSlots(deptId: ID!, sectionId: ID!, tenantId: ID): DeptSlotList @aws_api_key @aws_cognito_user_pools
+  listDeptSections(deptId: ID!, tenantId: ID, programId: ID, semester: Int, batchName: String): DeptSectionList @aws_api_key @aws_cognito_user_pools
+  listDeptBatches(deptId: ID!, tenantId: ID, programId: ID): DeptBatchList @aws_api_key @aws_cognito_user_pools
+  listDeptCourses(deptId: ID!, tenantId: ID, semester: Int, type: String, limit: Int, nextToken: String): DeptCourseList @aws_api_key @aws_cognito_user_pools
+  getDeptCourse(deptCourseId: ID!): DeptCourse @aws_api_key @aws_cognito_user_pools
+  listDeptTimetables(deptId: ID!, tenantId: ID, semester: Int, academicYear: String): DeptTimetableList @aws_api_key @aws_cognito_user_pools
+  listLearningMaterials(deptId: ID!, tenantId: ID, courseCode: String, type: String, limit: Int, nextToken: String): LearningMaterialList @aws_api_key @aws_cognito_user_pools
+  listInnovativeTeaching(deptId: ID!, tenantId: ID): InnovativeTeachingList @aws_api_key @aws_cognito_user_pools
+  listResultAnalyses(deptId: ID!, tenantId: ID, semester: Int, batch: String): ResultAnalysisList @aws_api_key @aws_cognito_user_pools
 }
 
 extend type Mutation {
+  createDeptSlot(input: CreateDeptSlotInput!): DeptSlot
+  updateDeptSlot(input: UpdateDeptSlotInput!): DeptSlot
+  deleteDeptSlot(deptSlotId: ID!): DeptSlot
+  createDeptSection(input: CreateDeptSectionInput!): DeptSection
+  deleteDeptSection(deptSectionId: ID!): DeptSection
+  createDeptBatch(input: CreateDeptBatchInput!): DeptBatch
+  deleteDeptBatch(deptBatchId: ID!): DeptBatch
   createDeptCourse(input: CreateDeptCourseInput!): DeptCourse
   updateDeptCourse(input: UpdateDeptCourseInput!): DeptCourse
   deleteDeptCourse(deptCourseId: ID!): DeptCourse

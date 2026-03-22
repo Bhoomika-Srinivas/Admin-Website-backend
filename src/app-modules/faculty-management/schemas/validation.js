@@ -5,12 +5,14 @@ const Joi = require("joi")
 ─────────────────────────────*/
 
 const getFacultySchema = Joi.object({
-  facultyId: Joi.string().required()
+  facultyId: Joi.string().required(),
+  tenantId:  Joi.string().optional()
 })
 
 const listFacultySchema = Joi.object({
-  limit: Joi.number().integer().min(1).max(100).optional(),
-  nextToken: Joi.string().optional(),
+  tenantId:   Joi.string().optional(),
+  limit:      Joi.number().integer().min(1).max(100).optional(),
+  nextToken:  Joi.string().optional(),
   pagination: Joi.object().optional()
 })
 

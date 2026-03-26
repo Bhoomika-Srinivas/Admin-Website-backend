@@ -69,6 +69,7 @@ const togglePinEventSchema  = Joi.object({ eventId: Joi.string().required() })
 
 const listPlacementOverviewsSchema = Joi.object({
   deptId:       Joi.string().required(),
+  tenantId:     Joi.string().optional().allow(null),
   academicYear: Joi.string().optional().allow(null),
   sortBy:       Joi.string().valid("academicYear", "companiesVisited", "highestPackage", "createdAt").optional().allow(null),
   sortOrder:    Joi.string().valid("asc", "desc").optional().allow(null)
@@ -109,6 +110,7 @@ const deletePlacementOverviewSchema = Joi.object({
 
 const listStudentPlacementsSchema = Joi.object({
   deptId:     Joi.string().required(),
+  tenantId:   Joi.string().optional().allow(null),
   search:     Joi.string().optional().allow("", null),
   batch:      Joi.string().optional().allow(null),
   sortBy:     Joi.string().valid("studentName", "company", "package", "batch", "createdAt").optional().allow(null),
@@ -155,6 +157,7 @@ const deleteStudentPlacementSchema = Joi.object({
 
 const listAchievementsSchema = Joi.object({
   deptId:    Joi.string().required(),
+  tenantId:  Joi.string().optional().allow(null),
   search:    Joi.string().optional().allow("", null),
   type:      Joi.string().valid("student", "staff").optional().allow(null),
   sortBy:    Joi.string().valid("type", "createdAt").optional().allow(null),
@@ -188,6 +191,7 @@ const deleteAchievementSchema = Joi.object({
 
 const listDeptActivitiesSchema = Joi.object({
   deptId:     Joi.string().required(),
+  tenantId:   Joi.string().optional().allow(null),
   search:     Joi.string().optional().allow("", null),
   type:       Joi.string().valid("forum", "department").optional().allow(null),
   sortBy:     Joi.string().valid("name", "date", "participants", "createdAt").optional().allow(null),
@@ -234,6 +238,7 @@ const deleteDeptActivitySchema = Joi.object({
 
 const listForumSectionsSchema = Joi.object({
   deptId:    Joi.string().required(),
+  tenantId:  Joi.string().optional().allow(null),
   search:    Joi.string().optional().allow("", null),
   sortBy:    Joi.string().valid("title", "createdAt").optional().allow(null),
   sortOrder: Joi.string().valid("asc", "desc").optional().allow(null)
@@ -266,6 +271,7 @@ const deleteForumSectionSchema = Joi.object({
 
 const listForumEventsSchema = Joi.object({
   deptId:     Joi.string().required(),
+  tenantId:   Joi.string().optional().allow(null),
   search:     Joi.string().optional().allow("", null),
   sortBy:     Joi.string().valid("title", "createdAt").optional().allow(null),
   sortOrder:  Joi.string().valid("asc", "desc").optional().allow(null),
@@ -301,6 +307,7 @@ const deleteForumEventSchema = Joi.object({
 
 const listDepartmentActivityLogSchema = Joi.object({
   deptId:     Joi.string().required(),
+  tenantId:   Joi.string().optional().allow(null),
   limit:      Joi.number().integer().min(1).max(100).optional().allow(null),
   nextToken:  Joi.string().optional().allow(null),
   pagination: Joi.object().optional().allow(null)
@@ -331,6 +338,7 @@ const deleteDepartmentActivitySchema = Joi.object({
 
 const listDeptNewslettersSchema = Joi.object({
   deptId:    Joi.string().required(),
+  tenantId:  Joi.string().optional().allow(null),
   search:    Joi.string().optional().allow("", null),
   sortBy:    Joi.string().valid("title", "publishedDate", "volume", "createdAt").optional().allow(null),
   sortOrder: Joi.string().valid("asc", "desc").optional().allow(null)
@@ -369,6 +377,7 @@ const deleteDeptNewsletterSchema = Joi.object({
 
 const listDeptGalleryPhotosSchema = Joi.object({
   deptId:     Joi.string().required(),
+  tenantId:   Joi.string().optional().allow(null),
   search:     Joi.string().optional().allow("", null),
   category:   Joi.string().optional().allow(null),
   sortBy:     Joi.string().valid("title", "category", "capturedAt", "createdAt").optional().allow(null),

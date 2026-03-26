@@ -3,11 +3,9 @@ type DeptStaff {
   deptId:        ID!
   name:          String!
   designation:   String!
-  qualification: String
-  experience:    Int
-  email:         String
-  phone:         String
-  status:        String
+  imageUrl:      String
+  staffType:     String
+  order:         Int
   createdAt:     AWSDateTime
   updatedAt:     AWSDateTime
 }
@@ -30,24 +28,22 @@ type DeptStaffList     { items: [DeptStaff]     nextToken: String }
 type AccreditationList { items: [Accreditation] nextToken: String }
 
 input CreateDeptStaffInput {
-  deptId:        ID!
-  name:          String!
-  designation:   String!
-  qualification: String
-  experience:    Int
-  email:         String
-  phone:         String
-  status:        String
+  deptId:      ID!
+  name:        String!
+  designation: String!
+  imageUrl:    String
+  staffType:   String!
+  order:       Int
+  insertMode:  Boolean
 }
 input UpdateDeptStaffInput {
-  deptStaffId:   ID!
-  name:          String
-  designation:   String
-  qualification: String
-  experience:    Int
-  email:         String
-  phone:         String
-  status:        String
+  deptStaffId: ID!
+  name:        String
+  designation: String
+  imageUrl:    String
+  staffType:   String
+  order:       Int
+  insertMode:  Boolean
 }
 
 input CreateAccreditationInput {
@@ -72,7 +68,7 @@ input UpdateAccreditationInput {
 }
 
 extend type Query {
-  listDeptStaff(deptId: ID!, status: String, limit: Int, nextToken: String): DeptStaffList
+  listDeptStaff(deptId: ID!, staffType: String, limit: Int, nextToken: String): DeptStaffList
   getDeptStaff(deptStaffId: ID!): DeptStaff
   listAccreditations(deptId: ID!, status: String, limit: Int, nextToken: String): AccreditationList
   getAccreditation(accreditationId: ID!): Accreditation

@@ -47,7 +47,7 @@ input UpdateEventInput {
   approvalStatus: String
 }
 
-type PlacementOverview {
+type PlacementOverview @aws_api_key @aws_cognito_user_pools {
   placementOverviewId: ID!
   deptId:              ID!
   title:               String
@@ -59,7 +59,7 @@ type PlacementOverview {
   createdAt:           AWSDateTime
 }
 
-type StudentPlacement {
+type StudentPlacement @aws_api_key @aws_cognito_user_pools {
   studentPlacementId: ID!
   deptId:             ID!
   studentName:        String!
@@ -72,7 +72,7 @@ type StudentPlacement {
   createdAt:          AWSDateTime
 }
 
-type Achievement {
+type Achievement @aws_api_key @aws_cognito_user_pools {
   achievementId: ID!
   deptId:        ID!
   type:          String
@@ -80,7 +80,7 @@ type Achievement {
   createdAt:     AWSDateTime
 }
 
-type DeptActivity {
+type DeptActivity @aws_api_key @aws_cognito_user_pools {
   deptActivityId: ID!
   deptId:         ID!
   type:           String
@@ -93,7 +93,7 @@ type DeptActivity {
   createdAt:      AWSDateTime
 }
 
-type ForumSection {
+type ForumSection @aws_api_key @aws_cognito_user_pools {
   forumSectionId: ID
   deptId:         ID!
   title:          String!
@@ -101,7 +101,7 @@ type ForumSection {
   createdAt:      AWSDateTime
 }
 
-type ForumEvent {
+type ForumEvent @aws_api_key @aws_cognito_user_pools {
   forumEventId: ID!
   deptId:       ID!
   title:        String!
@@ -109,7 +109,7 @@ type ForumEvent {
   createdAt:    AWSDateTime
 }
 
-type DepartmentActivityLog {
+type DepartmentActivityLog @aws_api_key @aws_cognito_user_pools {
   deptActivityLogId: ID!
   deptId:            ID!
   text:              String!
@@ -117,7 +117,7 @@ type DepartmentActivityLog {
   createdAt:         AWSDateTime
 }
 
-type Newsletter {
+type Newsletter @aws_api_key @aws_cognito_user_pools {
   newsletterId:  ID!
   deptId:        ID!
   title:         String!
@@ -128,7 +128,7 @@ type Newsletter {
   createdAt:     AWSDateTime
 }
 
-type GalleryPhoto {
+type GalleryPhoto @aws_api_key @aws_cognito_user_pools {
   galleryPhotoId: ID!
   deptId:         ID!
   title:          String
@@ -138,14 +138,14 @@ type GalleryPhoto {
   createdAt:      AWSDateTime
 }
 
-type PlacementOverviewList     { items: [PlacementOverview]     nextToken: String }
-type StudentPlacementList      { items: [StudentPlacement]      nextToken: String }
-type AchievementList           { items: [Achievement]           nextToken: String }
-type DeptActivityList          { items: [DeptActivity]          nextToken: String }
-type ForumEventList            { items: [ForumEvent]            nextToken: String }
-type DepartmentActivityLogList { items: [DepartmentActivityLog] nextToken: String }
-type NewsletterList            { items: [Newsletter]            nextToken: String }
-type GalleryPhotoList          { items: [GalleryPhoto]          nextToken: String }
+type PlacementOverviewList     @aws_api_key @aws_cognito_user_pools { items: [PlacementOverview]     nextToken: String }
+type StudentPlacementList      @aws_api_key @aws_cognito_user_pools { items: [StudentPlacement]      nextToken: String }
+type AchievementList           @aws_api_key @aws_cognito_user_pools { items: [Achievement]           nextToken: String }
+type DeptActivityList          @aws_api_key @aws_cognito_user_pools { items: [DeptActivity]          nextToken: String }
+type ForumEventList            @aws_api_key @aws_cognito_user_pools { items: [ForumEvent]            nextToken: String }
+type DepartmentActivityLogList @aws_api_key @aws_cognito_user_pools { items: [DepartmentActivityLog] nextToken: String }
+type NewsletterList            @aws_api_key @aws_cognito_user_pools { items: [Newsletter]            nextToken: String }
+type GalleryPhotoList          @aws_api_key @aws_cognito_user_pools { items: [GalleryPhoto]          nextToken: String }
 
 input CreatePlacementOverviewInput {
   deptId:            ID!
@@ -254,15 +254,15 @@ input UpdateGalleryPhotoInput {
 extend type Query {
   listEvents(deptId: ID, tenantId: ID, level: String, department: String, status: String, approvalStatus: String, pinned: Boolean, limit: Int, nextToken: String): EventList @aws_api_key @aws_cognito_user_pools
   getEvent(eventId: ID!): Event @aws_api_key @aws_cognito_user_pools
-  listPlacementOverviews(deptId: ID!, academicYear: String): PlacementOverviewList
-  listStudentPlacements(deptId: ID!, batch: String, limit: Int, nextToken: String): StudentPlacementList
-  listAchievements(deptId: ID!, type: String): AchievementList
-  listDeptActivities(deptId: ID!, type: String, limit: Int, nextToken: String): DeptActivityList
-  getForumSection(deptId: ID!): ForumSection
-  listForumEvents(deptId: ID!, limit: Int, nextToken: String): ForumEventList
-  listDepartmentActivities(deptId: ID!, limit: Int, nextToken: String): DepartmentActivityLogList
-  listNewsletters(deptId: ID!): NewsletterList
-  listGalleryPhotos(deptId: ID!, category: String, limit: Int, nextToken: String): GalleryPhotoList
+  listPlacementOverviews(deptId: ID!, tenantId: ID, academicYear: String): PlacementOverviewList @aws_api_key @aws_cognito_user_pools
+  listStudentPlacements(deptId: ID!, tenantId: ID, batch: String, limit: Int, nextToken: String): StudentPlacementList @aws_api_key @aws_cognito_user_pools
+  listAchievements(deptId: ID!, tenantId: ID, type: String): AchievementList @aws_api_key @aws_cognito_user_pools
+  listDeptActivities(deptId: ID!, tenantId: ID, type: String, limit: Int, nextToken: String): DeptActivityList @aws_api_key @aws_cognito_user_pools
+  getForumSection(deptId: ID!, tenantId: ID): ForumSection @aws_api_key @aws_cognito_user_pools
+  listForumEvents(deptId: ID!, tenantId: ID, limit: Int, nextToken: String): ForumEventList @aws_api_key @aws_cognito_user_pools
+  listDepartmentActivities(deptId: ID!, tenantId: ID, limit: Int, nextToken: String): DepartmentActivityLogList @aws_api_key @aws_cognito_user_pools
+  listNewsletters(deptId: ID!, tenantId: ID): NewsletterList @aws_api_key @aws_cognito_user_pools
+  listGalleryPhotos(deptId: ID!, tenantId: ID, category: String, limit: Int, nextToken: String): GalleryPhotoList @aws_api_key @aws_cognito_user_pools
 }
 
 extend type Mutation {

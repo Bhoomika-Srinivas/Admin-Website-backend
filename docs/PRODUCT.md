@@ -22,6 +22,8 @@
 ## Custom Modules
 <!-- List product-specific modules added -->
 <!-- (auto-updated by generate-module.sh and remove-module.sh) -->
+- alumni-management
+- --type
 - dept-branding-management
 - dept-activities-management
 - dept-academics-management

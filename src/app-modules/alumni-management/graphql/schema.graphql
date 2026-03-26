@@ -1,0 +1,60 @@
+type Alumni @aws_api_key @aws_cognito_user_pools {
+  alumniId:    ID!
+  deptId:      ID
+  name:        String!
+  batch:       String
+  department:  String
+  company:     String
+  designation: String
+  location:    String
+  achievement: String
+  email:       String
+  linkedin:    String
+  image:       String
+  createdAt:   AWSDateTime
+  updatedAt:   AWSDateTime
+}
+
+type AlumniList @aws_api_key @aws_cognito_user_pools {
+  items:     [Alumni]
+  nextToken: String
+}
+
+input CreateAlumniInput {
+  deptId:      ID!
+  name:        String!
+  batch:       String!
+  department:  String
+  company:     String!
+  designation: String!
+  location:    String
+  achievement: String
+  email:       String
+  linkedin:    String
+  image:       String
+}
+
+input UpdateAlumniInput {
+  alumniId:    ID!
+  name:        String
+  batch:       String
+  department:  String
+  company:     String
+  designation: String
+  location:    String
+  achievement: String
+  email:       String
+  linkedin:    String
+  image:       String
+}
+
+extend type Query {
+  getAlumni(alumniId: ID!, tenantId: ID): Alumni @aws_api_key @aws_cognito_user_pools
+  listAlumni(tenantId: ID, deptId: ID, batch: String, search: String, limit: Int, nextToken: String): AlumniList @aws_api_key @aws_cognito_user_pools
+}
+
+extend type Mutation {
+  createAlumni(input: CreateAlumniInput!): Alumni
+  updateAlumni(input: UpdateAlumniInput!): Alumni
+  deleteAlumni(alumniId: ID!): Alumni
+}

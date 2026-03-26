@@ -60,6 +60,7 @@ function toAccreditationResponse(doc) {
   }
 }
 
+
 /* ─────────────────────────────
    Query Builders
 ─────────────────────────────*/
@@ -67,8 +68,8 @@ function toAccreditationResponse(doc) {
 function buildStaffQuery(args) {
   const query = {}
 
-  if (args.deptId) query.deptId = args.deptId
-  if (args.status) query.status = args.status
+  if (args.deptId)    query.deptId    = args.deptId
+  if (args.staffType) query.staffType = args.staffType
 
   if (args.search && args.search.trim() !== '') {
     query.$or = [
@@ -181,16 +182,16 @@ async function getDeptStaff(ctx, args) {
 ─────────────────────────────*/
 
 async function listDeptStaff(ctx, args) {
-  const validated  = validate(listDeptStaffSchema, args || {})
-  const query      = buildStaffQuery(validated)
-  const sort       = buildSort(validated.sortBy, validated.sortOrder)
-  const pagination = normalizePagination(validated)
+  const validated = validate(listDeptStaffSchema, args || {})
+  const query     = buildStaffQuery(validated)
+  const limit     = Math.min(validated.limit || 100, 100)
+  const fullFilter = { ...query, tenant_id: ctx.tenant_id }
 
-  const result = await deptStaffRepo.findMany(ctx, query, { ...pagination, sort })
+  const items = await DeptStaff.find(fullFilter).sort({ order: 1 }).limit(limit).lean()
 
   return {
-    items:     result.items.map(toDeptStaffResponse),
-    nextToken: result.nextCursor
+    items:     items.map(toDeptStaffResponse),
+    nextToken: null
   }
 }
 
@@ -201,21 +202,32 @@ async function listDeptStaff(ctx, args) {
 
 async function createDeptStaff(ctx, args) {
   const input = validate(createDeptStaffSchema, args || {})
-  const { deptId, name, designation, qualification, experience, email, phone, status } = input.input
+  const { deptId, name, designation, imageUrl, staffType, order: inputOrder } = input.input
 
   const dept_staff_id = generateId()
+
+  const { insertMode } = input.input
+
+  let order = inputOrder ?? null
+  if (order === null) {
+    const count = await DeptStaff.countDocuments({ tenant_id: ctx.tenant_id, deptId, staffType })
+    order = count + 1
+  } else if (insertMode) {
+    await DeptStaff.updateMany(
+      { tenant_id: ctx.tenant_id, deptId, staffType, order: { $gte: order } },
+      { $inc: { order: 1 } }
+    )
+  }
 
   const created = await deptStaffRepo.create(ctx, {
     dept_staff_id,
     deptId,
     name,
     designation,
-    qualification: qualification ?? '',
-    experience:    experience    ?? 0,
-    email:         email         ?? '',
-    phone:         phone         ?? '',
-    status:        status        ?? 'active',
-    created_by:    ctx.user_id
+    imageUrl:   imageUrl ?? null,
+    staffType,
+    order,
+    created_by: ctx.user_id
   })
 
   return toDeptStaffResponse(created)
@@ -234,13 +246,32 @@ async function updateDeptStaff(ctx, args) {
   if (!existing) throw new NotFoundError('Staff member not found')
 
   const updates = {}
-  if (fields.name          !== undefined) updates.name          = fields.name
-  if (fields.designation   !== undefined) updates.designation   = fields.designation
-  if (fields.qualification !== undefined) updates.qualification = fields.qualification
-  if (fields.experience    !== undefined) updates.experience    = fields.experience
-  if (fields.email         !== undefined) updates.email         = fields.email
-  if (fields.phone         !== undefined) updates.phone         = fields.phone
-  if (fields.status        !== undefined) updates.status        = fields.status
+  if (fields.name        !== undefined) updates.name        = fields.name
+  if (fields.designation !== undefined) updates.designation = fields.designation
+  if (fields.imageUrl    !== undefined) updates.imageUrl    = fields.imageUrl
+  if (fields.staffType   !== undefined) updates.staffType   = fields.staffType
+  if (fields.order !== undefined) {
+    updates.order = fields.order
+    const oldOrder = existing.order
+    const newOrder = fields.order
+    const scope    = { tenant_id: ctx.tenant_id, deptId: existing.deptId, staffType: existing.staffType, dept_staff_id: { $ne: existing.dept_staff_id } }
+
+    if (oldOrder !== newOrder) {
+      if (newOrder > oldOrder) {
+        // moving down: shift records between old+1 and new down by 1
+        await DeptStaff.updateMany(
+          { ...scope, order: { $gt: oldOrder, $lte: newOrder } },
+          { $inc: { order: -1 } }
+        )
+      } else {
+        // moving up: shift records between new and old-1 up by 1
+        await DeptStaff.updateMany(
+          { ...scope, order: { $gte: newOrder, $lt: oldOrder } },
+          { $inc: { order: 1 } }
+        )
+      }
+    }
+  }
 
   const updated = await deptStaffRepo.updateById(ctx, deptStaffId, updates)
 
@@ -259,6 +290,19 @@ async function deleteDeptStaff(ctx, args) {
   if (!existing) throw new NotFoundError('Staff member not found')
 
   await deptStaffRepo.deleteById(ctx, deptStaffId)
+
+  // reorder remaining staff sequentially 1, 2, 3...
+  const remaining = await DeptStaff.find({ tenant_id: ctx.tenant_id, deptId: existing.deptId, staffType: existing.staffType }).sort({ order: 1 }).lean()
+  if (remaining.length > 0) {
+    await DeptStaff.bulkWrite(
+      remaining.map((doc, idx) => ({
+        updateOne: {
+          filter: { _id: doc._id },
+          update: { $set: { order: idx + 1 } }
+        }
+      }))
+    )
+  }
 
   return toDeptStaffResponse(existing)
 }

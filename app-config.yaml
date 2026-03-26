@@ -16,6 +16,7 @@ core_modules:
 
 # Product-specific modules (add when you run generate-module.sh --type app)
 app_modules:
+  - alumni-management
   - dept-branding-management
   - dept-activities-management
   - dept-academics-management

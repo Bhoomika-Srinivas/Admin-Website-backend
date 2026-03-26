@@ -1,0 +1,14 @@
+# Block .env files from being committed
+if git diff --cached --name-only | grep -E '^\.env(\.|$)'; then
+  echo "ERROR: .env file is staged. Remove it before committing."
+  exit 1
+fi
+
+# Block merge conflict markers
+if git diff --cached | grep -E '^(\+){1}(<<<<<<|======|>>>>>>)'; then
+  echo "ERROR: Merge conflict markers found in staged files."
+  exit 1
+fi
+
+# Run unit tests
+npm run test:unit

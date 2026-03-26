@@ -11,9 +11,11 @@
     "compose-template": "bash scripts/compose-template.sh",
     "build": "npm run merge-graphql && npm run compose-template && npm run validate-schemas && sam build",
     "build:app": "bash scripts/build-app.sh",
-    "deploy:app": "bash -c 'sam deploy --config-env ${APP} -t template.${APP}.yaml'"
+    "deploy:app": "bash -c 'sam deploy --config-env ${APP} -t template.${APP}.yaml'",
+    "prepare": "husky"
   },
   "devDependencies": {
+    "husky": "^9.1.7",
     "jest": "^29.7.0",
     "joi": "^17.11.0",
     "mongoose": "^9.2.1"

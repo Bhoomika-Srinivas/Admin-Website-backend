@@ -56,37 +56,40 @@ HodProfileSchema.index({ tenant_id: 1, deptId: 1 }, { unique: true })
 
 /* ─── ProgramOutcome ─── */
 const ProgramOutcomeSchema = new mongoose.Schema({
-  tenant_id:  { type: String, required: true, index: true },
-  created_by: { type: String },
-  deptId:     { type: String, required: true, index: true },
-  type:       { type: String, enum: ["PEO", "PSO"], required: true },
-  statement:  { type: String, required: true },
-  order:      { type: Number, required: true },
+  program_outcome_id: { type: String, index: true },
+  tenant_id:          { type: String, required: true, index: true },
+  created_by:         { type: String },
+  deptId:             { type: String, required: true, index: true },
+  type:               { type: String, enum: ["PEO", "PSO"], required: true },
+  statement:          { type: String, required: true },
+  order:              { type: Number, required: true },
 }, { timestamps: true })
 
 /* ─── CommitteeMember ─── */
 const CommitteeMemberSchema = new mongoose.Schema({
-  tenant_id:   { type: String, required: true, index: true },
-  created_by:  { type: String },
-  deptId:      { type: String, required: true, index: true },
-  committee:   { type: String, enum: ["DAB", "PAC"], required: true },
-  name:        { type: String, required: true },
-  designation: { type: String },
-  order:       { type: Number, default: 0 },
+  committee_member_id: { type: String, index: true },
+  tenant_id:           { type: String, required: true, index: true },
+  created_by:          { type: String },
+  deptId:              { type: String, required: true, index: true },
+  committee:           { type: String, enum: ["DAB", "PAC"], required: true },
+  name:                { type: String, required: true },
+  designation:         { type: String },
+  order:               { type: Number, default: 0 },
 }, { timestamps: true })
 
 /* ─── DistinguishedAlumnus ─── */
 const DistinguishedAlumnusSchema = new mongoose.Schema({
-  tenant_id:    { type: String, required: true, index: true },
-  created_by:   { type: String },
-  deptId:       { type: String, required: true, index: true },
-  name:         { type: String, required: true },
-  batch:        { type: String },
-  currentRole:  { type: String },
-  organization: { type: String },
-  achievement:  { type: String },
-  imageUrl:     { type: String },
-  linkedInUrl:  { type: String },
+  distinguished_alumnus_id: { type: String, index: true },
+  tenant_id:                { type: String, required: true, index: true },
+  created_by:               { type: String },
+  deptId:                   { type: String, required: true, index: true },
+  name:                     { type: String, required: true },
+  batch:                    { type: String },
+  currentRole:              { type: String },
+  organization:             { type: String },
+  achievement:              { type: String },
+  imageUrl:                 { type: String },
+  linkedInUrl:              { type: String },
 }, { timestamps: true })
 
 module.exports = {

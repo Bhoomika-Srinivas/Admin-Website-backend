@@ -290,7 +290,6 @@ async function handleEvent(event) {
 
     // ── PlacementOverview ─────────────────────────
     case 'listPlacementOverviews':
-      await requirePermission(ctx, 'dept-activities:placement-overview:list')
       return await listPlacementOverviews(ctx, event.arguments)
 
     case 'createPlacementOverview':
@@ -307,7 +306,6 @@ async function handleEvent(event) {
 
     // ── StudentPlacement ──────────────────────────
     case 'listStudentPlacements':
-      await requirePermission(ctx, 'dept-activities:student-placement:list')
       return await listStudentPlacements(ctx, event.arguments)
 
     case 'createStudentPlacement':
@@ -324,7 +322,6 @@ async function handleEvent(event) {
 
     // ── Achievement ───────────────────────────────
     case 'listAchievements':
-      await requirePermission(ctx, 'dept-activities:achievement:list')
       return await listAchievements(ctx, event.arguments)
 
     case 'createAchievement':
@@ -341,7 +338,6 @@ async function handleEvent(event) {
 
     // ── DeptActivity ──────────────────────────────
     case 'listDeptActivities':
-      await requirePermission(ctx, 'dept-activities:activity:list')
       return await listDeptActivities(ctx, event.arguments)
 
     case 'createDeptActivity':
@@ -358,7 +354,6 @@ async function handleEvent(event) {
 
     // ── Newsletter ────────────────────────────────
     case 'listNewsletters':
-      await requirePermission(ctx, 'dept-activities:newsletter:list')
       return await listNewsletters(ctx, event.arguments)
 
     case 'createNewsletter':
@@ -375,7 +370,6 @@ async function handleEvent(event) {
 
     // ── GalleryPhoto ──────────────────────────────
     case 'listGalleryPhotos':
-      await requirePermission(ctx, 'dept-activities:gallery:list')
       return await listGalleryPhotos(ctx, event.arguments)
 
     case 'createGalleryPhoto':
@@ -392,7 +386,6 @@ async function handleEvent(event) {
 
     // ── ForumSection (upsert) ─────────────────────
     case 'getForumSection':
-      await requirePermission(ctx, 'dept-activities:forum:read')
       return await getForumSection(ctx, event.arguments)
 
     case 'saveForumSection':
@@ -401,7 +394,6 @@ async function handleEvent(event) {
 
     // ── ForumEvent ────────────────────────────────
     case 'listForumEvents':
-      await requirePermission(ctx, 'dept-activities:forum:list')
       return await listForumEvents(ctx, event.arguments)
 
     case 'createForumEvent':
@@ -418,7 +410,6 @@ async function handleEvent(event) {
 
     // ── DepartmentActivity (log) ──────────────────
     case 'listDepartmentActivities':
-      await requirePermission(ctx, 'dept-activities:dept-activity-log:list')
       return await listDepartmentActivities(ctx, event.arguments)
 
     case 'createDepartmentActivity':
@@ -481,12 +472,14 @@ exports.handler = withConnection(handleEvent)
 ─────────────────────────────*/
 
 async function listPlacementOverviews(ctx, args) {
-  const validated  = validate(listPlacementOverviewsSchema, args || {})
-  const query      = buildPlacementOverviewQuery(validated)
-  const sort       = buildSort(validated.sortBy, validated.sortOrder)
-  const pagination = normalizePagination(validated)
+  const validated      = validate(listPlacementOverviewsSchema, args || {})
+  const { tenantId, ...rest } = validated
+  const resolvedCtx    = tenantId ? { ...ctx, tenant_id: tenantId } : ctx
+  const query          = buildPlacementOverviewQuery(rest)
+  const sort           = buildSort(rest.sortBy, rest.sortOrder)
+  const pagination     = normalizePagination(validated)
 
-  const result = await placementOverviewRepo.findMany(ctx, query, { ...pagination, sort })
+  const result = await placementOverviewRepo.findMany(resolvedCtx, query, { ...pagination, sort })
 
   return {
     items:     result.items.map(toPlacementOverviewResponse),
@@ -552,12 +545,14 @@ async function deletePlacementOverview(ctx, args) {
 ─────────────────────────────*/
 
 async function listStudentPlacements(ctx, args) {
-  const validated  = validate(listStudentPlacementsSchema, args || {})
-  const query      = buildStudentPlacementQuery(validated)
-  const sort       = buildSort(validated.sortBy, validated.sortOrder)
-  const pagination = normalizePagination(validated)
+  const validated          = validate(listStudentPlacementsSchema, args || {})
+  const { tenantId, ...rest } = validated
+  const resolvedCtx        = tenantId ? { ...ctx, tenant_id: tenantId } : ctx
+  const query              = buildStudentPlacementQuery(rest)
+  const sort               = buildSort(rest.sortBy, rest.sortOrder)
+  const pagination         = normalizePagination(validated)
 
-  const result = await studentPlacementRepo.findMany(ctx, query, { ...pagination, sort })
+  const result = await studentPlacementRepo.findMany(resolvedCtx, query, { ...pagination, sort })
 
   return {
     items:     result.items.map(toStudentPlacementResponse),
@@ -625,12 +620,14 @@ async function deleteStudentPlacement(ctx, args) {
 ─────────────────────────────*/
 
 async function listAchievements(ctx, args) {
-  const validated  = validate(listAchievementsSchema, args || {})
-  const query      = buildAchievementQuery(validated)
-  const sort       = buildSort(validated.sortBy, validated.sortOrder)
-  const pagination = normalizePagination(validated)
+  const validated          = validate(listAchievementsSchema, args || {})
+  const { tenantId, ...rest } = validated
+  const resolvedCtx        = tenantId ? { ...ctx, tenant_id: tenantId } : ctx
+  const query              = buildAchievementQuery(rest)
+  const sort               = buildSort(rest.sortBy, rest.sortOrder)
+  const pagination         = normalizePagination(validated)
 
-  const result = await achievementRepo.findMany(ctx, query, { ...pagination, sort })
+  const result = await achievementRepo.findMany(resolvedCtx, query, { ...pagination, sort })
 
   return {
     items:     result.items.map(toAchievementResponse),
@@ -688,12 +685,14 @@ async function deleteAchievement(ctx, args) {
 ─────────────────────────────*/
 
 async function listDeptActivities(ctx, args) {
-  const validated  = validate(listDeptActivitiesSchema, args || {})
-  const query      = buildDeptActivityQuery(validated)
-  const sort       = buildSort(validated.sortBy, validated.sortOrder)
-  const pagination = normalizePagination(validated)
+  const validated          = validate(listDeptActivitiesSchema, args || {})
+  const { tenantId, ...rest } = validated
+  const resolvedCtx        = tenantId ? { ...ctx, tenant_id: tenantId } : ctx
+  const query              = buildDeptActivityQuery(rest)
+  const sort               = buildSort(rest.sortBy, rest.sortOrder)
+  const pagination         = normalizePagination(validated)
 
-  const result = await deptActivityRepo.findMany(ctx, query, { ...pagination, sort })
+  const result = await deptActivityRepo.findMany(resolvedCtx, query, { ...pagination, sort })
 
   return {
     items:     result.items.map(toDeptActivityResponse),
@@ -761,12 +760,14 @@ async function deleteDeptActivity(ctx, args) {
 ─────────────────────────────*/
 
 async function listNewsletters(ctx, args) {
-  const validated  = validate(listNewslettersSchema, args || {})
-  const query      = buildNewsletterQuery(validated)
-  const sort       = buildSort(validated.sortBy, validated.sortOrder)
-  const pagination = normalizePagination(validated)
+  const validated          = validate(listNewslettersSchema, args || {})
+  const { tenantId, ...rest } = validated
+  const resolvedCtx        = tenantId ? { ...ctx, tenant_id: tenantId } : ctx
+  const query              = buildNewsletterQuery(rest)
+  const sort               = buildSort(rest.sortBy, rest.sortOrder)
+  const pagination         = normalizePagination(validated)
 
-  const result = await newsletterRepo.findMany(ctx, query, { ...pagination, sort })
+  const result = await newsletterRepo.findMany(resolvedCtx, query, { ...pagination, sort })
 
   return {
     items:     result.items.map(toNewsletterResponse),
@@ -830,12 +831,14 @@ async function deleteNewsletter(ctx, args) {
 ─────────────────────────────*/
 
 async function listGalleryPhotos(ctx, args) {
-  const validated  = validate(listGalleryPhotosSchema, args || {})
-  const query      = buildGalleryPhotoQuery(validated)
-  const sort       = buildSort(validated.sortBy, validated.sortOrder)
-  const pagination = normalizePagination(validated)
+  const validated          = validate(listGalleryPhotosSchema, args || {})
+  const { tenantId, ...rest } = validated
+  const resolvedCtx        = tenantId ? { ...ctx, tenant_id: tenantId } : ctx
+  const query              = buildGalleryPhotoQuery(rest)
+  const sort               = buildSort(rest.sortBy, rest.sortOrder)
+  const pagination         = normalizePagination(validated)
 
-  const result = await galleryPhotoRepo.findMany(ctx, query, { ...pagination, sort })
+  const result = await galleryPhotoRepo.findMany(resolvedCtx, query, { ...pagination, sort })
 
   return {
     items:     result.items.map(toGalleryPhotoResponse),
@@ -897,9 +900,10 @@ async function deleteGalleryPhoto(ctx, args) {
 ─────────────────────────────*/
 
 async function getForumSection(ctx, args) {
-  const { deptId } = args
+  const { deptId, tenantId } = args
+  const resolvedCtx = tenantId ? { ...ctx, tenant_id: tenantId } : ctx
 
-  const doc = await ForumSection.findOne({ tenant_id: ctx.tenant_id, deptId }).lean()
+  const doc = await ForumSection.findOne({ tenant_id: resolvedCtx.tenant_id, deptId }).lean()
 
   if (!doc) {
     return { forumSectionId: null, deptId, title: '', description: '' }
@@ -927,12 +931,14 @@ async function saveForumSection(ctx, args) {
 ─────────────────────────────*/
 
 async function listForumEvents(ctx, args) {
-  const validated  = validate(listForumEventsSchema, args || {})
-  const query      = buildForumEventQuery(validated)
-  const sort       = buildSort(validated.sortBy, validated.sortOrder)
-  const pagination = normalizePagination(validated)
+  const validated          = validate(listForumEventsSchema, args || {})
+  const { tenantId, ...rest } = validated
+  const resolvedCtx        = tenantId ? { ...ctx, tenant_id: tenantId } : ctx
+  const query              = buildForumEventQuery(rest)
+  const sort               = buildSort(rest.sortBy, rest.sortOrder)
+  const pagination         = normalizePagination(validated)
 
-  const result = await forumEventRepo.findMany(ctx, query, { ...pagination, sort })
+  const result = await forumEventRepo.findMany(resolvedCtx, query, { ...pagination, sort })
 
   return {
     items:     result.items.map(toForumEventResponse),
@@ -990,12 +996,14 @@ async function deleteForumEvent(ctx, args) {
 ─────────────────────────────*/
 
 async function listDepartmentActivities(ctx, args) {
-  const validated  = validate(listDepartmentActivitiesSchema, args || {})
-  const query      = buildDepartmentActivityQuery(validated)
-  const sort       = buildSort(validated.sortBy || 'createdAt', validated.sortOrder || 'desc')
-  const pagination = normalizePagination(validated)
+  const validated          = validate(listDepartmentActivitiesSchema, args || {})
+  const { tenantId, ...rest } = validated
+  const resolvedCtx        = tenantId ? { ...ctx, tenant_id: tenantId } : ctx
+  const query              = buildDepartmentActivityQuery(rest)
+  const sort               = buildSort(rest.sortBy || 'createdAt', rest.sortOrder || 'desc')
+  const pagination         = normalizePagination(validated)
 
-  const result = await departmentActivityRepo.findMany(ctx, query, { ...pagination, sort })
+  const result = await departmentActivityRepo.findMany(resolvedCtx, query, { ...pagination, sort })
 
   return {
     items:     result.items.map(toDepartmentActivityResponse),
@@ -1082,6 +1090,7 @@ async function createEvent(ctx, args) {
   const { deptId, title, date, time, venue, description, images, pinned, level, department } = input.input
 
   const event_id = generateId()
+  const isAdmin  = (ctx.permissions || []).includes('*:*:*')
 
   const created = await eventRepo.create(ctx, {
     event_id,
@@ -1096,7 +1105,7 @@ async function createEvent(ctx, args) {
     level,
     department:    department  ?? null,
     status:        'upcoming',
-    approvalStatus:'pending',
+    approvalStatus: isAdmin ? 'approved' : 'pending',
     created_by:    ctx.user_id,
   })
 

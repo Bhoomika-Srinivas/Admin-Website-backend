@@ -29,117 +29,19 @@
       LambdaConfig:
         LambdaFunctionArn: !GetAtt FacultyFunction.Arn
 
-  FacultyAddCourseTeachingResolver:
+  FacultyListDesignationOptionsResolver:
     Type: AWS::AppSync::Resolver
     DependsOn: AppSyncSchema
     Properties:
       ApiId: !GetAtt AppSyncApi.ApiId
-      TypeName: Mutation
-      FieldName: addCourseTeaching
+      TypeName: Query
+      FieldName: listDesignationOptions
       DataSourceName: !GetAtt FacultyDataSource.Name
       Kind: UNIT
       Runtime:
         Name: APPSYNC_JS
         RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/faculty-management/resolvers/addCourseTeaching.js   
-
-  FacultyAddEducationResolver:
-    Type: AWS::AppSync::Resolver
-    DependsOn: AppSyncSchema
-    Properties:
-      ApiId: !GetAtt AppSyncApi.ApiId
-      TypeName: Mutation
-      FieldName: addEducation
-      DataSourceName: !GetAtt FacultyDataSource.Name
-      Kind: UNIT
-      Runtime:
-        Name: APPSYNC_JS
-        RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/faculty-management/resolvers/addEducation.js        
-
-  FacultyAddHonorResolver:
-    Type: AWS::AppSync::Resolver
-    DependsOn: AppSyncSchema
-    Properties:
-      ApiId: !GetAtt AppSyncApi.ApiId
-      TypeName: Mutation
-      FieldName: addHonor
-      DataSourceName: !GetAtt FacultyDataSource.Name
-      Kind: UNIT
-      Runtime:
-        Name: APPSYNC_JS
-        RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/faculty-management/resolvers/addHonor.js
-
-  FacultyAddPublicationResolver:
-    Type: AWS::AppSync::Resolver
-    DependsOn: AppSyncSchema
-    Properties:
-      ApiId: !GetAtt AppSyncApi.ApiId
-      TypeName: Mutation
-      FieldName: addPublication
-      DataSourceName: !GetAtt FacultyDataSource.Name
-      Kind: UNIT
-      Runtime:
-        Name: APPSYNC_JS
-        RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/faculty-management/resolvers/addPublication.js      
-
-  FacultyAddResearchProjectResolver:
-    Type: AWS::AppSync::Resolver
-    DependsOn: AppSyncSchema
-    Properties:
-      ApiId: !GetAtt AppSyncApi.ApiId
-      TypeName: Mutation
-      FieldName: addResearchProject
-      DataSourceName: !GetAtt FacultyDataSource.Name
-      Kind: UNIT
-      Runtime:
-        Name: APPSYNC_JS
-        RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/faculty-management/resolvers/addResearchProject.js  
-
-  FacultyAddWorkExperienceResolver:
-    Type: AWS::AppSync::Resolver
-    DependsOn: AppSyncSchema
-    Properties:
-      ApiId: !GetAtt AppSyncApi.ApiId
-      TypeName: Mutation
-      FieldName: addWorkExperience
-      DataSourceName: !GetAtt FacultyDataSource.Name
-      Kind: UNIT
-      Runtime:
-        Name: APPSYNC_JS
-        RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/faculty-management/resolvers/addWorkExperience.js   
-
-  FacultyCreateFacultyResolver:
-    Type: AWS::AppSync::Resolver
-    DependsOn: AppSyncSchema
-    Properties:
-      ApiId: !GetAtt AppSyncApi.ApiId
-      TypeName: Mutation
-      FieldName: createFaculty
-      DataSourceName: !GetAtt FacultyDataSource.Name
-      Kind: UNIT
-      Runtime:
-        Name: APPSYNC_JS
-        RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/faculty-management/resolvers/createFaculty.js       
-
-  FacultyDeleteFacultyResolver:
-    Type: AWS::AppSync::Resolver
-    DependsOn: AppSyncSchema
-    Properties:
-      ApiId: !GetAtt AppSyncApi.ApiId
-      TypeName: Mutation
-      FieldName: deleteFaculty
-      DataSourceName: !GetAtt FacultyDataSource.Name
-      Kind: UNIT
-      Runtime:
-        Name: APPSYNC_JS
-        RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/faculty-management/resolvers/deleteFaculty.js       
+      CodeS3Location: src/app-modules/faculty-management/resolvers/listDesignationOptions.js
 
   FacultyGetFacultyResolver:
     Type: AWS::AppSync::Resolver
@@ -169,117 +71,19 @@
         RuntimeVersion: 1.0.0
       CodeS3Location: src/app-modules/faculty-management/resolvers/listFaculty.js
 
-  FacultyRemoveCourseTeachingResolver:
+  FacultyCreateFacultyResolver:
     Type: AWS::AppSync::Resolver
     DependsOn: AppSyncSchema
     Properties:
       ApiId: !GetAtt AppSyncApi.ApiId
       TypeName: Mutation
-      FieldName: removeCourseTeaching
+      FieldName: createFaculty
       DataSourceName: !GetAtt FacultyDataSource.Name
       Kind: UNIT
       Runtime:
         Name: APPSYNC_JS
         RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/faculty-management/resolvers/removeCourseTeaching.js
-
-  FacultyRemoveEducationResolver:
-    Type: AWS::AppSync::Resolver
-    DependsOn: AppSyncSchema
-    Properties:
-      ApiId: !GetAtt AppSyncApi.ApiId
-      TypeName: Mutation
-      FieldName: removeEducation
-      DataSourceName: !GetAtt FacultyDataSource.Name
-      Kind: UNIT
-      Runtime:
-        Name: APPSYNC_JS
-        RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/faculty-management/resolvers/removeEducation.js     
-
-  FacultyRemoveHonorResolver:
-    Type: AWS::AppSync::Resolver
-    DependsOn: AppSyncSchema
-    Properties:
-      ApiId: !GetAtt AppSyncApi.ApiId
-      TypeName: Mutation
-      FieldName: removeHonor
-      DataSourceName: !GetAtt FacultyDataSource.Name
-      Kind: UNIT
-      Runtime:
-        Name: APPSYNC_JS
-        RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/faculty-management/resolvers/removeHonor.js
-
-  FacultyRemovePublicationResolver:
-    Type: AWS::AppSync::Resolver
-    DependsOn: AppSyncSchema
-    Properties:
-      ApiId: !GetAtt AppSyncApi.ApiId
-      TypeName: Mutation
-      FieldName: removePublication
-      DataSourceName: !GetAtt FacultyDataSource.Name
-      Kind: UNIT
-      Runtime:
-        Name: APPSYNC_JS
-        RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/faculty-management/resolvers/removePublication.js   
-
-  FacultyRemoveResearchProjectResolver:
-    Type: AWS::AppSync::Resolver
-    DependsOn: AppSyncSchema
-    Properties:
-      ApiId: !GetAtt AppSyncApi.ApiId
-      TypeName: Mutation
-      FieldName: removeResearchProject
-      DataSourceName: !GetAtt FacultyDataSource.Name
-      Kind: UNIT
-      Runtime:
-        Name: APPSYNC_JS
-        RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/faculty-management/resolvers/removeResearchProject.js
-
-  FacultyRemoveWorkExperienceResolver:
-    Type: AWS::AppSync::Resolver
-    DependsOn: AppSyncSchema
-    Properties:
-      ApiId: !GetAtt AppSyncApi.ApiId
-      TypeName: Mutation
-      FieldName: removeWorkExperience
-      DataSourceName: !GetAtt FacultyDataSource.Name
-      Kind: UNIT
-      Runtime:
-        Name: APPSYNC_JS
-        RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/faculty-management/resolvers/removeWorkExperience.js
-
-  FacultyUpdateCourseTeachingResolver:
-    Type: AWS::AppSync::Resolver
-    DependsOn: AppSyncSchema
-    Properties:
-      ApiId: !GetAtt AppSyncApi.ApiId
-      TypeName: Mutation
-      FieldName: updateCourseTeaching
-      DataSourceName: !GetAtt FacultyDataSource.Name
-      Kind: UNIT
-      Runtime:
-        Name: APPSYNC_JS
-        RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/faculty-management/resolvers/updateCourseTeaching.js
-
-  FacultyUpdateEducationResolver:
-    Type: AWS::AppSync::Resolver
-    DependsOn: AppSyncSchema
-    Properties:
-      ApiId: !GetAtt AppSyncApi.ApiId
-      TypeName: Mutation
-      FieldName: updateEducation
-      DataSourceName: !GetAtt FacultyDataSource.Name
-      Kind: UNIT
-      Runtime:
-        Name: APPSYNC_JS
-        RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/faculty-management/resolvers/updateEducation.js     
+      CodeS3Location: src/app-modules/faculty-management/resolvers/createFaculty.js
 
   FacultyUpdateFacultyResolver:
     Type: AWS::AppSync::Resolver
@@ -293,60 +97,18 @@
       Runtime:
         Name: APPSYNC_JS
         RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/faculty-management/resolvers/updateFaculty.js       
+      CodeS3Location: src/app-modules/faculty-management/resolvers/updateFaculty.js
 
-  FacultyUpdateHonorResolver:
+  FacultyDeleteFacultyResolver:
     Type: AWS::AppSync::Resolver
     DependsOn: AppSyncSchema
     Properties:
       ApiId: !GetAtt AppSyncApi.ApiId
       TypeName: Mutation
-      FieldName: updateHonor
+      FieldName: deleteFaculty
       DataSourceName: !GetAtt FacultyDataSource.Name
       Kind: UNIT
       Runtime:
         Name: APPSYNC_JS
         RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/faculty-management/resolvers/updateHonor.js
-
-  FacultyUpdatePublicationResolver:
-    Type: AWS::AppSync::Resolver
-    DependsOn: AppSyncSchema
-    Properties:
-      ApiId: !GetAtt AppSyncApi.ApiId
-      TypeName: Mutation
-      FieldName: updatePublication
-      DataSourceName: !GetAtt FacultyDataSource.Name
-      Kind: UNIT
-      Runtime:
-        Name: APPSYNC_JS
-        RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/faculty-management/resolvers/updatePublication.js   
-
-  FacultyUpdateResearchProjectResolver:
-    Type: AWS::AppSync::Resolver
-    DependsOn: AppSyncSchema
-    Properties:
-      ApiId: !GetAtt AppSyncApi.ApiId
-      TypeName: Mutation
-      FieldName: updateResearchProject
-      DataSourceName: !GetAtt FacultyDataSource.Name
-      Kind: UNIT
-      Runtime:
-        Name: APPSYNC_JS
-        RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/faculty-management/resolvers/updateResearchProject.js
-
-  FacultyUpdateWorkExperienceResolver:
-    Type: AWS::AppSync::Resolver
-    DependsOn: AppSyncSchema
-    Properties:
-      ApiId: !GetAtt AppSyncApi.ApiId
-      TypeName: Mutation
-      FieldName: updateWorkExperience
-      DataSourceName: !GetAtt FacultyDataSource.Name
-      Kind: UNIT
-      Runtime:
-        Name: APPSYNC_JS
-        RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/faculty-management/resolvers/updateWorkExperience.js
+      CodeS3Location: src/app-modules/faculty-management/resolvers/deleteFaculty.js

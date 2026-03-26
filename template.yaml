@@ -226,6 +226,8 @@ Resources:
           getWorkflow(workflow_id: ID!): WorkflowDefinition
           listWorkflows(pagination: PaginationInput): WorkflowDefinitionConnection
           listWorkflowInstances(workflow_id: ID, pagination: PaginationInput): WorkflowInstanceConnection
+          getAlumni(alumniId: ID!, tenantId: ID): Alumni @aws_api_key @aws_cognito_user_pools
+          listAlumni(tenantId: ID, deptId: ID, batch: String, search: String, limit: Int, nextToken: String): AlumniList @aws_api_key @aws_cognito_user_pools
           getDepartment(departmentId: ID!): Department @aws_cognito_user_pools @aws_api_key
           listDepartments(limit: Int, nextToken: String): DepartmentList @aws_cognito_user_pools @aws_api_key
           listDeptSlots(deptId: ID!, sectionId: ID!, tenantId: ID): DeptSlotList @aws_api_key @aws_cognito_user_pools
@@ -239,15 +241,15 @@ Resources:
           listResultAnalyses(deptId: ID!, tenantId: ID, semester: Int, batch: String): ResultAnalysisList @aws_api_key @aws_cognito_user_pools
           listEvents(deptId: ID, tenantId: ID, level: String, department: String, status: String, approvalStatus: String, pinned: Boolean, limit: Int, nextToken: String): EventList @aws_api_key @aws_cognito_user_pools
           getEvent(eventId: ID!): Event @aws_api_key @aws_cognito_user_pools
-          listPlacementOverviews(deptId: ID!, academicYear: String): PlacementOverviewList
-          listStudentPlacements(deptId: ID!, batch: String, limit: Int, nextToken: String): StudentPlacementList
-          listAchievements(deptId: ID!, type: String): AchievementList
-          listDeptActivities(deptId: ID!, type: String, limit: Int, nextToken: String): DeptActivityList
-          getForumSection(deptId: ID!): ForumSection
-          listForumEvents(deptId: ID!, limit: Int, nextToken: String): ForumEventList
-          listDepartmentActivities(deptId: ID!, limit: Int, nextToken: String): DepartmentActivityLogList
-          listNewsletters(deptId: ID!): NewsletterList
-          listGalleryPhotos(deptId: ID!, category: String, limit: Int, nextToken: String): GalleryPhotoList
+          listPlacementOverviews(deptId: ID!, tenantId: ID, academicYear: String): PlacementOverviewList @aws_api_key @aws_cognito_user_pools
+          listStudentPlacements(deptId: ID!, tenantId: ID, batch: String, limit: Int, nextToken: String): StudentPlacementList @aws_api_key @aws_cognito_user_pools
+          listAchievements(deptId: ID!, tenantId: ID, type: String): AchievementList @aws_api_key @aws_cognito_user_pools
+          listDeptActivities(deptId: ID!, tenantId: ID, type: String, limit: Int, nextToken: String): DeptActivityList @aws_api_key @aws_cognito_user_pools
+          getForumSection(deptId: ID!, tenantId: ID): ForumSection @aws_api_key @aws_cognito_user_pools
+          listForumEvents(deptId: ID!, tenantId: ID, limit: Int, nextToken: String): ForumEventList @aws_api_key @aws_cognito_user_pools
+          listDepartmentActivities(deptId: ID!, tenantId: ID, limit: Int, nextToken: String): DepartmentActivityLogList @aws_api_key @aws_cognito_user_pools
+          listNewsletters(deptId: ID!, tenantId: ID): NewsletterList @aws_api_key @aws_cognito_user_pools
+          listGalleryPhotos(deptId: ID!, tenantId: ID, category: String, limit: Int, nextToken: String): GalleryPhotoList @aws_api_key @aws_cognito_user_pools
           getDeptBranding(deptId: ID!): DeptBranding
           getInstituteSettings: InstituteSettings
           getDeptIntroduction(deptId: ID!, tenantId: ID): DeptIntroduction @aws_api_key @aws_cognito_user_pools
@@ -257,7 +259,7 @@ Resources:
           listProgramOutcomes(deptId: ID!, tenantId: ID, type: String, limit: Int, nextToken: String): ProgramOutcomeList @aws_api_key @aws_cognito_user_pools
           listCommitteeMembers(deptId: ID!, tenantId: ID, committee: String): CommitteeMemberList                        @aws_api_key @aws_cognito_user_pools
           listDistinguishedAlumni(deptId: ID!, tenantId: ID): DistinguishedAlumniList                                    @aws_api_key @aws_cognito_user_pools
-          listDeptStaff(deptId: ID!, status: String, limit: Int, nextToken: String): DeptStaffList
+          listDeptStaff(deptId: ID!, staffType: String, limit: Int, nextToken: String): DeptStaffList
           getDeptStaff(deptStaffId: ID!): DeptStaff
           listAccreditations(deptId: ID!, status: String, limit: Int, nextToken: String): AccreditationList
           getAccreditation(accreditationId: ID!): Accreditation
@@ -268,8 +270,9 @@ Resources:
           listFacultyResearchSummaries(deptId: ID!, tenantId: ID, limit: Int, nextToken: String): FacultyResearchSummaryList @aws_api_key @aws_cognito_user_pools
           listPhdGuides(deptId: ID!, tenantId: ID): PhdGuideList @aws_api_key @aws_cognito_user_pools
           listPhdScholars(deptId: ID!, tenantId: ID, guideFacultyId: ID, status: String): PhdScholarList @aws_api_key @aws_cognito_user_pools
-          getFaculty(facultyId: ID!, tenantId: ID): Faculty     @aws_api_key @aws_cognito_user_pools
-          listFaculty(tenantId: ID, limit: Int, nextToken: String): FacultyList @aws_api_key @aws_cognito_user_pools
+          getFaculty(facultyId: ID!, tenantId: ID): Faculty @aws_api_key @aws_cognito_user_pools
+          listFaculty(deptId: ID, tenantId: ID, designation: String, status: String, search: String, limit: Int, nextToken: String): FacultyList @aws_api_key @aws_cognito_user_pools
+          listDesignationOptions: DesignationOptions @aws_api_key @aws_cognito_user_pools
         }
         type Mutation {
           _empty: String
@@ -291,6 +294,9 @@ Resources:
           updateRole(role_id: ID!, input: UpdateRoleInput!): Role
           assignRole(user_id: ID!, role_id: ID!): User
           removeRole(user_id: ID!, role_id: ID!): User
+          createAlumni(input: CreateAlumniInput!): Alumni
+          updateAlumni(input: UpdateAlumniInput!): Alumni
+          deleteAlumni(alumniId: ID!): Alumni
           createDepartment(input: CreateDepartmentInput!): Department
           updateDepartment(input: UpdateDepartmentInput!): Department
           deleteDepartment(departmentId: ID!): Department
@@ -414,30 +420,6 @@ Resources:
           createFaculty(input: CreateFacultyInput!): Faculty
           updateFaculty(input: UpdateFacultyInput!): Faculty
           deleteFaculty(facultyId: ID!): Faculty
-        
-          addPublication(input: AddPublicationInput!): Publication
-          updatePublication(input: UpdatePublicationInput!): Publication
-          removePublication(input: RemovePublicationInput!): Publication
-        
-          addEducation(input: AddEducationInput!): Education
-          updateEducation(input: UpdateEducationInput!): Education
-          removeEducation(input: RemoveEducationInput!): Education
-        
-          addWorkExperience(input: AddWorkExperienceInput!): WorkExperience
-          updateWorkExperience(input: UpdateWorkExperienceInput!): WorkExperience
-          removeWorkExperience(input: RemoveWorkExperienceInput!): WorkExperience
-        
-          addResearchProject(input: AddResearchProjectInput!): ResearchProject
-          updateResearchProject(input: UpdateResearchProjectInput!): ResearchProject
-          removeResearchProject(input: RemoveResearchProjectInput!): ResearchProject
-        
-          addCourseTeaching(input: AddCourseTeachingInput!): CourseTeaching
-          updateCourseTeaching(input: UpdateCourseTeachingInput!): CourseTeaching
-          removeCourseTeaching(input: RemoveCourseTeachingInput!): CourseTeaching
-        
-          addHonor(input: AddHonorInput!): Honor
-          updateHonor(input: UpdateHonorInput!): Honor
-          removeHonor(input: RemoveHonorInput!): Honor
         }
         
         # module: audit-log
@@ -807,6 +789,59 @@ Resources:
         }
         
         
+        # module: alumni-management
+        type Alumni @aws_api_key @aws_cognito_user_pools {
+          alumniId:    ID!
+          deptId:      ID
+          name:        String!
+          batch:       String
+          department:  String
+          company:     String
+          designation: String
+          location:    String
+          achievement: String
+          email:       String
+          linkedin:    String
+          image:       String
+          createdAt:   AWSDateTime
+          updatedAt:   AWSDateTime
+        }
+        
+        type AlumniList @aws_api_key @aws_cognito_user_pools {
+          items:     [Alumni]
+          nextToken: String
+        }
+        
+        input CreateAlumniInput {
+          deptId:      ID!
+          name:        String!
+          batch:       String!
+          department:  String
+          company:     String!
+          designation: String!
+          location:    String
+          achievement: String
+          email:       String
+          linkedin:    String
+          image:       String
+        }
+        
+        input UpdateAlumniInput {
+          alumniId:    ID!
+          name:        String
+          batch:       String
+          department:  String
+          company:     String
+          designation: String
+          location:    String
+          achievement: String
+          email:       String
+          linkedin:    String
+          image:       String
+        }
+        
+        
+        
         # module: department-management
         type Department @aws_cognito_user_pools @aws_api_key {
           departmentId:  ID!
@@ -1135,7 +1170,7 @@ Resources:
           approvalStatus: String
         }
         
-        type PlacementOverview {
+        type PlacementOverview @aws_api_key @aws_cognito_user_pools {
           placementOverviewId: ID!
           deptId:              ID!
           title:               String
@@ -1147,7 +1182,7 @@ Resources:
           createdAt:           AWSDateTime
         }
         
-        type StudentPlacement {
+        type StudentPlacement @aws_api_key @aws_cognito_user_pools {
           studentPlacementId: ID!
           deptId:             ID!
           studentName:        String!
@@ -1160,7 +1195,7 @@ Resources:
           createdAt:          AWSDateTime
         }
         
-        type Achievement {
+        type Achievement @aws_api_key @aws_cognito_user_pools {
           achievementId: ID!
           deptId:        ID!
           type:          String
@@ -1168,7 +1203,7 @@ Resources:
           createdAt:     AWSDateTime
         }
         
-        type DeptActivity {
+        type DeptActivity @aws_api_key @aws_cognito_user_pools {
           deptActivityId: ID!
           deptId:         ID!
           type:           String
@@ -1181,7 +1216,7 @@ Resources:
           createdAt:      AWSDateTime
         }
         
-        type ForumSection {
+        type ForumSection @aws_api_key @aws_cognito_user_pools {
           forumSectionId: ID
           deptId:         ID!
           title:          String!
@@ -1189,7 +1224,7 @@ Resources:
           createdAt:      AWSDateTime
         }
         
-        type ForumEvent {
+        type ForumEvent @aws_api_key @aws_cognito_user_pools {
           forumEventId: ID!
           deptId:       ID!
           title:        String!
@@ -1197,7 +1232,7 @@ Resources:
           createdAt:    AWSDateTime
         }
         
-        type DepartmentActivityLog {
+        type DepartmentActivityLog @aws_api_key @aws_cognito_user_pools {
           deptActivityLogId: ID!
           deptId:            ID!
           text:              String!
@@ -1205,7 +1240,7 @@ Resources:
           createdAt:         AWSDateTime
         }
         
-        type Newsletter {
+        type Newsletter @aws_api_key @aws_cognito_user_pools {
           newsletterId:  ID!
           deptId:        ID!
           title:         String!
@@ -1216,7 +1251,7 @@ Resources:
           createdAt:     AWSDateTime
         }
         
-        type GalleryPhoto {
+        type GalleryPhoto @aws_api_key @aws_cognito_user_pools {
           galleryPhotoId: ID!
           deptId:         ID!
           title:          String
@@ -1226,14 +1261,14 @@ Resources:
           createdAt:      AWSDateTime
         }
         
-        type PlacementOverviewList     { items: [PlacementOverview]     nextToken: String }
-        type StudentPlacementList      { items: [StudentPlacement]      nextToken: String }
-        type AchievementList           { items: [Achievement]           nextToken: String }
-        type DeptActivityList          { items: [DeptActivity]          nextToken: String }
-        type ForumEventList            { items: [ForumEvent]            nextToken: String }
-        type DepartmentActivityLogList { items: [DepartmentActivityLog] nextToken: String }
-        type NewsletterList            { items: [Newsletter]            nextToken: String }
-        type GalleryPhotoList          { items: [GalleryPhoto]          nextToken: String }
+        type PlacementOverviewList     @aws_api_key @aws_cognito_user_pools { items: [PlacementOverview]     nextToken: String }
+        type StudentPlacementList      @aws_api_key @aws_cognito_user_pools { items: [StudentPlacement]      nextToken: String }
+        type AchievementList           @aws_api_key @aws_cognito_user_pools { items: [Achievement]           nextToken: String }
+        type DeptActivityList          @aws_api_key @aws_cognito_user_pools { items: [DeptActivity]          nextToken: String }
+        type ForumEventList            @aws_api_key @aws_cognito_user_pools { items: [ForumEvent]            nextToken: String }
+        type DepartmentActivityLogList @aws_api_key @aws_cognito_user_pools { items: [DepartmentActivityLog] nextToken: String }
+        type NewsletterList            @aws_api_key @aws_cognito_user_pools { items: [Newsletter]            nextToken: String }
+        type GalleryPhotoList          @aws_api_key @aws_cognito_user_pools { items: [GalleryPhoto]          nextToken: String }
         
         input CreatePlacementOverviewInput {
           deptId:            ID!
@@ -1572,11 +1607,9 @@ Resources:
           deptId:        ID!
           name:          String!
           designation:   String!
-          qualification: String
-          experience:    Int
-          email:         String
-          phone:         String
-          status:        String
+          imageUrl:      String
+          staffType:     String
+          order:         Int
           createdAt:     AWSDateTime
           updatedAt:     AWSDateTime
         }
@@ -1599,24 +1632,22 @@ Resources:
         type AccreditationList { items: [Accreditation] nextToken: String }
         
         input CreateDeptStaffInput {
-          deptId:        ID!
-          name:          String!
-          designation:   String!
-          qualification: String
-          experience:    Int
-          email:         String
-          phone:         String
-          status:        String
+          deptId:      ID!
+          name:        String!
+          designation: String!
+          imageUrl:    String
+          staffType:   String!
+          order:       Int
+          insertMode:  Boolean
         }
         input UpdateDeptStaffInput {
-          deptStaffId:   ID!
-          name:          String
-          designation:   String
-          qualification: String
-          experience:    Int
-          email:         String
-          phone:         String
-          status:        String
+          deptStaffId: ID!
+          name:        String
+          designation: String
+          imageUrl:    String
+          staffType:   String
+          order:       Int
+          insertMode:  Boolean
         }
         
         input CreateAccreditationInput {
@@ -1852,292 +1883,52 @@ Resources:
         
         
         # module: faculty-management
-        type Publication {
-          publicationId: ID!
-          facultyId: ID!
-          title: String!
-          authors: [String]
-          journal: String
-          year: Int
-          doi: String
-          type: String
-          createdAt: AWSDateTime
-          updatedAt: AWSDateTime
-        }
-        
-        type Education {
-          educationId: ID!
-          facultyId: ID!
-          degree: String!
-          institution: String!
-          fieldOfStudy: String
-          startYear: Int
-          endYear: Int
-          description: String
-          createdAt: AWSDateTime
-          updatedAt: AWSDateTime
-        }
-        
-        type WorkExperience {
-          workExperienceId: ID!
-          facultyId: ID!
-          title: String!
-          organization: String!
-          startDate: AWSDate
-          endDate: AWSDate
-          current: Boolean
-          description: String
-          createdAt: AWSDateTime
-          updatedAt: AWSDateTime
-        }
-        
-        type ResearchProject {
-          researchProjectId: ID!
-          facultyId: ID!
-          title: String!
-          description: String
-          status: String
-          startDate: AWSDate
-          endDate: AWSDate
-          fundingSource: String
-          collaborators: [String]
-          createdAt: AWSDateTime
-          updatedAt: AWSDateTime
-        }
-        
-        type CourseTeaching {
-          courseTeachingId: ID!
-          facultyId: ID!
-          courseCode: String!
-          courseName: String!
-          semester: String
-          year: Int
-          credits: Int
-          description: String
-          createdAt: AWSDateTime
-          updatedAt: AWSDateTime
-        }
-        
-        type Honor {
-          honorId: ID!
-          facultyId: ID!
-          title: String!
-          organization: String
-          year: Int
-          description: String
-          createdAt: AWSDateTime
-          updatedAt: AWSDateTime
-        }
-        
         type Faculty @aws_api_key @aws_cognito_user_pools {
-          facultyId: ID!
-          firstName: String!
-          lastName: String!
-          email: String!
-          title: String
-          department: String
-          designation: String
-          bio: String
+          facultyId:    ID!
+          name:         String
+          designation:  String
+          deptId:       ID
+          department:   String
           profileImage: String
-          phone: String
-          officeLocation: String
-          website: String
-          publications: [Publication]
-          education: [Education]
-          workExperience: [WorkExperience]
-          researchProjects: [ResearchProject]
-          courseTeachings: [CourseTeaching]
-          honors: [Honor]
-          createdAt: AWSDateTime
-          updatedAt: AWSDateTime
-        }
-        
-        input CreateFacultyInput {
-          firstName: String!
-          lastName: String!
-          email: String!
-          title: String
-          department: String
-          designation: String
-          bio: String
-          profileImage: String
-          phone: String
-          officeLocation: String
-          website: String
-        }
-        
-        input UpdateFacultyInput {
-          facultyId: ID!
-          firstName: String
-          lastName: String
-          email: String
-          title: String
-          department: String
-          designation: String
-          bio: String
-          profileImage: String
-          phone: String
-          officeLocation: String
-          website: String
-        }
-        
-        input AddPublicationInput {
-          facultyId: ID!
-          title: String!
-          authors: [String]
-          journal: String
-          year: Int
-          doi: String
-          type: String
-        }
-        
-        input UpdatePublicationInput {
-          publicationId: ID!
-          facultyId: ID!
-          title: String
-          authors: [String]
-          journal: String
-          year: Int
-          doi: String
-          type: String
-        }
-        
-        input RemovePublicationInput {
-          publicationId: ID!
-          facultyId: ID!
-        }
-        
-        input AddEducationInput {
-          facultyId: ID!
-          degree: String!
-          institution: String!
-          fieldOfStudy: String
-          startYear: Int
-          endYear: Int
-          description: String
-        }
-        
-        input UpdateEducationInput {
-          educationId: ID!
-          facultyId: ID!
-          degree: String
-          institution: String
-          fieldOfStudy: String
-          startYear: Int
-          endYear: Int
-          description: String
-        }
-        
-        input RemoveEducationInput {
-          educationId: ID!
-          facultyId: ID!
-        }
-        
-        input AddWorkExperienceInput {
-          facultyId: ID!
-          title: String!
-          organization: String!
-          startDate: AWSDate
-          endDate: AWSDate
-          current: Boolean
-          description: String
-        }
-        
-        input UpdateWorkExperienceInput {
-          workExperienceId: ID!
-          facultyId: ID!
-          title: String
-          organization: String
-          startDate: AWSDate
-          endDate: AWSDate
-          current: Boolean
-          description: String
-        }
-        
-        input RemoveWorkExperienceInput {
-          workExperienceId: ID!
-          facultyId: ID!
-        }
-        
-        input AddResearchProjectInput {
-          facultyId: ID!
-          title: String!
-          description: String
-          status: String
-          startDate: AWSDate
-          endDate: AWSDate
-          fundingSource: String
-          collaborators: [String]
-        }
-        
-        input UpdateResearchProjectInput {
-          researchProjectId: ID!
-          facultyId: ID!
-          title: String
-          description: String
-          status: String
-          startDate: AWSDate
-          endDate: AWSDate
-          fundingSource: String
-          collaborators: [String]
-        }
-        
-        input RemoveResearchProjectInput {
-          researchProjectId: ID!
-          facultyId: ID!
-        }
-        
-        input AddCourseTeachingInput {
-          facultyId: ID!
-          courseCode: String!
-          courseName: String!
-          semester: String
-          year: Int
-          credits: Int
-          description: String
-        }
-        
-        input UpdateCourseTeachingInput {
-          courseTeachingId: ID!
-          facultyId: ID!
-          courseCode: String
-          courseName: String
-          semester: String
-          year: Int
-          credits: Int
-          description: String
-        }
-        
-        input RemoveCourseTeachingInput {
-          courseTeachingId: ID!
-          facultyId: ID!
-        }
-        
-        input AddHonorInput {
-          facultyId: ID!
-          title: String!
-          organization: String
-          year: Int
-          description: String
-        }
-        
-        input UpdateHonorInput {
-          honorId: ID!
-          facultyId: ID!
-          title: String
-          organization: String
-          year: Int
-          description: String
-        }
-        
-        input RemoveHonorInput {
-          honorId: ID!
-          facultyId: ID!
+          cvUrl:        String
+          status:       String
+          order:        Int
+          createdAt:    AWSDateTime
+          updatedAt:    AWSDateTime
         }
         
         type FacultyList @aws_api_key @aws_cognito_user_pools {
-          items: [Faculty]
+          items:     [Faculty]
           nextToken: String
+        }
+        
+        type DesignationOptions @aws_api_key @aws_cognito_user_pools {
+          items: [String]
+        }
+        
+        input CreateFacultyInput {
+          name:         String!
+          designation:  String!
+          deptId:       ID!
+          department:   String
+          profileImage: String
+          cvUrl:        String
+          status:       String
+          order:        Int
+          insertMode:   Boolean
+        }
+        
+        input UpdateFacultyInput {
+          facultyId:    ID!
+          name:         String
+          designation:  String
+          deptId:       ID
+          department:   String
+          profileImage: String
+          cvUrl:        String
+          status:       String
+          order:        Int
+          insertMode:   Boolean
         }
         
         
@@ -2832,6 +2623,105 @@ Resources:
         Name: APPSYNC_JS
         RuntimeVersion: 1.0.0
       CodeS3Location: src/core-modules/workflow-management/resolvers/listWorkflowInstances.js
+
+  AlumniFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-alumni-${Environment}'
+      CodeUri: src/app-modules/alumni-management/
+      Handler: functions/handler.handler
+      Layers:
+        - !Ref CommonLayer
+        - !Ref PackagesLayer
+      Policies:
+        - EventBridgePutEventsPolicy:
+            EventBusName: !Ref AppEventBus
+        - SSMParameterReadPolicy:
+            ParameterName: !Sub '${ProjectName}/${Environment}/*'
+      Tags:
+        Environment: !Ref Environment
+        ModuleName: alumni-management
+        ManagedBy: CloudFormation
+
+  AlumniDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      Name: AlumniDataSource
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !GetAtt AppSyncServiceRole.Arn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt AlumniFunction.Arn
+
+  AlumniGetAlumniResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: getAlumni
+      DataSourceName: !GetAtt AlumniDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/alumni-management/resolvers/getAlumni.js
+
+  AlumniListAlumniResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listAlumni
+      DataSourceName: !GetAtt AlumniDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/alumni-management/resolvers/listAlumni.js
+
+  AlumniCreateAlumniResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createAlumni
+      DataSourceName: !GetAtt AlumniDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/alumni-management/resolvers/createAlumni.js
+
+  AlumniUpdateAlumniResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateAlumni
+      DataSourceName: !GetAtt AlumniDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/alumni-management/resolvers/updateAlumni.js
+
+  AlumniDeleteAlumniResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteAlumni
+      DataSourceName: !GetAtt AlumniDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/alumni-management/resolvers/deleteAlumni.js
 
   DeptBrandingFunction:
     Type: AWS::Serverless::Function
@@ -5026,117 +4916,19 @@ Resources:
       LambdaConfig:
         LambdaFunctionArn: !GetAtt FacultyFunction.Arn
 
-  FacultyAddCourseTeachingResolver:
+  FacultyListDesignationOptionsResolver:
     Type: AWS::AppSync::Resolver
     DependsOn: AppSyncSchema
     Properties:
       ApiId: !GetAtt AppSyncApi.ApiId
-      TypeName: Mutation
-      FieldName: addCourseTeaching
+      TypeName: Query
+      FieldName: listDesignationOptions
       DataSourceName: !GetAtt FacultyDataSource.Name
       Kind: UNIT
       Runtime:
         Name: APPSYNC_JS
         RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/faculty-management/resolvers/addCourseTeaching.js   
-
-  FacultyAddEducationResolver:
-    Type: AWS::AppSync::Resolver
-    DependsOn: AppSyncSchema
-    Properties:
-      ApiId: !GetAtt AppSyncApi.ApiId
-      TypeName: Mutation
-      FieldName: addEducation
-      DataSourceName: !GetAtt FacultyDataSource.Name
-      Kind: UNIT
-      Runtime:
-        Name: APPSYNC_JS
-        RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/faculty-management/resolvers/addEducation.js        
-
-  FacultyAddHonorResolver:
-    Type: AWS::AppSync::Resolver
-    DependsOn: AppSyncSchema
-    Properties:
-      ApiId: !GetAtt AppSyncApi.ApiId
-      TypeName: Mutation
-      FieldName: addHonor
-      DataSourceName: !GetAtt FacultyDataSource.Name
-      Kind: UNIT
-      Runtime:
-        Name: APPSYNC_JS
-        RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/faculty-management/resolvers/addHonor.js
-
-  FacultyAddPublicationResolver:
-    Type: AWS::AppSync::Resolver
-    DependsOn: AppSyncSchema
-    Properties:
-      ApiId: !GetAtt AppSyncApi.ApiId
-      TypeName: Mutation
-      FieldName: addPublication
-      DataSourceName: !GetAtt FacultyDataSource.Name
-      Kind: UNIT
-      Runtime:
-        Name: APPSYNC_JS
-        RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/faculty-management/resolvers/addPublication.js      
-
-  FacultyAddResearchProjectResolver:
-    Type: AWS::AppSync::Resolver
-    DependsOn: AppSyncSchema
-    Properties:
-      ApiId: !GetAtt AppSyncApi.ApiId
-      TypeName: Mutation
-      FieldName: addResearchProject
-      DataSourceName: !GetAtt FacultyDataSource.Name
-      Kind: UNIT
-      Runtime:
-        Name: APPSYNC_JS
-        RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/faculty-management/resolvers/addResearchProject.js  
-
-  FacultyAddWorkExperienceResolver:
-    Type: AWS::AppSync::Resolver
-    DependsOn: AppSyncSchema
-    Properties:
-      ApiId: !GetAtt AppSyncApi.ApiId
-      TypeName: Mutation
-      FieldName: addWorkExperience
-      DataSourceName: !GetAtt FacultyDataSource.Name
-      Kind: UNIT
-      Runtime:
-        Name: APPSYNC_JS
-        RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/faculty-management/resolvers/addWorkExperience.js   
-
-  FacultyCreateFacultyResolver:
-    Type: AWS::AppSync::Resolver
-    DependsOn: AppSyncSchema
-    Properties:
-      ApiId: !GetAtt AppSyncApi.ApiId
-      TypeName: Mutation
-      FieldName: createFaculty
-      DataSourceName: !GetAtt FacultyDataSource.Name
-      Kind: UNIT
-      Runtime:
-        Name: APPSYNC_JS
-        RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/faculty-management/resolvers/createFaculty.js       
-
-  FacultyDeleteFacultyResolver:
-    Type: AWS::AppSync::Resolver
-    DependsOn: AppSyncSchema
-    Properties:
-      ApiId: !GetAtt AppSyncApi.ApiId
-      TypeName: Mutation
-      FieldName: deleteFaculty
-      DataSourceName: !GetAtt FacultyDataSource.Name
-      Kind: UNIT
-      Runtime:
-        Name: APPSYNC_JS
-        RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/faculty-management/resolvers/deleteFaculty.js       
+      CodeS3Location: src/app-modules/faculty-management/resolvers/listDesignationOptions.js
 
   FacultyGetFacultyResolver:
     Type: AWS::AppSync::Resolver
@@ -5166,117 +4958,19 @@ Resources:
         RuntimeVersion: 1.0.0
       CodeS3Location: src/app-modules/faculty-management/resolvers/listFaculty.js
 
-  FacultyRemoveCourseTeachingResolver:
+  FacultyCreateFacultyResolver:
     Type: AWS::AppSync::Resolver
     DependsOn: AppSyncSchema
     Properties:
       ApiId: !GetAtt AppSyncApi.ApiId
       TypeName: Mutation
-      FieldName: removeCourseTeaching
+      FieldName: createFaculty
       DataSourceName: !GetAtt FacultyDataSource.Name
       Kind: UNIT
       Runtime:
         Name: APPSYNC_JS
         RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/faculty-management/resolvers/removeCourseTeaching.js
-
-  FacultyRemoveEducationResolver:
-    Type: AWS::AppSync::Resolver
-    DependsOn: AppSyncSchema
-    Properties:
-      ApiId: !GetAtt AppSyncApi.ApiId
-      TypeName: Mutation
-      FieldName: removeEducation
-      DataSourceName: !GetAtt FacultyDataSource.Name
-      Kind: UNIT
-      Runtime:
-        Name: APPSYNC_JS
-        RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/faculty-management/resolvers/removeEducation.js     
-
-  FacultyRemoveHonorResolver:
-    Type: AWS::AppSync::Resolver
-    DependsOn: AppSyncSchema
-    Properties:
-      ApiId: !GetAtt AppSyncApi.ApiId
-      TypeName: Mutation
-      FieldName: removeHonor
-      DataSourceName: !GetAtt FacultyDataSource.Name
-      Kind: UNIT
-      Runtime:
-        Name: APPSYNC_JS
-        RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/faculty-management/resolvers/removeHonor.js
-
-  FacultyRemovePublicationResolver:
-    Type: AWS::AppSync::Resolver
-    DependsOn: AppSyncSchema
-    Properties:
-      ApiId: !GetAtt AppSyncApi.ApiId
-      TypeName: Mutation
-      FieldName: removePublication
-      DataSourceName: !GetAtt FacultyDataSource.Name
-      Kind: UNIT
-      Runtime:
-        Name: APPSYNC_JS
-        RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/faculty-management/resolvers/removePublication.js   
-
-  FacultyRemoveResearchProjectResolver:
-    Type: AWS::AppSync::Resolver
-    DependsOn: AppSyncSchema
-    Properties:
-      ApiId: !GetAtt AppSyncApi.ApiId
-      TypeName: Mutation
-      FieldName: removeResearchProject
-      DataSourceName: !GetAtt FacultyDataSource.Name
-      Kind: UNIT
-      Runtime:
-        Name: APPSYNC_JS
-        RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/faculty-management/resolvers/removeResearchProject.js
-
-  FacultyRemoveWorkExperienceResolver:
-    Type: AWS::AppSync::Resolver
-    DependsOn: AppSyncSchema
-    Properties:
-      ApiId: !GetAtt AppSyncApi.ApiId
-      TypeName: Mutation
-      FieldName: removeWorkExperience
-      DataSourceName: !GetAtt FacultyDataSource.Name
-      Kind: UNIT
-      Runtime:
-        Name: APPSYNC_JS
-        RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/faculty-management/resolvers/removeWorkExperience.js
-
-  FacultyUpdateCourseTeachingResolver:
-    Type: AWS::AppSync::Resolver
-    DependsOn: AppSyncSchema
-    Properties:
-      ApiId: !GetAtt AppSyncApi.ApiId
-      TypeName: Mutation
-      FieldName: updateCourseTeaching
-      DataSourceName: !GetAtt FacultyDataSource.Name
-      Kind: UNIT
-      Runtime:
-        Name: APPSYNC_JS
-        RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/faculty-management/resolvers/updateCourseTeaching.js
-
-  FacultyUpdateEducationResolver:
-    Type: AWS::AppSync::Resolver
-    DependsOn: AppSyncSchema
-    Properties:
-      ApiId: !GetAtt AppSyncApi.ApiId
-      TypeName: Mutation
-      FieldName: updateEducation
-      DataSourceName: !GetAtt FacultyDataSource.Name
-      Kind: UNIT
-      Runtime:
-        Name: APPSYNC_JS
-        RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/faculty-management/resolvers/updateEducation.js     
+      CodeS3Location: src/app-modules/faculty-management/resolvers/createFaculty.js
 
   FacultyUpdateFacultyResolver:
     Type: AWS::AppSync::Resolver
@@ -5290,63 +4984,21 @@ Resources:
       Runtime:
         Name: APPSYNC_JS
         RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/faculty-management/resolvers/updateFaculty.js       
+      CodeS3Location: src/app-modules/faculty-management/resolvers/updateFaculty.js
 
-  FacultyUpdateHonorResolver:
+  FacultyDeleteFacultyResolver:
     Type: AWS::AppSync::Resolver
     DependsOn: AppSyncSchema
     Properties:
       ApiId: !GetAtt AppSyncApi.ApiId
       TypeName: Mutation
-      FieldName: updateHonor
+      FieldName: deleteFaculty
       DataSourceName: !GetAtt FacultyDataSource.Name
       Kind: UNIT
       Runtime:
         Name: APPSYNC_JS
         RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/faculty-management/resolvers/updateHonor.js
-
-  FacultyUpdatePublicationResolver:
-    Type: AWS::AppSync::Resolver
-    DependsOn: AppSyncSchema
-    Properties:
-      ApiId: !GetAtt AppSyncApi.ApiId
-      TypeName: Mutation
-      FieldName: updatePublication
-      DataSourceName: !GetAtt FacultyDataSource.Name
-      Kind: UNIT
-      Runtime:
-        Name: APPSYNC_JS
-        RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/faculty-management/resolvers/updatePublication.js   
-
-  FacultyUpdateResearchProjectResolver:
-    Type: AWS::AppSync::Resolver
-    DependsOn: AppSyncSchema
-    Properties:
-      ApiId: !GetAtt AppSyncApi.ApiId
-      TypeName: Mutation
-      FieldName: updateResearchProject
-      DataSourceName: !GetAtt FacultyDataSource.Name
-      Kind: UNIT
-      Runtime:
-        Name: APPSYNC_JS
-        RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/faculty-management/resolvers/updateResearchProject.js
-
-  FacultyUpdateWorkExperienceResolver:
-    Type: AWS::AppSync::Resolver
-    DependsOn: AppSyncSchema
-    Properties:
-      ApiId: !GetAtt AppSyncApi.ApiId
-      TypeName: Mutation
-      FieldName: updateWorkExperience
-      DataSourceName: !GetAtt FacultyDataSource.Name
-      Kind: UNIT
-      Runtime:
-        Name: APPSYNC_JS
-        RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/faculty-management/resolvers/updateWorkExperience.js
+      CodeS3Location: src/app-modules/faculty-management/resolvers/deleteFaculty.js
   AppSyncServiceRole:
     Type: AWS::IAM::Role
     Properties:
@@ -5372,6 +5024,7 @@ Resources:
                   - !GetAtt StorageFunction.Arn
                   - !GetAtt FormFunction.Arn
                   - !GetAtt WorkflowFunction.Arn
+                  - !GetAtt AlumniFunction.Arn
                   - !GetAtt DeptBrandingFunction.Arn
                   - !GetAtt DeptActivitiesFunction.Arn
                   - !GetAtt DeptAcademicsFunction.Arn

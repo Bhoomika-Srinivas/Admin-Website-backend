@@ -7,12 +7,16 @@ const DeptStaffSchema = new mongoose.Schema({
   deptId:        { type: String, required: true, index: true },
   name:          { type: String, required: true },
   designation:   { type: String, required: true },
+  imageUrl:      { type: String },
+  staffType:     { type: String, enum: ["supporting", "technical"] },
+  order:         { type: Number },
   qualification: { type: String },
   experience:    { type: Number },
   email:         { type: String },
   phone:         { type: String },
   status:        { type: String, enum: ["active", "inactive"], default: "active" },
 }, { timestamps: true })
+
 
 /* ─── Accreditation ─── */
 const AccreditationSchema = new mongoose.Schema({

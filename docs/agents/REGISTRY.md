@@ -41,3 +41,5 @@ New modules: run `./scripts/generate-module.sh <module-name> [--type app] [--app
 | DeptAcademicsManagement | Vertical | Custom | src/app-modules/dept-academics-management/ | docs/agents/dept-academics-management-agent.SKILL.md |
 | DeptActivitiesManagement | Vertical | Custom | src/app-modules/dept-activities-management/ | docs/agents/dept-activities-management-agent.SKILL.md |
 | DeptBrandingManagement | Vertical | Custom | src/app-modules/dept-branding-management/ | docs/agents/dept-branding-management-agent.SKILL.md |
+| Type | Vertical | Custom | src/app-modules/--type/ | docs/agents/--type-agent.SKILL.md |
+| AlumniManagement | Vertical | Custom | src/app-modules/alumni-management/ | docs/agents/alumni-management-agent.SKILL.md |

@@ -10,7 +10,7 @@
 require('../../../helpers/mock-layer');
 const { createAppSyncEvent } = require('../../../helpers/test-context');
 const { getMocks } = require('../../../helpers/mock-layer');
-const { handler } = require('../../../../src/core-modules/dept-branding-management/functions/handler');
+const { handler } = require('../../../../src/app-modules/dept-branding-management/functions/handler');
 
 beforeEach(() => {
   const mocks = getMocks();

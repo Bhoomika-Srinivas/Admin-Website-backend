@@ -3,19 +3,14 @@ const { requirePermission }   = require('/opt/nodejs/middleware/auth-guard')
 const { validate }            = require('/opt/nodejs/middleware/input-validator')
 const { withConnection }      = require('/opt/nodejs/middleware/with-connection')
 const { log }                 = require('/opt/nodejs/middleware/request-logger')
-const { publishEvent }        = require('/opt/nodejs/utils/event-publisher')
 const { generateId }          = require('/opt/nodejs/utils/id-generator')
 const { MongoRepository }     = require('/opt/nodejs/db/mongo-repository')
 const { NotFoundError }       = require('/opt/nodejs/middleware/error-handler')
-const { normalizePagination } = require('/opt/nodejs/utils/pagination')
 
 const {
-  listDeptPublicationsSchema,
-  createDeptPublicationSchema,
-  updateDeptPublicationSchema,
-  deleteDeptPublicationSchema,
   listPublicationProfilesSchema,
   savePublicationProfileSchema,
+  deletePublicationProfileSchema,
   listResearchGrantsSchema,
   createResearchGrantSchema,
   updateResearchGrantSchema,
@@ -39,7 +34,6 @@ const {
 } = require('../schemas/validation')
 
 const {
-  DeptPublication,
   PublicationProfile,
   ResearchGrant,
   Patent,
@@ -52,7 +46,6 @@ const {
    Repositories
 ─────────────────────────────*/
 
-const deptPublicationRepo        = new MongoRepository({ model: DeptPublication,        primaryKey: 'dept_publication_id' })
 const publicationProfileRepo     = new MongoRepository({ model: PublicationProfile,     primaryKey: 'publication_profile_id' })
 const researchGrantRepo          = new MongoRepository({ model: ResearchGrant,          primaryKey: 'research_grant_id' })
 const patentRepo                 = new MongoRepository({ model: Patent,                 primaryKey: 'patent_id' })
@@ -63,11 +56,6 @@ const phdScholarRepo             = new MongoRepository({ model: PhdScholar,     
 /* ─────────────────────────────
    Response Normalizers
 ─────────────────────────────*/
-
-function toDeptPublicationResponse(doc) {
-  const plain = doc && doc.toObject ? doc.toObject() : { ...doc }
-  return { ...plain, deptPublicationId: plain.dept_publication_id || (plain._id ? plain._id.toString() : null) }
-}
 
 function toPublicationProfileResponse(doc) {
   const plain = doc && doc.toObject ? doc.toObject() : { ...doc }
@@ -102,23 +90,6 @@ function toPhdScholarResponse(doc) {
 /* ─────────────────────────────
    Query Builders
 ─────────────────────────────*/
-
-function buildPublicationQuery(args) {
-  const query = {}
-  if (args.deptId) query.deptId = args.deptId
-  if (args.type)   query.type   = args.type
-  if (args.year)   query.year   = args.year
-
-  if (args.search && args.search.trim() !== '') {
-    query.$or = [
-      { title:   { $regex: args.search.trim(), $options: 'i' } },
-      { authors: { $regex: args.search.trim(), $options: 'i' } },
-      { journal: { $regex: args.search.trim(), $options: 'i' } }
-    ]
-  }
-
-  return query
-}
 
 function buildResearchSummaryQuery(args) {
   const query = {}
@@ -195,22 +166,6 @@ async function handleEvent(event) {
 
   switch (event.field) {
 
-    // ── DeptPublication ───────────────────────────
-    case 'listDeptPublications':
-      return await listDeptPublications(ctx, event.arguments)
-
-    case 'createDeptPublication':
-      await requirePermission(ctx, 'dept-research:publication:create')
-      return await createDeptPublication(ctx, event.arguments)
-
-    case 'updateDeptPublication':
-      await requirePermission(ctx, 'dept-research:publication:update')
-      return await updateDeptPublication(ctx, event.arguments)
-
-    case 'deleteDeptPublication':
-      await requirePermission(ctx, 'dept-research:publication:delete')
-      return await deleteDeptPublication(ctx, event.arguments)
-
     // ── PublicationProfile ────────────────────────
     case 'listPublicationProfiles':
       return await listPublicationProfiles(ctx, event.arguments)
@@ -218,6 +173,10 @@ async function handleEvent(event) {
     case 'savePublicationProfile':
       await requirePermission(ctx, 'dept-research:pub-profile:write')
       return await savePublicationProfile(ctx, event.arguments)
+
+    case 'deletePublicationProfile':
+      await requirePermission(ctx, 'dept-research:pub-profile:delete')
+      return await deletePublicationProfile(ctx, event.arguments)
 
     // ── ResearchGrant ─────────────────────────────
     case 'listResearchGrants':
@@ -308,86 +267,6 @@ exports.handler = withConnection(handleEvent)
 
 
 /* ─────────────────────────────
-   DeptPublication
-─────────────────────────────*/
-
-async function listDeptPublications(ctx, args) {
-  const validated   = validate(listDeptPublicationsSchema, args || {})
-  const resolvedCtx = validated.tenantId ? { ...ctx, tenant_id: validated.tenantId } : ctx
-  const query       = buildPublicationQuery(validated)
-  const sort        = buildSort(validated.sortBy, validated.sortOrder)
-  const pagination  = normalizePagination(validated)
-
-  const result = await deptPublicationRepo.findMany(resolvedCtx, query, { ...pagination, sort })
-
-  return {
-    items:     result.items.map(toDeptPublicationResponse),
-    nextToken: result.nextCursor
-  }
-}
-
-async function createDeptPublication(ctx, args) {
-  const input = validate(createDeptPublicationSchema, args || {})
-  const { deptId, title, authors, journal, year, type, doi } = input.input
-
-  const dept_publication_id = generateId()
-
-  const created = await deptPublicationRepo.create(ctx, {
-    dept_publication_id,
-    deptId,
-    title,
-    authors,
-    journal:    journal ?? '',
-    year:       year    ?? null,
-    type:       type    ?? 'journal',
-    doi:        doi     ?? '',
-    created_by: ctx.user_id
-  })
-
-  await publishEvent('dept-research', 'PublicationCreated', {
-    dept_publication_id: created.dept_publication_id,
-    deptId,
-    tenant_id:  ctx.tenant_id,
-    created_by: ctx.user_id,
-    timestamp:  new Date().toISOString()
-  })
-
-  return toDeptPublicationResponse(created)
-}
-
-async function updateDeptPublication(ctx, args) {
-  const input = validate(updateDeptPublicationSchema, args || {})
-  const { deptPublicationId, ...fields } = input.input
-
-  const existing = await deptPublicationRepo.findById(ctx, deptPublicationId)
-  if (!existing) throw new NotFoundError('Publication not found')
-
-  const updates = {}
-  if (fields.title   !== undefined) updates.title   = fields.title
-  if (fields.authors !== undefined) updates.authors = fields.authors
-  if (fields.journal !== undefined) updates.journal = fields.journal
-  if (fields.year    !== undefined) updates.year    = fields.year
-  if (fields.type    !== undefined) updates.type    = fields.type
-  if (fields.doi     !== undefined) updates.doi     = fields.doi
-
-  const updated = await deptPublicationRepo.updateById(ctx, deptPublicationId, updates)
-
-  return toDeptPublicationResponse(updated)
-}
-
-async function deleteDeptPublication(ctx, args) {
-  const { deptPublicationId } = validate(deleteDeptPublicationSchema, args || {})
-
-  const existing = await deptPublicationRepo.findById(ctx, deptPublicationId)
-  if (!existing) throw new NotFoundError('Publication not found')
-
-  await deptPublicationRepo.deleteById(ctx, deptPublicationId)
-
-  return toDeptPublicationResponse(existing)
-}
-
-
-/* ─────────────────────────────
    PublicationProfile
 ─────────────────────────────*/
 
@@ -404,6 +283,14 @@ async function listPublicationProfiles(ctx, args) {
     items:     result.items.map(toPublicationProfileResponse),
     nextToken: result.nextCursor
   }
+}
+
+async function deletePublicationProfile(ctx, args) {
+  const { publicationProfileId } = validate(deletePublicationProfileSchema, args || {})
+  const existing = await publicationProfileRepo.findById(ctx, publicationProfileId)
+  if (!existing) throw new NotFoundError('Publication profile not found')
+  await publicationProfileRepo.deleteById(ctx, publicationProfileId)
+  return toPublicationProfileResponse(existing)
 }
 
 async function savePublicationProfile(ctx, args) {
@@ -550,13 +437,14 @@ async function listFacultyResearchSummaries(ctx, args) {
   const resolvedCtx = validated.tenantId ? { ...ctx, tenant_id: validated.tenantId } : ctx
   const query       = buildResearchSummaryQuery(validated)
   const sort        = buildSort(validated.sortBy, validated.sortOrder)
-  const pagination  = normalizePagination(validated)
+  const limit       = Math.min(validated.limit || 100, 100)
+  const fullFilter  = { ...query, tenant_id: resolvedCtx.tenant_id }
 
-  const result = await facultyResearchSummaryRepo.findMany(resolvedCtx, query, { ...pagination, sort })
+  const items = await FacultyResearchSummary.find(fullFilter).sort(sort).limit(limit).lean()
 
   return {
-    items:     result.items.map(toFacultyResearchSummaryResponse),
-    nextToken: result.nextCursor
+    items:     items.map(toFacultyResearchSummaryResponse),
+    nextToken: null
   }
 }
 

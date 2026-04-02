@@ -10,6 +10,7 @@ type Department @aws_cognito_user_pools @aws_api_key {
   status:        String
   description:   String
   imageUrl:      String
+  programTypes:  [String]
   createdAt:     AWSDateTime
   updatedAt:     AWSDateTime
 }
@@ -20,13 +21,14 @@ type DepartmentList @aws_cognito_user_pools @aws_api_key {
 }
 
 input CreateDepartmentInput {
-  name:        String!
-  shortName:   String!
-  hod:         String
-  established: Int
-  description: String
-  imageUrl:    String
-  status:      String
+  name:         String!
+  shortName:    String!
+  hod:          String
+  established:  Int
+  description:  String
+  imageUrl:     String
+  status:       String
+  programTypes: [String]
 }
 
 input UpdateDepartmentInput {
@@ -40,6 +42,7 @@ input UpdateDepartmentInput {
   description:   String
   imageUrl:      String
   status:        String
+  programTypes:  [String]
 }
 
 extend type Query {

@@ -1,4 +1,4 @@
-type DeptStaff {
+type DeptStaff @aws_api_key @aws_cognito_user_pools {
   deptStaffId:   ID!
   deptId:        ID!
   name:          String!
@@ -10,7 +10,7 @@ type DeptStaff {
   updatedAt:     AWSDateTime
 }
 
-type Accreditation {
+type Accreditation @aws_api_key @aws_cognito_user_pools {
   accreditationId: ID!
   deptId:          ID!
   name:            String!
@@ -24,8 +24,8 @@ type Accreditation {
   updatedAt:       AWSDateTime
 }
 
-type DeptStaffList     { items: [DeptStaff]     nextToken: String }
-type AccreditationList { items: [Accreditation] nextToken: String }
+type DeptStaffList     @aws_api_key @aws_cognito_user_pools { items: [DeptStaff]     nextToken: String }
+type AccreditationList @aws_api_key @aws_cognito_user_pools { items: [Accreditation] nextToken: String }
 
 input CreateDeptStaffInput {
   deptId:      ID!
@@ -68,10 +68,10 @@ input UpdateAccreditationInput {
 }
 
 extend type Query {
-  listDeptStaff(deptId: ID!, staffType: String, limit: Int, nextToken: String): DeptStaffList
-  getDeptStaff(deptStaffId: ID!): DeptStaff
-  listAccreditations(deptId: ID!, status: String, limit: Int, nextToken: String): AccreditationList
-  getAccreditation(accreditationId: ID!): Accreditation
+  listDeptStaff(deptId: ID!, staffType: String, limit: Int, nextToken: String, tenantId: String): DeptStaffList @aws_api_key @aws_cognito_user_pools
+  getDeptStaff(deptStaffId: ID!): DeptStaff @aws_api_key @aws_cognito_user_pools
+  listAccreditations(deptId: ID!, status: String, limit: Int, nextToken: String): AccreditationList @aws_api_key @aws_cognito_user_pools
+  getAccreditation(accreditationId: ID!): Accreditation @aws_api_key @aws_cognito_user_pools
 }
 
 extend type Mutation {

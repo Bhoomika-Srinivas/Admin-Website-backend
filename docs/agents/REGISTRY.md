@@ -43,3 +43,4 @@ New modules: run `./scripts/generate-module.sh <module-name> [--type app] [--app
 | DeptBrandingManagement | Vertical | Custom | src/app-modules/dept-branding-management/ | docs/agents/dept-branding-management-agent.SKILL.md |
 | Type | Vertical | Custom | src/app-modules/--type/ | docs/agents/--type-agent.SKILL.md |
 | AlumniManagement | Vertical | Custom | src/app-modules/alumni-management/ | docs/agents/alumni-management-agent.SKILL.md |
+| EventsManagement | Vertical | Custom | src/app-modules/events-management/ | docs/agents/events-management-agent.SKILL.md |

@@ -1,19 +1,5 @@
 const mongoose = require("mongoose")
 
-/* ─── DeptPublication ─── */
-const DeptPublicationSchema = new mongoose.Schema({
-  dept_publication_id: { type: String, index: true },
-  tenant_id:  { type: String, required: true, index: true },
-  created_by: { type: String },
-  deptId:     { type: String, required: true, index: true },
-  title:      { type: String, required: true },
-  authors:    { type: String, required: true },
-  journal:    { type: String },
-  year:       { type: Number },
-  type:       { type: String, enum: ["journal", "conference", "book"] },
-  doi:        { type: String },
-}, { timestamps: true })
-
 /* ─── PublicationProfile (upsert per faculty per dept) ─── */
 const PublicationProfileSchema = new mongoose.Schema({
   publication_profile_id: { type: String, index: true },
@@ -101,7 +87,6 @@ const PhdScholarSchema = new mongoose.Schema({
 }, { timestamps: true })
 
 module.exports = {
-  DeptPublication:        mongoose.model("DeptPublication",        DeptPublicationSchema),
   PublicationProfile:     mongoose.model("PublicationProfile",     PublicationProfileSchema),
   ResearchGrant:          mongoose.model("ResearchGrant",          ResearchGrantSchema),
   Patent:                 mongoose.model("Patent",                 PatentSchema),

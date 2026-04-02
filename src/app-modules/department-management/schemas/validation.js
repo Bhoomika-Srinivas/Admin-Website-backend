@@ -34,9 +34,10 @@ const createDepartmentSchema = Joi.object({
   shortName:   Joi.string().min(2).max(10).required(),
   hod:         Joi.string().optional(),
   established: Joi.number().integer().min(1800).max(currentYear).optional(),
-  description: Joi.string().optional(),
-  imageUrl:    Joi.string().optional(),
-  status:      Joi.string().valid("active", "inactive").optional()
+  description:  Joi.string().optional(),
+  imageUrl:     Joi.string().optional(),
+  status:       Joi.string().valid("active", "inactive").optional(),
+  programTypes: Joi.array().items(Joi.string()).optional()
 })
 
 const updateDepartmentSchema = Joi.object({
@@ -49,7 +50,8 @@ const updateDepartmentSchema = Joi.object({
   totalStudents: Joi.number().integer().min(0).optional(),
   description:   Joi.string().optional(),
   imageUrl:      Joi.string().optional(),
-  status:        Joi.string().valid("active", "inactive").optional()
+  status:        Joi.string().valid("active", "inactive").optional(),
+  programTypes:  Joi.array().items(Joi.string()).optional()
 })
 
 

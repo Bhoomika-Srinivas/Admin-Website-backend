@@ -118,10 +118,13 @@ function toResultAnalysisResponse(doc) {
 
 function buildCourseQuery(args) {
   const query = {}
-  if (args.deptId)   query.deptId   = args.deptId
-  if (args.semester) query.semester = args.semester
-  if (args.type)     query.type     = args.type
-  if (args.scheme)   query.scheme   = args.scheme
+  if (args.deptId)      query.deptId      = args.deptId
+  if (args.programType) query.programType = args.programType
+  if (args.program)     query.program     = args.program
+  if (args.batch)       query.batch       = args.batch
+  if (args.semester)    query.semester    = args.semester
+  if (args.type)        query.type        = args.type
+  if (args.scheme)      query.scheme      = args.scheme
 
   if (args.search && args.search.trim() !== '') {
     query.$or = [
@@ -161,14 +164,11 @@ function buildMaterialQuery(args) {
 function buildInnovativeTeachingQuery(args) {
   const query = {}
   if (args.deptId) query.deptId = args.deptId
-  if (args.year)   query.year   = args.year
 
   if (args.search && args.search.trim() !== '') {
     query.$or = [
-      { facultyName:   { $regex: args.search.trim(), $options: 'i' } },
-      { method:        { $regex: args.search.trim(), $options: 'i' } },
-      { courseApplied: { $regex: args.search.trim(), $options: 'i' } },
-      { description:   { $regex: args.search.trim(), $options: 'i' } }
+      { 'faculties.facultyName': { $regex: args.search.trim(), $options: 'i' } },
+      { description:             { $regex: args.search.trim(), $options: 'i' } }
     ]
   }
 
@@ -481,7 +481,8 @@ async function listDeptBatches(ctx, args) {
   const resolvedCtx = validated.tenantId ? { ...ctx, tenant_id: validated.tenantId } : ctx
 
   const query = { deptId: validated.deptId }
-  if (validated.programId) query.programId = validated.programId
+  if (validated.programType) query.programType = validated.programType
+  if (validated.program)     query.program     = validated.program
 
   const result = await deptBatchRepo.findMany(resolvedCtx, query, { sort: { startYear: 1 } })
 
@@ -493,18 +494,19 @@ async function listDeptBatches(ctx, args) {
 
 async function createDeptBatch(ctx, args) {
   const input = validate(createDeptBatchSchema, args || {})
-  const { deptId, programId, name, startYear, endYear } = input.input
+  const { deptId, programType, program, name, startYear, endYear } = input.input
 
   const dept_batch_id = generateId()
 
   const created = await deptBatchRepo.create(ctx, {
     dept_batch_id,
     deptId,
-    programId:  programId  ?? null,
+    programType: programType ?? null,
+    program:     program     ?? null,
     name,
-    startYear:  startYear  ?? null,
-    endYear:    endYear    ?? null,
-    created_by: ctx.user_id
+    startYear:   startYear   ?? null,
+    endYear:     endYear     ?? null,
+    created_by:  ctx.user_id
   })
 
   return toDeptBatchResponse(created)
@@ -550,20 +552,23 @@ async function listDeptCourses(ctx, args) {
 
 async function createDeptCourse(ctx, args) {
   const input = validate(createDeptCourseSchema, args || {})
-  const { deptId, code, name, semester, credits, type, scheme } = input.input
+  const { deptId, programType, program, batch, code, name, semester, credits, type, scheme } = input.input
 
   const dept_course_id = generateId()
 
   const created = await deptCourseRepo.create(ctx, {
     dept_course_id,
     deptId,
+    programType: programType ?? null,
+    program:     program     ?? null,
+    batch:       batch       ?? null,
     code,
     name,
-    semester:   semester   ?? null,
-    credits:    credits    ?? 0,
-    type:       type       ?? 'theory',
-    scheme:     scheme     ?? '',
-    created_by: ctx.user_id
+    semester:    semester    ?? null,
+    credits:     credits     ?? 0,
+    type:        type        ?? 'theory',
+    scheme:      scheme      ?? '',
+    created_by:  ctx.user_id
   })
 
   return toDeptCourseResponse(created)
@@ -577,12 +582,15 @@ async function updateDeptCourse(ctx, args) {
   if (!existing) throw new NotFoundError('Course not found')
 
   const updates = {}
-  if (fields.code     !== undefined) updates.code     = fields.code
-  if (fields.name     !== undefined) updates.name     = fields.name
-  if (fields.semester !== undefined) updates.semester = fields.semester
-  if (fields.credits  !== undefined) updates.credits  = fields.credits
-  if (fields.type     !== undefined) updates.type     = fields.type
-  if (fields.scheme   !== undefined) updates.scheme   = fields.scheme
+  if (fields.programType !== undefined) updates.programType = fields.programType
+  if (fields.program     !== undefined) updates.program     = fields.program
+  if (fields.batch       !== undefined) updates.batch       = fields.batch
+  if (fields.code        !== undefined) updates.code        = fields.code
+  if (fields.name        !== undefined) updates.name        = fields.name
+  if (fields.semester    !== undefined) updates.semester    = fields.semester
+  if (fields.credits     !== undefined) updates.credits     = fields.credits
+  if (fields.type        !== undefined) updates.type        = fields.type
+  if (fields.scheme      !== undefined) updates.scheme      = fields.scheme
 
   const updated = await deptCourseRepo.updateById(ctx, deptCourseId, updates)
 
@@ -760,20 +768,18 @@ async function listInnovativeTeaching(ctx, args) {
 
 async function createInnovativeTeaching(ctx, args) {
   const input = validate(createInnovativeTeachingSchema, args || {})
-  const { deptId, facultyName, method, description, courseApplied, year, outcome } = input.input
+  const { deptId, faculties, description, imageUrls, pdfUrl } = input.input
 
   const innovative_teaching_id = generateId()
 
   const created = await innovativeTeachingRepo.create(ctx, {
     innovative_teaching_id,
     deptId,
-    facultyName:   facultyName   ?? '',
-    method:        method        ?? '',
-    description:   description   ?? '',
-    courseApplied: courseApplied ?? '',
-    year:          year          ?? '',
-    outcome:       outcome       ?? '',
-    created_by:    ctx.user_id
+    faculties:   faculties   ?? [],
+    description: description ?? '',
+    imageUrls:   imageUrls   ?? [],
+    pdfUrl:      pdfUrl      ?? null,
+    created_by:  ctx.user_id
   })
 
   return toInnovativeTeachingResponse(created)
@@ -787,12 +793,10 @@ async function updateInnovativeTeaching(ctx, args) {
   if (!existing) throw new NotFoundError('Innovative teaching record not found')
 
   const updates = {}
-  if (fields.facultyName   !== undefined) updates.facultyName   = fields.facultyName
-  if (fields.method        !== undefined) updates.method        = fields.method
-  if (fields.description   !== undefined) updates.description   = fields.description
-  if (fields.courseApplied !== undefined) updates.courseApplied = fields.courseApplied
-  if (fields.year          !== undefined) updates.year          = fields.year
-  if (fields.outcome       !== undefined) updates.outcome       = fields.outcome
+  if (fields.faculties   !== undefined) updates.faculties   = fields.faculties
+  if (fields.description !== undefined) updates.description = fields.description
+  if (fields.imageUrls   !== undefined) updates.imageUrls   = fields.imageUrls
+  if (fields.pdfUrl      !== undefined) updates.pdfUrl      = fields.pdfUrl
 
   const updated = await innovativeTeachingRepo.updateById(ctx, innovativeTeachingId, updates)
 

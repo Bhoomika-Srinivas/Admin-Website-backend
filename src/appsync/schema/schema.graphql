@@ -41,15 +41,13 @@ type Query {
   listDepartments(limit: Int, nextToken: String): DepartmentList @aws_cognito_user_pools @aws_api_key
   listDeptSlots(deptId: ID!, sectionId: ID!, tenantId: ID): DeptSlotList @aws_api_key @aws_cognito_user_pools
   listDeptSections(deptId: ID!, tenantId: ID, programId: ID, semester: Int, batchName: String): DeptSectionList @aws_api_key @aws_cognito_user_pools
-  listDeptBatches(deptId: ID!, tenantId: ID, programId: ID): DeptBatchList @aws_api_key @aws_cognito_user_pools
-  listDeptCourses(deptId: ID!, tenantId: ID, semester: Int, type: String, limit: Int, nextToken: String): DeptCourseList @aws_api_key @aws_cognito_user_pools
+  listDeptBatches(deptId: ID!, tenantId: ID, programType: String, program: String): DeptBatchList @aws_api_key @aws_cognito_user_pools
+  listDeptCourses(deptId: ID!, tenantId: ID, programType: String, program: String, batch: String, semester: Int, type: String, limit: Int, nextToken: String): DeptCourseList @aws_api_key @aws_cognito_user_pools
   getDeptCourse(deptCourseId: ID!): DeptCourse @aws_api_key @aws_cognito_user_pools
   listDeptTimetables(deptId: ID!, tenantId: ID, semester: Int, academicYear: String): DeptTimetableList @aws_api_key @aws_cognito_user_pools
   listLearningMaterials(deptId: ID!, tenantId: ID, courseCode: String, type: String, limit: Int, nextToken: String): LearningMaterialList @aws_api_key @aws_cognito_user_pools
   listInnovativeTeaching(deptId: ID!, tenantId: ID): InnovativeTeachingList @aws_api_key @aws_cognito_user_pools
   listResultAnalyses(deptId: ID!, tenantId: ID, semester: Int, batch: String): ResultAnalysisList @aws_api_key @aws_cognito_user_pools
-  listEvents(deptId: ID, tenantId: ID, level: String, department: String, status: String, approvalStatus: String, pinned: Boolean, limit: Int, nextToken: String): EventList @aws_api_key @aws_cognito_user_pools
-  getEvent(eventId: ID!): Event @aws_api_key @aws_cognito_user_pools
   listPlacementOverviews(deptId: ID!, tenantId: ID, academicYear: String): PlacementOverviewList @aws_api_key @aws_cognito_user_pools
   listStudentPlacements(deptId: ID!, tenantId: ID, batch: String, limit: Int, nextToken: String): StudentPlacementList @aws_api_key @aws_cognito_user_pools
   listAchievements(deptId: ID!, tenantId: ID, type: String): AchievementList @aws_api_key @aws_cognito_user_pools
@@ -68,17 +66,18 @@ type Query {
   listProgramOutcomes(deptId: ID!, tenantId: ID, type: String, limit: Int, nextToken: String): ProgramOutcomeList @aws_api_key @aws_cognito_user_pools
   listCommitteeMembers(deptId: ID!, tenantId: ID, committee: String): CommitteeMemberList                        @aws_api_key @aws_cognito_user_pools
   listDistinguishedAlumni(deptId: ID!, tenantId: ID): DistinguishedAlumniList                                    @aws_api_key @aws_cognito_user_pools
-  listDeptStaff(deptId: ID!, staffType: String, limit: Int, nextToken: String): DeptStaffList
-  getDeptStaff(deptStaffId: ID!): DeptStaff
-  listAccreditations(deptId: ID!, status: String, limit: Int, nextToken: String): AccreditationList
-  getAccreditation(accreditationId: ID!): Accreditation
-  listDeptPublications(deptId: ID!, tenantId: ID, type: String, year: Int, limit: Int, nextToken: String): DeptPublicationList @aws_api_key @aws_cognito_user_pools
+  listDeptStaff(deptId: ID!, staffType: String, limit: Int, nextToken: String, tenantId: String): DeptStaffList @aws_api_key @aws_cognito_user_pools
+  getDeptStaff(deptStaffId: ID!): DeptStaff @aws_api_key @aws_cognito_user_pools
+  listAccreditations(deptId: ID!, status: String, limit: Int, nextToken: String): AccreditationList @aws_api_key @aws_cognito_user_pools
+  getAccreditation(accreditationId: ID!): Accreditation @aws_api_key @aws_cognito_user_pools
   listPublicationProfiles(deptId: ID!, tenantId: ID): PublicationProfileList @aws_api_key @aws_cognito_user_pools
   listResearchGrants(deptId: ID!, tenantId: ID): ResearchGrantList @aws_api_key @aws_cognito_user_pools
   listPatents(deptId: ID!, tenantId: ID): PatentList @aws_api_key @aws_cognito_user_pools
   listFacultyResearchSummaries(deptId: ID!, tenantId: ID, limit: Int, nextToken: String): FacultyResearchSummaryList @aws_api_key @aws_cognito_user_pools
   listPhdGuides(deptId: ID!, tenantId: ID): PhdGuideList @aws_api_key @aws_cognito_user_pools
   listPhdScholars(deptId: ID!, tenantId: ID, guideFacultyId: ID, status: String): PhdScholarList @aws_api_key @aws_cognito_user_pools
+  listEvents(deptId: ID, tenantId: ID, level: String, department: String, status: String, approvalStatus: String, pinned: Boolean, limit: Int, nextToken: String): EventList @aws_api_key @aws_cognito_user_pools
+  getEvent(eventId: ID!): Event @aws_api_key @aws_cognito_user_pools
   getFaculty(facultyId: ID!, tenantId: ID): Faculty @aws_api_key @aws_cognito_user_pools
   listFaculty(deptId: ID, tenantId: ID, designation: String, status: String, search: String, limit: Int, nextToken: String): FacultyList @aws_api_key @aws_cognito_user_pools
   listDesignationOptions: DesignationOptions @aws_api_key @aws_cognito_user_pools
@@ -135,13 +134,6 @@ type Mutation {
   createResultAnalysis(input: CreateResultAnalysisInput!): ResultAnalysis
   updateResultAnalysis(input: UpdateResultAnalysisInput!): ResultAnalysis
   deleteResultAnalysis(resultAnalysisId: ID!): ResultAnalysis
-  createEvent(input: CreateEventInput!): Event
-  updateEvent(input: UpdateEventInput!): Event
-  deleteEvent(eventId: ID!): Event
-  approveEvent(eventId: ID!): Event
-  rejectEvent(eventId: ID!): Event
-  cancelEvent(eventId: ID!): Event
-  togglePinEvent(eventId: ID!): Event
   createPlacementOverview(input: CreatePlacementOverviewInput!): PlacementOverview
   updatePlacementOverview(input: UpdatePlacementOverviewInput!): PlacementOverview
   deletePlacementOverview(placementOverviewId: ID!): PlacementOverview
@@ -201,11 +193,8 @@ type Mutation {
   createAccreditation(input: CreateAccreditationInput!): Accreditation
   updateAccreditation(input: UpdateAccreditationInput!): Accreditation
   deleteAccreditation(accreditationId: ID!): Accreditation
-  createDeptPublication(input: CreateDeptPublicationInput!): DeptPublication
-  updateDeptPublication(input: UpdateDeptPublicationInput!): DeptPublication
-  deleteDeptPublication(deptPublicationId: ID!): DeptPublication
-
   savePublicationProfile(input: SavePublicationProfileInput!): PublicationProfile
+  deletePublicationProfile(publicationProfileId: ID!): PublicationProfile
 
   createResearchGrant(input: CreateResearchGrantInput!): ResearchGrant
   updateResearchGrant(input: UpdateResearchGrantInput!): ResearchGrant
@@ -226,6 +215,13 @@ type Mutation {
   createPhdScholar(input: CreatePhdScholarInput!): PhdScholar
   updatePhdScholar(input: UpdatePhdScholarInput!): PhdScholar
   deletePhdScholar(phdScholarId: ID!): PhdScholar
+  createEvent(input: CreateEventInput!): Event
+  updateEvent(input: UpdateEventInput!): Event
+  deleteEvent(eventId: ID!): Event
+  approveEvent(eventId: ID!): Event
+  rejectEvent(eventId: ID!): Event
+  cancelEvent(eventId: ID!): Event
+  togglePinEvent(eventId: ID!): Event
   createFaculty(input: CreateFacultyInput!): Faculty
   updateFaculty(input: UpdateFacultyInput!): Faculty
   deleteFaculty(facultyId: ID!): Faculty
@@ -664,6 +660,7 @@ type Department @aws_cognito_user_pools @aws_api_key {
   status:        String
   description:   String
   imageUrl:      String
+  programTypes:  [String]
   createdAt:     AWSDateTime
   updatedAt:     AWSDateTime
 }
@@ -674,13 +671,14 @@ type DepartmentList @aws_cognito_user_pools @aws_api_key {
 }
 
 input CreateDepartmentInput {
-  name:        String!
-  shortName:   String!
-  hod:         String
-  established: Int
-  description: String
-  imageUrl:    String
-  status:      String
+  name:         String!
+  shortName:    String!
+  hod:          String
+  established:  Int
+  description:  String
+  imageUrl:     String
+  status:       String
+  programTypes: [String]
 }
 
 input UpdateDepartmentInput {
@@ -694,6 +692,7 @@ input UpdateDepartmentInput {
   description:   String
   imageUrl:      String
   status:        String
+  programTypes:  [String]
 }
 
 
@@ -702,6 +701,9 @@ input UpdateDepartmentInput {
 type DeptCourse @aws_api_key @aws_cognito_user_pools {
   deptCourseId: ID!
   deptId:       ID!
+  programType:  String
+  program:      String
+  batch:        String
   code:         String!
   name:         String!
   semester:     Int
@@ -735,15 +737,23 @@ type LearningMaterial @aws_api_key @aws_cognito_user_pools {
   createdAt:          AWSDateTime
 }
 
+type FacultyRef @aws_api_key @aws_cognito_user_pools {
+  facultyId:   ID
+  facultyName: String!
+}
+
+input FacultyRefInput {
+  facultyId:   ID
+  facultyName: String!
+}
+
 type InnovativeTeaching @aws_api_key @aws_cognito_user_pools {
   innovativeTeachingId: ID!
   deptId:               ID!
-  facultyName:          String
-  method:               String
+  faculties:            [FacultyRef]
   description:          String
-  courseApplied:        String
-  year:                 String
-  outcome:              String
+  imageUrls:            [String]
+  pdfUrl:               String
   createdAt:            AWSDateTime
 }
 
@@ -816,7 +826,8 @@ input CreateDeptSectionInput {
 type DeptBatch @aws_api_key @aws_cognito_user_pools {
   deptBatchId: ID!
   deptId:      ID!
-  programId:   ID
+  programType: String
+  program:     String
   name:        String!
   startYear:   Int
   endYear:     Int
@@ -826,11 +837,12 @@ type DeptBatch @aws_api_key @aws_cognito_user_pools {
 type DeptBatchList @aws_api_key @aws_cognito_user_pools { items: [DeptBatch] nextToken: String }
 
 input CreateDeptBatchInput {
-  deptId:    ID!
-  programId: ID
-  name:      String!
-  startYear: Int
-  endYear:   Int
+  deptId:      ID!
+  programType: String
+  program:     String
+  name:        String!
+  startYear:   Int
+  endYear:     Int
 }
 
 type DeptCourseList         @aws_api_key @aws_cognito_user_pools { items: [DeptCourse]         nextToken: String }
@@ -840,16 +852,22 @@ type InnovativeTeachingList @aws_api_key @aws_cognito_user_pools { items: [Innov
 type ResultAnalysisList     @aws_api_key @aws_cognito_user_pools { items: [ResultAnalysis]     nextToken: String }
 
 input CreateDeptCourseInput {
-  deptId:   ID!
-  code:     String!
-  name:     String!
-  semester: Int
-  credits:  Int
-  type:     String
-  scheme:   String
+  deptId:      ID!
+  programType: String
+  program:     String
+  batch:       String
+  code:        String!
+  name:        String!
+  semester:    Int
+  credits:     Int
+  type:        String
+  scheme:      String
 }
 input UpdateDeptCourseInput {
   deptCourseId: ID!
+  programType:  String
+  program:      String
+  batch:        String
   code:         String
   name:         String
   semester:     Int
@@ -892,22 +910,18 @@ input UpdateLearningMaterialInput {
 }
 
 input CreateInnovativeTeachingInput {
-  deptId:        ID!
-  facultyName:   String
-  method:        String
-  description:   String
-  courseApplied: String
-  year:          String
-  outcome:       String
+  deptId:      ID!
+  faculties:   [FacultyRefInput]
+  description: String
+  imageUrls:   [String]
+  pdfUrl:      String
 }
 input UpdateInnovativeTeachingInput {
   innovativeTeachingId: ID!
-  facultyName:          String
-  method:               String
+  faculties:            [FacultyRefInput]
   description:          String
-  courseApplied:        String
-  year:                 String
-  outcome:              String
+  imageUrls:            [String]
+  pdfUrl:               String
 }
 
 input CreateResultAnalysisInput {
@@ -930,59 +944,9 @@ input UpdateResultAnalysisInput {
 
 
 # module: dept-activities-management
-type Event @aws_api_key @aws_cognito_user_pools {
-  eventId:        ID!
-  deptId:         ID
-  title:          String!
-  date:           String
-  time:           String
-  venue:          String
-  description:    String
-  images:         [String]
-  pinned:         Boolean
-  level:          String!
-  department:     String
-  status:         String!
-  approvalStatus: String!
-  createdBy:      String
-  createdAt:      AWSDateTime
-  updatedAt:      AWSDateTime
-}
-
-type EventList @aws_api_key @aws_cognito_user_pools { items: [Event] nextToken: String }
-
-input CreateEventInput {
-  deptId:      ID
-  title:       String!
-  date:        String
-  time:        String
-  venue:       String
-  description: String
-  images:      [String]
-  pinned:      Boolean
-  level:       String!
-  department:  String
-}
-
-input UpdateEventInput {
-  eventId:        ID!
-  title:          String
-  date:           String
-  time:           String
-  venue:          String
-  description:    String
-  images:         [String]
-  pinned:         Boolean
-  level:          String
-  department:     String
-  status:         String
-  approvalStatus: String
-}
-
 type PlacementOverview @aws_api_key @aws_cognito_user_pools {
   placementOverviewId: ID!
   deptId:              ID!
-  title:               String
   academicYear:        String
   companiesVisited:    Int
   studentsInCampus:    Int
@@ -1034,11 +998,12 @@ type ForumSection @aws_api_key @aws_cognito_user_pools {
 }
 
 type ForumEvent @aws_api_key @aws_cognito_user_pools {
-  forumEventId: ID!
-  deptId:       ID!
-  title:        String!
-  description:  String
-  createdAt:    AWSDateTime
+  forumEventId:  ID!
+  deptId:        ID!
+  title:         String!
+  description:   String
+  attachmentUrl: String
+  createdAt:     AWSDateTime
 }
 
 type DepartmentActivityLog @aws_api_key @aws_cognito_user_pools {
@@ -1050,14 +1015,11 @@ type DepartmentActivityLog @aws_api_key @aws_cognito_user_pools {
 }
 
 type Newsletter @aws_api_key @aws_cognito_user_pools {
-  newsletterId:  ID!
-  deptId:        ID!
-  title:         String!
-  volume:        String
-  issue:         String
-  publishedDate: String
-  fileUrl:       String
-  createdAt:     AWSDateTime
+  newsletterId: ID!
+  deptId:       ID!
+  year:         String!
+  fileUrl:      String
+  createdAt:    AWSDateTime
 }
 
 type GalleryPhoto @aws_api_key @aws_cognito_user_pools {
@@ -1081,7 +1043,6 @@ type GalleryPhotoList          @aws_api_key @aws_cognito_user_pools { items: [Ga
 
 input CreatePlacementOverviewInput {
   deptId:            ID!
-  title:             String
   academicYear:      String
   companiesVisited:  Int
   studentsInCampus:  Int
@@ -1090,7 +1051,6 @@ input CreatePlacementOverviewInput {
 }
 input UpdatePlacementOverviewInput {
   placementOverviewId: ID!
-  title:               String
   academicYear:        String
   companiesVisited:    Int
   studentsInCampus:    Int
@@ -1145,27 +1105,21 @@ input UpdateDeptActivityInput {
 
 input SaveForumSectionInput { deptId: ID!  title: String!  description: String }
 
-input CreateForumEventInput { deptId: ID!  title: String!  description: String }
-input UpdateForumEventInput { forumEventId: ID!  title: String  description: String }
+input CreateForumEventInput { deptId: ID!  title: String!  description: String  attachmentUrl: String }
+input UpdateForumEventInput { forumEventId: ID!  title: String  description: String  attachmentUrl: String }
 
 input CreateDepartmentActivityInput { deptId: ID!  text: String! }
 input UpdateDepartmentActivityInput { deptActivityLogId: ID!  text: String }
 
 input CreateNewsletterInput {
-  deptId:        ID!
-  title:         String!
-  volume:        String
-  issue:         String
-  publishedDate: String
-  fileUrl:       String
+  deptId:  ID!
+  year:    String!
+  fileUrl: String
 }
 input UpdateNewsletterInput {
-  newsletterId:  ID!
-  title:         String
-  volume:        String
-  issue:         String
-  publishedDate: String
-  fileUrl:       String
+  newsletterId: ID!
+  year:         String
+  fileUrl:      String
 }
 
 input CreateGalleryPhotoInput {
@@ -1411,7 +1365,7 @@ input UpdateDistinguishedAlumnusInput {
 
 
 # module: dept-people-management
-type DeptStaff {
+type DeptStaff @aws_api_key @aws_cognito_user_pools {
   deptStaffId:   ID!
   deptId:        ID!
   name:          String!
@@ -1423,7 +1377,7 @@ type DeptStaff {
   updatedAt:     AWSDateTime
 }
 
-type Accreditation {
+type Accreditation @aws_api_key @aws_cognito_user_pools {
   accreditationId: ID!
   deptId:          ID!
   name:            String!
@@ -1437,8 +1391,8 @@ type Accreditation {
   updatedAt:       AWSDateTime
 }
 
-type DeptStaffList     { items: [DeptStaff]     nextToken: String }
-type AccreditationList { items: [Accreditation] nextToken: String }
+type DeptStaffList     @aws_api_key @aws_cognito_user_pools { items: [DeptStaff]     nextToken: String }
+type AccreditationList @aws_api_key @aws_cognito_user_pools { items: [Accreditation] nextToken: String }
 
 input CreateDeptStaffInput {
   deptId:      ID!
@@ -1483,19 +1437,6 @@ input UpdateAccreditationInput {
 
 
 # module: dept-research-management
-type DeptPublication @aws_api_key @aws_cognito_user_pools {
-  deptPublicationId: ID!
-  deptId:            ID!
-  title:             String!
-  authors:           String!
-  journal:           String
-  year:              Int
-  type:              String
-  doi:               String
-  createdAt:         AWSDateTime
-  updatedAt:         AWSDateTime
-}
-
 type PublicationProfile @aws_api_key @aws_cognito_user_pools {
   publicationProfileId: ID!
   deptId:               ID!
@@ -1568,32 +1509,12 @@ type PhdScholar @aws_api_key @aws_cognito_user_pools {
   status:               String
 }
 
-type DeptPublicationList        @aws_api_key @aws_cognito_user_pools { items: [DeptPublication]        nextToken: String }
 type PublicationProfileList     @aws_api_key @aws_cognito_user_pools { items: [PublicationProfile]     nextToken: String }
 type ResearchGrantList          @aws_api_key @aws_cognito_user_pools { items: [ResearchGrant]          nextToken: String }
 type PatentList                 @aws_api_key @aws_cognito_user_pools { items: [Patent]                 nextToken: String }
 type FacultyResearchSummaryList @aws_api_key @aws_cognito_user_pools { items: [FacultyResearchSummary] nextToken: String }
 type PhdGuideList               @aws_api_key @aws_cognito_user_pools { items: [PhdGuide]               nextToken: String }
 type PhdScholarList             @aws_api_key @aws_cognito_user_pools { items: [PhdScholar]             nextToken: String }
-
-input CreateDeptPublicationInput {
-  deptId:  ID!
-  title:   String!
-  authors: String!
-  journal: String
-  year:    Int
-  type:    String
-  doi:     String
-}
-input UpdateDeptPublicationInput {
-  deptPublicationId: ID!
-  title:   String
-  authors: String
-  journal: String
-  year:    Int
-  type:    String
-  doi:     String
-}
 
 input SavePublicationProfileInput {
   deptId:            ID!
@@ -1687,6 +1608,58 @@ input UpdatePhdScholarInput {
   prePhdViva:           Boolean
   finalThesisSubmitted: Boolean
   status:               String
+}
+
+
+
+# module: events-management
+type Event @aws_api_key @aws_cognito_user_pools {
+  eventId:        ID!
+  deptId:         ID
+  title:          String!
+  date:           String
+  time:           String
+  venue:          String
+  description:    String
+  images:         [String]
+  pinned:         Boolean
+  level:          String!
+  department:     String
+  status:         String!
+  approvalStatus: String!
+  createdBy:      String
+  createdAt:      AWSDateTime
+  updatedAt:      AWSDateTime
+}
+
+type EventList @aws_api_key @aws_cognito_user_pools { items: [Event] nextToken: String }
+
+input CreateEventInput {
+  deptId:      ID
+  title:       String!
+  date:        String
+  time:        String
+  venue:       String
+  description: String
+  images:      [String]
+  pinned:      Boolean
+  level:       String!
+  department:  String
+}
+
+input UpdateEventInput {
+  eventId:        ID!
+  title:          String
+  date:           String
+  time:           String
+  venue:          String
+  description:    String
+  images:         [String]
+  pinned:         Boolean
+  level:          String
+  department:     String
+  status:         String
+  approvalStatus: String
 }
 
 

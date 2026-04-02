@@ -12,7 +12,8 @@ const listDeptStaffSchema = Joi.object({
   deptId:     Joi.string().required(),
   staffType:  Joi.string().valid("supporting", "technical").optional().allow(null),
   limit:      Joi.number().integer().min(1).max(100).optional(),
-  nextToken:  Joi.string().optional(),
+  nextToken:  Joi.string().optional().allow(null),
+  tenantId:   Joi.string().optional().allow(null),
   pagination: Joi.object().optional()
 })
 
@@ -60,7 +61,7 @@ const listAccreditationsSchema = Joi.object({
   sortBy:     Joi.string().valid("name", "accreditedBy", "validFrom", "validUntil", "createdAt").optional(),
   sortOrder:  Joi.string().valid("asc", "desc").optional(),
   limit:      Joi.number().integer().min(1).max(100).optional(),
-  nextToken:  Joi.string().optional(),
+  nextToken:  Joi.string().optional().allow(null),
   pagination: Joi.object().optional()
 })
 

@@ -1,16 +1,3 @@
-type DeptPublication @aws_api_key @aws_cognito_user_pools {
-  deptPublicationId: ID!
-  deptId:            ID!
-  title:             String!
-  authors:           String!
-  journal:           String
-  year:              Int
-  type:              String
-  doi:               String
-  createdAt:         AWSDateTime
-  updatedAt:         AWSDateTime
-}
-
 type PublicationProfile @aws_api_key @aws_cognito_user_pools {
   publicationProfileId: ID!
   deptId:               ID!
@@ -83,32 +70,12 @@ type PhdScholar @aws_api_key @aws_cognito_user_pools {
   status:               String
 }
 
-type DeptPublicationList        @aws_api_key @aws_cognito_user_pools { items: [DeptPublication]        nextToken: String }
 type PublicationProfileList     @aws_api_key @aws_cognito_user_pools { items: [PublicationProfile]     nextToken: String }
 type ResearchGrantList          @aws_api_key @aws_cognito_user_pools { items: [ResearchGrant]          nextToken: String }
 type PatentList                 @aws_api_key @aws_cognito_user_pools { items: [Patent]                 nextToken: String }
 type FacultyResearchSummaryList @aws_api_key @aws_cognito_user_pools { items: [FacultyResearchSummary] nextToken: String }
 type PhdGuideList               @aws_api_key @aws_cognito_user_pools { items: [PhdGuide]               nextToken: String }
 type PhdScholarList             @aws_api_key @aws_cognito_user_pools { items: [PhdScholar]             nextToken: String }
-
-input CreateDeptPublicationInput {
-  deptId:  ID!
-  title:   String!
-  authors: String!
-  journal: String
-  year:    Int
-  type:    String
-  doi:     String
-}
-input UpdateDeptPublicationInput {
-  deptPublicationId: ID!
-  title:   String
-  authors: String
-  journal: String
-  year:    Int
-  type:    String
-  doi:     String
-}
 
 input SavePublicationProfileInput {
   deptId:            ID!
@@ -205,7 +172,6 @@ input UpdatePhdScholarInput {
 }
 
 extend type Query {
-  listDeptPublications(deptId: ID!, tenantId: ID, type: String, year: Int, limit: Int, nextToken: String): DeptPublicationList @aws_api_key @aws_cognito_user_pools
   listPublicationProfiles(deptId: ID!, tenantId: ID): PublicationProfileList @aws_api_key @aws_cognito_user_pools
   listResearchGrants(deptId: ID!, tenantId: ID): ResearchGrantList @aws_api_key @aws_cognito_user_pools
   listPatents(deptId: ID!, tenantId: ID): PatentList @aws_api_key @aws_cognito_user_pools
@@ -215,11 +181,8 @@ extend type Query {
 }
 
 extend type Mutation {
-  createDeptPublication(input: CreateDeptPublicationInput!): DeptPublication
-  updateDeptPublication(input: UpdateDeptPublicationInput!): DeptPublication
-  deleteDeptPublication(deptPublicationId: ID!): DeptPublication
-
   savePublicationProfile(input: SavePublicationProfileInput!): PublicationProfile
+  deletePublicationProfile(publicationProfileId: ID!): PublicationProfile
 
   createResearchGrant(input: CreateResearchGrantInput!): ResearchGrant
   updateResearchGrant(input: UpdateResearchGrantInput!): ResearchGrant

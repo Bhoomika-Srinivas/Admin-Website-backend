@@ -35,7 +35,8 @@ const DeptBatchSchema = new mongoose.Schema({
   tenant_id:     { type: String, required: true, index: true },
   created_by:    { type: String },
   deptId:        { type: String, required: true, index: true },
-  programId:     { type: String },
+  programType:   { type: String },
+  program:       { type: String },
   name:          { type: String, required: true },
   startYear:     { type: Number },
   endYear:       { type: Number },
@@ -44,15 +45,18 @@ const DeptBatchSchema = new mongoose.Schema({
 /* ─── DeptCourse ─── */
 const DeptCourseSchema = new mongoose.Schema({
   dept_course_id: { type: String, index: true },
-  tenant_id:  { type: String, required: true, index: true },
-  created_by: { type: String },
-  deptId:     { type: String, required: true, index: true },
-  code:       { type: String, required: true },
-  name:       { type: String, required: true },
-  semester:   { type: Number },
-  credits:    { type: Number },
-  type:       { type: String, enum: ["theory", "lab", "elective"] },
-  scheme:     { type: String },
+  tenant_id:   { type: String, required: true, index: true },
+  created_by:  { type: String },
+  deptId:      { type: String, required: true, index: true },
+  programType: { type: String },
+  program:     { type: String },
+  batch:       { type: String },
+  code:        { type: String, required: true },
+  name:        { type: String, required: true },
+  semester:    { type: Number },
+  credits:     { type: Number },
+  type:        { type: String, enum: ["theory", "lab", "elective"] },
+  scheme:      { type: String },
 }, { timestamps: true })
 
 /* ─── DeptTimetable ─── */
@@ -88,12 +92,10 @@ const InnovativeTeachingSchema = new mongoose.Schema({
   tenant_id:     { type: String, required: true, index: true },
   created_by:    { type: String },
   deptId:        { type: String, required: true, index: true },
-  facultyName:   { type: String },
-  method:        { type: String },
-  description:   { type: String },
-  courseApplied: { type: String },
-  year:          { type: String },
-  outcome:       { type: String },
+  faculties:   [{ facultyId: { type: String }, facultyName: { type: String } }],
+  description: { type: String },
+  imageUrls:   [{ type: String }],
+  pdfUrl:      { type: String },
 }, { timestamps: true })
 
 /* ─── ResultAnalysis ─── */

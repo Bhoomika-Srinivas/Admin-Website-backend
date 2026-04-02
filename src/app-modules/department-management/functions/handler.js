@@ -148,9 +148,10 @@ async function createDepartment(ctx, args) {
     established:   input.established || null,
     totalFaculty:  0,
     totalStudents: 0,
-    status:        input.status      || 'active',
-    description:   input.description || '',
-    imageUrl:      input.imageUrl    || '',
+    status:        input.status       || 'active',
+    description:   input.description  || '',
+    imageUrl:      input.imageUrl     || '',
+    programTypes:  input.programTypes ?? [],
     created_by:    ctx.user_id
   }
 
@@ -190,6 +191,7 @@ async function updateDepartment(ctx, args) {
   if (input.description   !== undefined) updates.description   = input.description
   if (input.imageUrl      !== undefined) updates.imageUrl      = input.imageUrl
   if (input.status        !== undefined) updates.status        = input.status
+  if (input.programTypes  !== undefined) updates.programTypes  = input.programTypes
 
   const updated = await departmentRepo.updateById(ctx, input.departmentId, updates)
 

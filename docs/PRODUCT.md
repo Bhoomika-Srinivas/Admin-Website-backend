@@ -22,6 +22,7 @@
 ## Custom Modules
 <!-- List product-specific modules added -->
 <!-- (auto-updated by generate-module.sh and remove-module.sh) -->
+- events-management
 - alumni-management
 - --type
 - dept-branding-management

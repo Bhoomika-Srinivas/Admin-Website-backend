@@ -1,56 +1,6 @@
-type Event @aws_api_key @aws_cognito_user_pools {
-  eventId:        ID!
-  deptId:         ID
-  title:          String!
-  date:           String
-  time:           String
-  venue:          String
-  description:    String
-  images:         [String]
-  pinned:         Boolean
-  level:          String!
-  department:     String
-  status:         String!
-  approvalStatus: String!
-  createdBy:      String
-  createdAt:      AWSDateTime
-  updatedAt:      AWSDateTime
-}
-
-type EventList @aws_api_key @aws_cognito_user_pools { items: [Event] nextToken: String }
-
-input CreateEventInput {
-  deptId:      ID
-  title:       String!
-  date:        String
-  time:        String
-  venue:       String
-  description: String
-  images:      [String]
-  pinned:      Boolean
-  level:       String!
-  department:  String
-}
-
-input UpdateEventInput {
-  eventId:        ID!
-  title:          String
-  date:           String
-  time:           String
-  venue:          String
-  description:    String
-  images:         [String]
-  pinned:         Boolean
-  level:          String
-  department:     String
-  status:         String
-  approvalStatus: String
-}
-
 type PlacementOverview @aws_api_key @aws_cognito_user_pools {
   placementOverviewId: ID!
   deptId:              ID!
-  title:               String
   academicYear:        String
   companiesVisited:    Int
   studentsInCampus:    Int
@@ -102,11 +52,12 @@ type ForumSection @aws_api_key @aws_cognito_user_pools {
 }
 
 type ForumEvent @aws_api_key @aws_cognito_user_pools {
-  forumEventId: ID!
-  deptId:       ID!
-  title:        String!
-  description:  String
-  createdAt:    AWSDateTime
+  forumEventId:  ID!
+  deptId:        ID!
+  title:         String!
+  description:   String
+  attachmentUrl: String
+  createdAt:     AWSDateTime
 }
 
 type DepartmentActivityLog @aws_api_key @aws_cognito_user_pools {
@@ -118,14 +69,11 @@ type DepartmentActivityLog @aws_api_key @aws_cognito_user_pools {
 }
 
 type Newsletter @aws_api_key @aws_cognito_user_pools {
-  newsletterId:  ID!
-  deptId:        ID!
-  title:         String!
-  volume:        String
-  issue:         String
-  publishedDate: String
-  fileUrl:       String
-  createdAt:     AWSDateTime
+  newsletterId: ID!
+  deptId:       ID!
+  year:         String!
+  fileUrl:      String
+  createdAt:    AWSDateTime
 }
 
 type GalleryPhoto @aws_api_key @aws_cognito_user_pools {
@@ -149,7 +97,6 @@ type GalleryPhotoList          @aws_api_key @aws_cognito_user_pools { items: [Ga
 
 input CreatePlacementOverviewInput {
   deptId:            ID!
-  title:             String
   academicYear:      String
   companiesVisited:  Int
   studentsInCampus:  Int
@@ -158,7 +105,6 @@ input CreatePlacementOverviewInput {
 }
 input UpdatePlacementOverviewInput {
   placementOverviewId: ID!
-  title:               String
   academicYear:        String
   companiesVisited:    Int
   studentsInCampus:    Int
@@ -213,27 +159,21 @@ input UpdateDeptActivityInput {
 
 input SaveForumSectionInput { deptId: ID!  title: String!  description: String }
 
-input CreateForumEventInput { deptId: ID!  title: String!  description: String }
-input UpdateForumEventInput { forumEventId: ID!  title: String  description: String }
+input CreateForumEventInput { deptId: ID!  title: String!  description: String  attachmentUrl: String }
+input UpdateForumEventInput { forumEventId: ID!  title: String  description: String  attachmentUrl: String }
 
 input CreateDepartmentActivityInput { deptId: ID!  text: String! }
 input UpdateDepartmentActivityInput { deptActivityLogId: ID!  text: String }
 
 input CreateNewsletterInput {
-  deptId:        ID!
-  title:         String!
-  volume:        String
-  issue:         String
-  publishedDate: String
-  fileUrl:       String
+  deptId:  ID!
+  year:    String!
+  fileUrl: String
 }
 input UpdateNewsletterInput {
-  newsletterId:  ID!
-  title:         String
-  volume:        String
-  issue:         String
-  publishedDate: String
-  fileUrl:       String
+  newsletterId: ID!
+  year:         String
+  fileUrl:      String
 }
 
 input CreateGalleryPhotoInput {
@@ -252,8 +192,6 @@ input UpdateGalleryPhotoInput {
 }
 
 extend type Query {
-  listEvents(deptId: ID, tenantId: ID, level: String, department: String, status: String, approvalStatus: String, pinned: Boolean, limit: Int, nextToken: String): EventList @aws_api_key @aws_cognito_user_pools
-  getEvent(eventId: ID!): Event @aws_api_key @aws_cognito_user_pools
   listPlacementOverviews(deptId: ID!, tenantId: ID, academicYear: String): PlacementOverviewList @aws_api_key @aws_cognito_user_pools
   listStudentPlacements(deptId: ID!, tenantId: ID, batch: String, limit: Int, nextToken: String): StudentPlacementList @aws_api_key @aws_cognito_user_pools
   listAchievements(deptId: ID!, tenantId: ID, type: String): AchievementList @aws_api_key @aws_cognito_user_pools
@@ -266,13 +204,6 @@ extend type Query {
 }
 
 extend type Mutation {
-  createEvent(input: CreateEventInput!): Event
-  updateEvent(input: UpdateEventInput!): Event
-  deleteEvent(eventId: ID!): Event
-  approveEvent(eventId: ID!): Event
-  rejectEvent(eventId: ID!): Event
-  cancelEvent(eventId: ID!): Event
-  togglePinEvent(eventId: ID!): Event
   createPlacementOverview(input: CreatePlacementOverviewInput!): PlacementOverview
   updatePlacementOverview(input: UpdatePlacementOverviewInput!): PlacementOverview
   deletePlacementOverview(placementOverviewId: ID!): PlacementOverview

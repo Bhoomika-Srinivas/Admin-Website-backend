@@ -1,0 +1,63 @@
+type Event @aws_api_key @aws_cognito_user_pools {
+  eventId:        ID!
+  deptId:         ID
+  title:          String!
+  date:           String
+  time:           String
+  venue:          String
+  description:    String
+  images:         [String]
+  pinned:         Boolean
+  level:          String!
+  department:     String
+  status:         String!
+  approvalStatus: String!
+  createdBy:      String
+  createdAt:      AWSDateTime
+  updatedAt:      AWSDateTime
+}
+
+type EventList @aws_api_key @aws_cognito_user_pools { items: [Event] nextToken: String }
+
+input CreateEventInput {
+  deptId:      ID
+  title:       String!
+  date:        String
+  time:        String
+  venue:       String
+  description: String
+  images:      [String]
+  pinned:      Boolean
+  level:       String!
+  department:  String
+}
+
+input UpdateEventInput {
+  eventId:        ID!
+  title:          String
+  date:           String
+  time:           String
+  venue:          String
+  description:    String
+  images:         [String]
+  pinned:         Boolean
+  level:          String
+  department:     String
+  status:         String
+  approvalStatus: String
+}
+
+extend type Query {
+  listEvents(deptId: ID, tenantId: ID, level: String, department: String, status: String, approvalStatus: String, pinned: Boolean, limit: Int, nextToken: String): EventList @aws_api_key @aws_cognito_user_pools
+  getEvent(eventId: ID!): Event @aws_api_key @aws_cognito_user_pools
+}
+
+extend type Mutation {
+  createEvent(input: CreateEventInput!): Event
+  updateEvent(input: UpdateEventInput!): Event
+  deleteEvent(eventId: ID!): Event
+  approveEvent(eventId: ID!): Event
+  rejectEvent(eventId: ID!): Event
+  cancelEvent(eventId: ID!): Event
+  togglePinEvent(eventId: ID!): Event
+}

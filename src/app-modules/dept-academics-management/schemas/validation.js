@@ -72,18 +72,20 @@ const deleteDeptSectionSchema = Joi.object({
 ─────────────────────────────*/
 
 const listDeptBatchesSchema = Joi.object({
-  deptId:    Joi.string().required(),
-  tenantId:  Joi.string().optional().allow(null),
-  programId: Joi.string().optional().allow(null)
+  deptId:      Joi.string().required(),
+  tenantId:    Joi.string().optional().allow(null),
+  programType: Joi.string().valid('UG', 'PG').optional().allow(null),
+  program:     Joi.string().optional().allow(null)
 })
 
 const createDeptBatchSchema = Joi.object({
   input: Joi.object({
-    deptId:    Joi.string().required(),
-    programId: Joi.string().optional().allow(null),
-    name:      Joi.string().min(1).required(),
-    startYear: Joi.number().integer().optional().allow(null),
-    endYear:   Joi.number().integer().optional().allow(null)
+    deptId:      Joi.string().required(),
+    programType: Joi.string().valid('UG', 'PG').optional().allow(null),
+    program:     Joi.string().optional().allow(null),
+    name:        Joi.string().min(1).required(),
+    startYear:   Joi.number().integer().optional().allow(null),
+    endYear:     Joi.number().integer().optional().allow(null)
   }).required()
 })
 
@@ -101,34 +103,43 @@ const getDeptCourseSchema = Joi.object({
 })
 
 const listDeptCoursesSchema = Joi.object({
-  deptId:     Joi.string().required(),
-  tenantId:   Joi.string().optional().allow(null),
-  search:     Joi.string().optional().allow("", null),
-  semester:   Joi.number().integer().min(1).max(8).optional().allow(null),
-  type:       Joi.string().valid("theory", "lab", "elective").optional().allow(null),
-  scheme:     Joi.string().optional().allow("", null),
-  sortBy:     Joi.string().valid("code", "name", "semester", "credits", "createdAt").optional().allow(null),
-  sortOrder:  Joi.string().valid("asc", "desc").optional().allow(null),
-  limit:      Joi.number().integer().min(1).max(100).optional().allow(null),
-  nextToken:  Joi.string().optional().allow("", null),
-  pagination: Joi.object().optional().allow(null)
+  deptId:      Joi.string().required(),
+  tenantId:    Joi.string().optional().allow(null),
+  search:      Joi.string().optional().allow("", null),
+  programType: Joi.string().valid('UG', 'PG').optional().allow(null),
+  program:     Joi.string().optional().allow("", null),
+  batch:       Joi.string().optional().allow("", null),
+  semester:    Joi.number().integer().min(1).max(8).optional().allow(null),
+  type:        Joi.string().valid("theory", "lab", "elective").optional().allow(null),
+  scheme:      Joi.string().optional().allow("", null),
+  sortBy:      Joi.string().valid("code", "name", "semester", "credits", "createdAt").optional().allow(null),
+  sortOrder:   Joi.string().valid("asc", "desc").optional().allow(null),
+  limit:       Joi.number().integer().min(1).max(100).optional().allow(null),
+  nextToken:   Joi.string().optional().allow("", null),
+  pagination:  Joi.object().optional().allow(null)
 })
 
 const createDeptCourseSchema = Joi.object({
   input: Joi.object({
-    deptId:   Joi.string().required(),
-    code:     Joi.string().min(2).required(),
-    name:     Joi.string().min(2).required(),
-    semester: Joi.number().integer().min(1).max(8).optional().allow(null),
-    credits:  Joi.number().integer().min(0).max(6).optional().allow(null),
-    type:     Joi.string().valid("theory", "lab", "elective").optional().allow(null),
-    scheme:   Joi.string().optional().allow("", null)
+    deptId:      Joi.string().required(),
+    programType: Joi.string().valid('UG', 'PG').optional().allow(null),
+    program:     Joi.string().optional().allow("", null),
+    batch:       Joi.string().optional().allow("", null),
+    code:        Joi.string().min(2).required(),
+    name:        Joi.string().min(2).required(),
+    semester:    Joi.number().integer().min(1).max(8).optional().allow(null),
+    credits:     Joi.number().integer().min(0).max(6).optional().allow(null),
+    type:        Joi.string().valid("theory", "lab", "elective").optional().allow(null),
+    scheme:      Joi.string().optional().allow("", null)
   }).required()
 })
 
 const updateDeptCourseSchema = Joi.object({
   input: Joi.object({
     deptCourseId: Joi.string().required(),
+    programType:  Joi.string().valid('UG', 'PG').optional().allow(null),
+    program:      Joi.string().optional().allow("", null),
+    batch:        Joi.string().optional().allow("", null),
     code:         Joi.string().min(2).optional().allow(null),
     name:         Joi.string().min(2).optional().allow(null),
     semester:     Joi.number().integer().min(1).max(8).optional().allow(null),
@@ -234,32 +245,32 @@ const listInnovativeTeachingSchema = Joi.object({
   deptId:    Joi.string().required(),
   tenantId:  Joi.string().optional().allow(null),
   search:    Joi.string().optional().allow("", null),
-  year:      Joi.string().optional().allow("", null),
-  sortBy:    Joi.string().valid("facultyName", "year", "createdAt").optional().allow(null),
+  sortBy:    Joi.string().valid("facultyName", "createdAt").optional().allow(null),
   sortOrder: Joi.string().valid("asc", "desc").optional().allow(null)
+})
+
+const facultyRefSchema = Joi.object({
+  facultyId:   Joi.string().optional().allow("", null),
+  facultyName: Joi.string().required()
 })
 
 const createInnovativeTeachingSchema = Joi.object({
   input: Joi.object({
-    deptId:        Joi.string().required(),
-    facultyName:   Joi.string().optional().allow("", null),
-    method:        Joi.string().optional().allow("", null),
-    description:   Joi.string().optional().allow("", null),
-    courseApplied: Joi.string().optional().allow("", null),
-    year:          Joi.string().optional().allow("", null),
-    outcome:       Joi.string().optional().allow("", null)
+    deptId:      Joi.string().required(),
+    faculties:   Joi.array().items(facultyRefSchema).optional().allow(null),
+    description: Joi.string().optional().allow("", null),
+    imageUrls:   Joi.array().items(Joi.string()).optional().allow(null),
+    pdfUrl:      Joi.string().optional().allow("", null)
   }).required()
 })
 
 const updateInnovativeTeachingSchema = Joi.object({
   input: Joi.object({
     innovativeTeachingId: Joi.string().required(),
-    facultyName:          Joi.string().optional().allow("", null),
-    method:               Joi.string().optional().allow("", null),
+    faculties:            Joi.array().items(facultyRefSchema).optional().allow(null),
     description:          Joi.string().optional().allow("", null),
-    courseApplied:        Joi.string().optional().allow("", null),
-    year:                 Joi.string().optional().allow("", null),
-    outcome:              Joi.string().optional().allow("", null)
+    imageUrls:            Joi.array().items(Joi.string()).optional().allow(null),
+    pdfUrl:               Joi.string().optional().allow("", null)
   }).required()
 })
 

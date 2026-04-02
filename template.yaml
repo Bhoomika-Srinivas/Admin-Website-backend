@@ -232,15 +232,13 @@ Resources:
           listDepartments(limit: Int, nextToken: String): DepartmentList @aws_cognito_user_pools @aws_api_key
           listDeptSlots(deptId: ID!, sectionId: ID!, tenantId: ID): DeptSlotList @aws_api_key @aws_cognito_user_pools
           listDeptSections(deptId: ID!, tenantId: ID, programId: ID, semester: Int, batchName: String): DeptSectionList @aws_api_key @aws_cognito_user_pools
-          listDeptBatches(deptId: ID!, tenantId: ID, programId: ID): DeptBatchList @aws_api_key @aws_cognito_user_pools
-          listDeptCourses(deptId: ID!, tenantId: ID, semester: Int, type: String, limit: Int, nextToken: String): DeptCourseList @aws_api_key @aws_cognito_user_pools
+          listDeptBatches(deptId: ID!, tenantId: ID, programType: String, program: String): DeptBatchList @aws_api_key @aws_cognito_user_pools
+          listDeptCourses(deptId: ID!, tenantId: ID, programType: String, program: String, batch: String, semester: Int, type: String, limit: Int, nextToken: String): DeptCourseList @aws_api_key @aws_cognito_user_pools
           getDeptCourse(deptCourseId: ID!): DeptCourse @aws_api_key @aws_cognito_user_pools
           listDeptTimetables(deptId: ID!, tenantId: ID, semester: Int, academicYear: String): DeptTimetableList @aws_api_key @aws_cognito_user_pools
           listLearningMaterials(deptId: ID!, tenantId: ID, courseCode: String, type: String, limit: Int, nextToken: String): LearningMaterialList @aws_api_key @aws_cognito_user_pools
           listInnovativeTeaching(deptId: ID!, tenantId: ID): InnovativeTeachingList @aws_api_key @aws_cognito_user_pools
           listResultAnalyses(deptId: ID!, tenantId: ID, semester: Int, batch: String): ResultAnalysisList @aws_api_key @aws_cognito_user_pools
-          listEvents(deptId: ID, tenantId: ID, level: String, department: String, status: String, approvalStatus: String, pinned: Boolean, limit: Int, nextToken: String): EventList @aws_api_key @aws_cognito_user_pools
-          getEvent(eventId: ID!): Event @aws_api_key @aws_cognito_user_pools
           listPlacementOverviews(deptId: ID!, tenantId: ID, academicYear: String): PlacementOverviewList @aws_api_key @aws_cognito_user_pools
           listStudentPlacements(deptId: ID!, tenantId: ID, batch: String, limit: Int, nextToken: String): StudentPlacementList @aws_api_key @aws_cognito_user_pools
           listAchievements(deptId: ID!, tenantId: ID, type: String): AchievementList @aws_api_key @aws_cognito_user_pools
@@ -259,17 +257,18 @@ Resources:
           listProgramOutcomes(deptId: ID!, tenantId: ID, type: String, limit: Int, nextToken: String): ProgramOutcomeList @aws_api_key @aws_cognito_user_pools
           listCommitteeMembers(deptId: ID!, tenantId: ID, committee: String): CommitteeMemberList                        @aws_api_key @aws_cognito_user_pools
           listDistinguishedAlumni(deptId: ID!, tenantId: ID): DistinguishedAlumniList                                    @aws_api_key @aws_cognito_user_pools
-          listDeptStaff(deptId: ID!, staffType: String, limit: Int, nextToken: String): DeptStaffList
-          getDeptStaff(deptStaffId: ID!): DeptStaff
-          listAccreditations(deptId: ID!, status: String, limit: Int, nextToken: String): AccreditationList
-          getAccreditation(accreditationId: ID!): Accreditation
-          listDeptPublications(deptId: ID!, tenantId: ID, type: String, year: Int, limit: Int, nextToken: String): DeptPublicationList @aws_api_key @aws_cognito_user_pools
+          listDeptStaff(deptId: ID!, staffType: String, limit: Int, nextToken: String, tenantId: String): DeptStaffList @aws_api_key @aws_cognito_user_pools
+          getDeptStaff(deptStaffId: ID!): DeptStaff @aws_api_key @aws_cognito_user_pools
+          listAccreditations(deptId: ID!, status: String, limit: Int, nextToken: String): AccreditationList @aws_api_key @aws_cognito_user_pools
+          getAccreditation(accreditationId: ID!): Accreditation @aws_api_key @aws_cognito_user_pools
           listPublicationProfiles(deptId: ID!, tenantId: ID): PublicationProfileList @aws_api_key @aws_cognito_user_pools
           listResearchGrants(deptId: ID!, tenantId: ID): ResearchGrantList @aws_api_key @aws_cognito_user_pools
           listPatents(deptId: ID!, tenantId: ID): PatentList @aws_api_key @aws_cognito_user_pools
           listFacultyResearchSummaries(deptId: ID!, tenantId: ID, limit: Int, nextToken: String): FacultyResearchSummaryList @aws_api_key @aws_cognito_user_pools
           listPhdGuides(deptId: ID!, tenantId: ID): PhdGuideList @aws_api_key @aws_cognito_user_pools
           listPhdScholars(deptId: ID!, tenantId: ID, guideFacultyId: ID, status: String): PhdScholarList @aws_api_key @aws_cognito_user_pools
+          listEvents(deptId: ID, tenantId: ID, level: String, department: String, status: String, approvalStatus: String, pinned: Boolean, limit: Int, nextToken: String): EventList @aws_api_key @aws_cognito_user_pools
+          getEvent(eventId: ID!): Event @aws_api_key @aws_cognito_user_pools
           getFaculty(facultyId: ID!, tenantId: ID): Faculty @aws_api_key @aws_cognito_user_pools
           listFaculty(deptId: ID, tenantId: ID, designation: String, status: String, search: String, limit: Int, nextToken: String): FacultyList @aws_api_key @aws_cognito_user_pools
           listDesignationOptions: DesignationOptions @aws_api_key @aws_cognito_user_pools
@@ -326,13 +325,6 @@ Resources:
           createResultAnalysis(input: CreateResultAnalysisInput!): ResultAnalysis
           updateResultAnalysis(input: UpdateResultAnalysisInput!): ResultAnalysis
           deleteResultAnalysis(resultAnalysisId: ID!): ResultAnalysis
-          createEvent(input: CreateEventInput!): Event
-          updateEvent(input: UpdateEventInput!): Event
-          deleteEvent(eventId: ID!): Event
-          approveEvent(eventId: ID!): Event
-          rejectEvent(eventId: ID!): Event
-          cancelEvent(eventId: ID!): Event
-          togglePinEvent(eventId: ID!): Event
           createPlacementOverview(input: CreatePlacementOverviewInput!): PlacementOverview
           updatePlacementOverview(input: UpdatePlacementOverviewInput!): PlacementOverview
           deletePlacementOverview(placementOverviewId: ID!): PlacementOverview
@@ -392,11 +384,8 @@ Resources:
           createAccreditation(input: CreateAccreditationInput!): Accreditation
           updateAccreditation(input: UpdateAccreditationInput!): Accreditation
           deleteAccreditation(accreditationId: ID!): Accreditation
-          createDeptPublication(input: CreateDeptPublicationInput!): DeptPublication
-          updateDeptPublication(input: UpdateDeptPublicationInput!): DeptPublication
-          deleteDeptPublication(deptPublicationId: ID!): DeptPublication
-        
           savePublicationProfile(input: SavePublicationProfileInput!): PublicationProfile
+          deletePublicationProfile(publicationProfileId: ID!): PublicationProfile
         
           createResearchGrant(input: CreateResearchGrantInput!): ResearchGrant
           updateResearchGrant(input: UpdateResearchGrantInput!): ResearchGrant
@@ -417,6 +406,13 @@ Resources:
           createPhdScholar(input: CreatePhdScholarInput!): PhdScholar
           updatePhdScholar(input: UpdatePhdScholarInput!): PhdScholar
           deletePhdScholar(phdScholarId: ID!): PhdScholar
+          createEvent(input: CreateEventInput!): Event
+          updateEvent(input: UpdateEventInput!): Event
+          deleteEvent(eventId: ID!): Event
+          approveEvent(eventId: ID!): Event
+          rejectEvent(eventId: ID!): Event
+          cancelEvent(eventId: ID!): Event
+          togglePinEvent(eventId: ID!): Event
           createFaculty(input: CreateFacultyInput!): Faculty
           updateFaculty(input: UpdateFacultyInput!): Faculty
           deleteFaculty(facultyId: ID!): Faculty
@@ -855,6 +851,7 @@ Resources:
           status:        String
           description:   String
           imageUrl:      String
+          programTypes:  [String]
           createdAt:     AWSDateTime
           updatedAt:     AWSDateTime
         }
@@ -865,13 +862,14 @@ Resources:
         }
         
         input CreateDepartmentInput {
-          name:        String!
-          shortName:   String!
-          hod:         String
-          established: Int
-          description: String
-          imageUrl:    String
-          status:      String
+          name:         String!
+          shortName:    String!
+          hod:          String
+          established:  Int
+          description:  String
+          imageUrl:     String
+          status:       String
+          programTypes: [String]
         }
         
         input UpdateDepartmentInput {
@@ -885,6 +883,7 @@ Resources:
           description:   String
           imageUrl:      String
           status:        String
+          programTypes:  [String]
         }
         
         
@@ -893,6 +892,9 @@ Resources:
         type DeptCourse @aws_api_key @aws_cognito_user_pools {
           deptCourseId: ID!
           deptId:       ID!
+          programType:  String
+          program:      String
+          batch:        String
           code:         String!
           name:         String!
           semester:     Int
@@ -926,15 +928,23 @@ Resources:
           createdAt:          AWSDateTime
         }
         
+        type FacultyRef @aws_api_key @aws_cognito_user_pools {
+          facultyId:   ID
+          facultyName: String!
+        }
+        
+        input FacultyRefInput {
+          facultyId:   ID
+          facultyName: String!
+        }
+        
         type InnovativeTeaching @aws_api_key @aws_cognito_user_pools {
           innovativeTeachingId: ID!
           deptId:               ID!
-          facultyName:          String
-          method:               String
+          faculties:            [FacultyRef]
           description:          String
-          courseApplied:        String
-          year:                 String
-          outcome:              String
+          imageUrls:            [String]
+          pdfUrl:               String
           createdAt:            AWSDateTime
         }
         
@@ -1007,7 +1017,8 @@ Resources:
         type DeptBatch @aws_api_key @aws_cognito_user_pools {
           deptBatchId: ID!
           deptId:      ID!
-          programId:   ID
+          programType: String
+          program:     String
           name:        String!
           startYear:   Int
           endYear:     Int
@@ -1017,11 +1028,12 @@ Resources:
         type DeptBatchList @aws_api_key @aws_cognito_user_pools { items: [DeptBatch] nextToken: String }
         
         input CreateDeptBatchInput {
-          deptId:    ID!
-          programId: ID
-          name:      String!
-          startYear: Int
-          endYear:   Int
+          deptId:      ID!
+          programType: String
+          program:     String
+          name:        String!
+          startYear:   Int
+          endYear:     Int
         }
         
         type DeptCourseList         @aws_api_key @aws_cognito_user_pools { items: [DeptCourse]         nextToken: String }
@@ -1031,16 +1043,22 @@ Resources:
         type ResultAnalysisList     @aws_api_key @aws_cognito_user_pools { items: [ResultAnalysis]     nextToken: String }
         
         input CreateDeptCourseInput {
-          deptId:   ID!
-          code:     String!
-          name:     String!
-          semester: Int
-          credits:  Int
-          type:     String
-          scheme:   String
+          deptId:      ID!
+          programType: String
+          program:     String
+          batch:       String
+          code:        String!
+          name:        String!
+          semester:    Int
+          credits:     Int
+          type:        String
+          scheme:      String
         }
         input UpdateDeptCourseInput {
           deptCourseId: ID!
+          programType:  String
+          program:      String
+          batch:        String
           code:         String
           name:         String
           semester:     Int
@@ -1083,22 +1101,18 @@ Resources:
         }
         
         input CreateInnovativeTeachingInput {
-          deptId:        ID!
-          facultyName:   String
-          method:        String
-          description:   String
-          courseApplied: String
-          year:          String
-          outcome:       String
+          deptId:      ID!
+          faculties:   [FacultyRefInput]
+          description: String
+          imageUrls:   [String]
+          pdfUrl:      String
         }
         input UpdateInnovativeTeachingInput {
           innovativeTeachingId: ID!
-          facultyName:          String
-          method:               String
+          faculties:            [FacultyRefInput]
           description:          String
-          courseApplied:        String
-          year:                 String
-          outcome:              String
+          imageUrls:            [String]
+          pdfUrl:               String
         }
         
         input CreateResultAnalysisInput {
@@ -1121,59 +1135,9 @@ Resources:
         
         
         # module: dept-activities-management
-        type Event @aws_api_key @aws_cognito_user_pools {
-          eventId:        ID!
-          deptId:         ID
-          title:          String!
-          date:           String
-          time:           String
-          venue:          String
-          description:    String
-          images:         [String]
-          pinned:         Boolean
-          level:          String!
-          department:     String
-          status:         String!
-          approvalStatus: String!
-          createdBy:      String
-          createdAt:      AWSDateTime
-          updatedAt:      AWSDateTime
-        }
-        
-        type EventList @aws_api_key @aws_cognito_user_pools { items: [Event] nextToken: String }
-        
-        input CreateEventInput {
-          deptId:      ID
-          title:       String!
-          date:        String
-          time:        String
-          venue:       String
-          description: String
-          images:      [String]
-          pinned:      Boolean
-          level:       String!
-          department:  String
-        }
-        
-        input UpdateEventInput {
-          eventId:        ID!
-          title:          String
-          date:           String
-          time:           String
-          venue:          String
-          description:    String
-          images:         [String]
-          pinned:         Boolean
-          level:          String
-          department:     String
-          status:         String
-          approvalStatus: String
-        }
-        
         type PlacementOverview @aws_api_key @aws_cognito_user_pools {
           placementOverviewId: ID!
           deptId:              ID!
-          title:               String
           academicYear:        String
           companiesVisited:    Int
           studentsInCampus:    Int
@@ -1225,11 +1189,12 @@ Resources:
         }
         
         type ForumEvent @aws_api_key @aws_cognito_user_pools {
-          forumEventId: ID!
-          deptId:       ID!
-          title:        String!
-          description:  String
-          createdAt:    AWSDateTime
+          forumEventId:  ID!
+          deptId:        ID!
+          title:         String!
+          description:   String
+          attachmentUrl: String
+          createdAt:     AWSDateTime
         }
         
         type DepartmentActivityLog @aws_api_key @aws_cognito_user_pools {
@@ -1241,14 +1206,11 @@ Resources:
         }
         
         type Newsletter @aws_api_key @aws_cognito_user_pools {
-          newsletterId:  ID!
-          deptId:        ID!
-          title:         String!
-          volume:        String
-          issue:         String
-          publishedDate: String
-          fileUrl:       String
-          createdAt:     AWSDateTime
+          newsletterId: ID!
+          deptId:       ID!
+          year:         String!
+          fileUrl:      String
+          createdAt:    AWSDateTime
         }
         
         type GalleryPhoto @aws_api_key @aws_cognito_user_pools {
@@ -1272,7 +1234,6 @@ Resources:
         
         input CreatePlacementOverviewInput {
           deptId:            ID!
-          title:             String
           academicYear:      String
           companiesVisited:  Int
           studentsInCampus:  Int
@@ -1281,7 +1242,6 @@ Resources:
         }
         input UpdatePlacementOverviewInput {
           placementOverviewId: ID!
-          title:               String
           academicYear:        String
           companiesVisited:    Int
           studentsInCampus:    Int
@@ -1336,27 +1296,21 @@ Resources:
         
         input SaveForumSectionInput { deptId: ID!  title: String!  description: String }
         
-        input CreateForumEventInput { deptId: ID!  title: String!  description: String }
-        input UpdateForumEventInput { forumEventId: ID!  title: String  description: String }
+        input CreateForumEventInput { deptId: ID!  title: String!  description: String  attachmentUrl: String }
+        input UpdateForumEventInput { forumEventId: ID!  title: String  description: String  attachmentUrl: String }
         
         input CreateDepartmentActivityInput { deptId: ID!  text: String! }
         input UpdateDepartmentActivityInput { deptActivityLogId: ID!  text: String }
         
         input CreateNewsletterInput {
-          deptId:        ID!
-          title:         String!
-          volume:        String
-          issue:         String
-          publishedDate: String
-          fileUrl:       String
+          deptId:  ID!
+          year:    String!
+          fileUrl: String
         }
         input UpdateNewsletterInput {
-          newsletterId:  ID!
-          title:         String
-          volume:        String
-          issue:         String
-          publishedDate: String
-          fileUrl:       String
+          newsletterId: ID!
+          year:         String
+          fileUrl:      String
         }
         
         input CreateGalleryPhotoInput {
@@ -1602,7 +1556,7 @@ Resources:
         
         
         # module: dept-people-management
-        type DeptStaff {
+        type DeptStaff @aws_api_key @aws_cognito_user_pools {
           deptStaffId:   ID!
           deptId:        ID!
           name:          String!
@@ -1614,7 +1568,7 @@ Resources:
           updatedAt:     AWSDateTime
         }
         
-        type Accreditation {
+        type Accreditation @aws_api_key @aws_cognito_user_pools {
           accreditationId: ID!
           deptId:          ID!
           name:            String!
@@ -1628,8 +1582,8 @@ Resources:
           updatedAt:       AWSDateTime
         }
         
-        type DeptStaffList     { items: [DeptStaff]     nextToken: String }
-        type AccreditationList { items: [Accreditation] nextToken: String }
+        type DeptStaffList     @aws_api_key @aws_cognito_user_pools { items: [DeptStaff]     nextToken: String }
+        type AccreditationList @aws_api_key @aws_cognito_user_pools { items: [Accreditation] nextToken: String }
         
         input CreateDeptStaffInput {
           deptId:      ID!
@@ -1674,19 +1628,6 @@ Resources:
         
         
         # module: dept-research-management
-        type DeptPublication @aws_api_key @aws_cognito_user_pools {
-          deptPublicationId: ID!
-          deptId:            ID!
-          title:             String!
-          authors:           String!
-          journal:           String
-          year:              Int
-          type:              String
-          doi:               String
-          createdAt:         AWSDateTime
-          updatedAt:         AWSDateTime
-        }
-        
         type PublicationProfile @aws_api_key @aws_cognito_user_pools {
           publicationProfileId: ID!
           deptId:               ID!
@@ -1759,32 +1700,12 @@ Resources:
           status:               String
         }
         
-        type DeptPublicationList        @aws_api_key @aws_cognito_user_pools { items: [DeptPublication]        nextToken: String }
         type PublicationProfileList     @aws_api_key @aws_cognito_user_pools { items: [PublicationProfile]     nextToken: String }
         type ResearchGrantList          @aws_api_key @aws_cognito_user_pools { items: [ResearchGrant]          nextToken: String }
         type PatentList                 @aws_api_key @aws_cognito_user_pools { items: [Patent]                 nextToken: String }
         type FacultyResearchSummaryList @aws_api_key @aws_cognito_user_pools { items: [FacultyResearchSummary] nextToken: String }
         type PhdGuideList               @aws_api_key @aws_cognito_user_pools { items: [PhdGuide]               nextToken: String }
         type PhdScholarList             @aws_api_key @aws_cognito_user_pools { items: [PhdScholar]             nextToken: String }
-        
-        input CreateDeptPublicationInput {
-          deptId:  ID!
-          title:   String!
-          authors: String!
-          journal: String
-          year:    Int
-          type:    String
-          doi:     String
-        }
-        input UpdateDeptPublicationInput {
-          deptPublicationId: ID!
-          title:   String
-          authors: String
-          journal: String
-          year:    Int
-          type:    String
-          doi:     String
-        }
         
         input SavePublicationProfileInput {
           deptId:            ID!
@@ -1878,6 +1799,58 @@ Resources:
           prePhdViva:           Boolean
           finalThesisSubmitted: Boolean
           status:               String
+        }
+        
+        
+        
+        # module: events-management
+        type Event @aws_api_key @aws_cognito_user_pools {
+          eventId:        ID!
+          deptId:         ID
+          title:          String!
+          date:           String
+          time:           String
+          venue:          String
+          description:    String
+          images:         [String]
+          pinned:         Boolean
+          level:          String!
+          department:     String
+          status:         String!
+          approvalStatus: String!
+          createdBy:      String
+          createdAt:      AWSDateTime
+          updatedAt:      AWSDateTime
+        }
+        
+        type EventList @aws_api_key @aws_cognito_user_pools { items: [Event] nextToken: String }
+        
+        input CreateEventInput {
+          deptId:      ID
+          title:       String!
+          date:        String
+          time:        String
+          venue:       String
+          description: String
+          images:      [String]
+          pinned:      Boolean
+          level:       String!
+          department:  String
+        }
+        
+        input UpdateEventInput {
+          eventId:        ID!
+          title:          String
+          date:           String
+          time:           String
+          venue:          String
+          description:    String
+          images:         [String]
+          pinned:         Boolean
+          level:          String
+          department:     String
+          status:         String
+          approvalStatus: String
         }
         
         
@@ -2624,6 +2597,161 @@ Resources:
         RuntimeVersion: 1.0.0
       CodeS3Location: src/core-modules/workflow-management/resolvers/listWorkflowInstances.js
 
+  EventsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-events-${Environment}'
+      CodeUri: src/app-modules/events-management/
+      Handler: functions/handler.handler
+      Layers:
+        - !Ref CommonLayer
+        - !Ref PackagesLayer
+      Policies:
+        - EventBridgePutEventsPolicy:
+            EventBusName: !Ref AppEventBus
+        - SSMParameterReadPolicy:
+            ParameterName: !Sub '${ProjectName}/${Environment}/*'
+      Tags:
+        Environment: !Ref Environment
+        ModuleName: events-management
+        ManagedBy: CloudFormation
+
+  EventsDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      Name: EventsDataSource
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !GetAtt AppSyncServiceRole.Arn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt EventsFunction.Arn
+
+  EventsListEventsResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listEvents
+      DataSourceName: !GetAtt EventsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/events-management/resolvers/listEvents.js
+
+  EventsGetEventResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: getEvent
+      DataSourceName: !GetAtt EventsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/events-management/resolvers/getEvent.js
+
+  EventsCreateEventResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createEvent
+      DataSourceName: !GetAtt EventsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/events-management/resolvers/createEvent.js
+
+  EventsUpdateEventResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateEvent
+      DataSourceName: !GetAtt EventsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/events-management/resolvers/updateEvent.js
+
+  EventsDeleteEventResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteEvent
+      DataSourceName: !GetAtt EventsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/events-management/resolvers/deleteEvent.js
+
+  EventsApproveEventResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: approveEvent
+      DataSourceName: !GetAtt EventsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/events-management/resolvers/approveEvent.js
+
+  EventsRejectEventResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: rejectEvent
+      DataSourceName: !GetAtt EventsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/events-management/resolvers/rejectEvent.js
+
+  EventsCancelEventResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: cancelEvent
+      DataSourceName: !GetAtt EventsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/events-management/resolvers/cancelEvent.js
+
+  EventsTogglePinEventResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: togglePinEvent
+      DataSourceName: !GetAtt EventsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/events-management/resolvers/togglePinEvent.js
+
   AlumniFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -3313,131 +3441,6 @@ Resources:
         RuntimeVersion: 1.0.0
       CodeS3Location: src/app-modules/dept-activities-management/resolvers/deleteDepartmentActivity.js
 
-  DeptActivitiesListEventsResolver:
-    Type: AWS::AppSync::Resolver
-    DependsOn: AppSyncSchema
-    Properties:
-      ApiId: !GetAtt AppSyncApi.ApiId
-      TypeName: Query
-      FieldName: listEvents
-      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
-      Kind: UNIT
-      Runtime:
-        Name: APPSYNC_JS
-        RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/dept-activities-management/resolvers/listEvents.js
-
-  DeptActivitiesGetEventResolver:
-    Type: AWS::AppSync::Resolver
-    DependsOn: AppSyncSchema
-    Properties:
-      ApiId: !GetAtt AppSyncApi.ApiId
-      TypeName: Query
-      FieldName: getEvent
-      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
-      Kind: UNIT
-      Runtime:
-        Name: APPSYNC_JS
-        RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/dept-activities-management/resolvers/getEvent.js
-
-  DeptActivitiesCreateEventResolver:
-    Type: AWS::AppSync::Resolver
-    DependsOn: AppSyncSchema
-    Properties:
-      ApiId: !GetAtt AppSyncApi.ApiId
-      TypeName: Mutation
-      FieldName: createEvent
-      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
-      Kind: UNIT
-      Runtime:
-        Name: APPSYNC_JS
-        RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/dept-activities-management/resolvers/createEvent.js
-
-  DeptActivitiesUpdateEventResolver:
-    Type: AWS::AppSync::Resolver
-    DependsOn: AppSyncSchema
-    Properties:
-      ApiId: !GetAtt AppSyncApi.ApiId
-      TypeName: Mutation
-      FieldName: updateEvent
-      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
-      Kind: UNIT
-      Runtime:
-        Name: APPSYNC_JS
-        RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/dept-activities-management/resolvers/updateEvent.js
-
-  DeptActivitiesDeleteEventResolver:
-    Type: AWS::AppSync::Resolver
-    DependsOn: AppSyncSchema
-    Properties:
-      ApiId: !GetAtt AppSyncApi.ApiId
-      TypeName: Mutation
-      FieldName: deleteEvent
-      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
-      Kind: UNIT
-      Runtime:
-        Name: APPSYNC_JS
-        RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/dept-activities-management/resolvers/deleteEvent.js
-
-  DeptActivitiesApproveEventResolver:
-    Type: AWS::AppSync::Resolver
-    DependsOn: AppSyncSchema
-    Properties:
-      ApiId: !GetAtt AppSyncApi.ApiId
-      TypeName: Mutation
-      FieldName: approveEvent
-      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
-      Kind: UNIT
-      Runtime:
-        Name: APPSYNC_JS
-        RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/dept-activities-management/resolvers/approveEvent.js
-
-  DeptActivitiesRejectEventResolver:
-    Type: AWS::AppSync::Resolver
-    DependsOn: AppSyncSchema
-    Properties:
-      ApiId: !GetAtt AppSyncApi.ApiId
-      TypeName: Mutation
-      FieldName: rejectEvent
-      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
-      Kind: UNIT
-      Runtime:
-        Name: APPSYNC_JS
-        RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/dept-activities-management/resolvers/rejectEvent.js
-
-  DeptActivitiesCancelEventResolver:
-    Type: AWS::AppSync::Resolver
-    DependsOn: AppSyncSchema
-    Properties:
-      ApiId: !GetAtt AppSyncApi.ApiId
-      TypeName: Mutation
-      FieldName: cancelEvent
-      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
-      Kind: UNIT
-      Runtime:
-        Name: APPSYNC_JS
-        RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/dept-activities-management/resolvers/cancelEvent.js
-
-  DeptActivitiesTogglePinEventResolver:
-    Type: AWS::AppSync::Resolver
-    DependsOn: AppSyncSchema
-    Properties:
-      ApiId: !GetAtt AppSyncApi.ApiId
-      TypeName: Mutation
-      FieldName: togglePinEvent
-      DataSourceName: !GetAtt DeptActivitiesDataSource.Name
-      Kind: UNIT
-      Runtime:
-        Name: APPSYNC_JS
-        RuntimeVersion: 1.0.0
-      CodeS3Location: src/app-modules/dept-activities-management/resolvers/togglePinEvent.js
 
   DeptAcademicsFunction:
     Type: AWS::Serverless::Function
@@ -5024,6 +5027,7 @@ Resources:
                   - !GetAtt StorageFunction.Arn
                   - !GetAtt FormFunction.Arn
                   - !GetAtt WorkflowFunction.Arn
+                  - !GetAtt EventsFunction.Arn
                   - !GetAtt AlumniFunction.Arn
                   - !GetAtt DeptBrandingFunction.Arn
                   - !GetAtt DeptActivitiesFunction.Arn

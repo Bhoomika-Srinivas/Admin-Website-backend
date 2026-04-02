@@ -14,6 +14,7 @@ const DepartmentSchema = new mongoose.Schema({
   status:        { type: String, enum: ["active", "inactive"], default: "active" },
   description:   { type: String },
   imageUrl:      { type: String },
+  programTypes:  [{ type: String }],
 }, { timestamps: true })
 
 DepartmentSchema.index({ tenant_id: 1, shortName: 1 }, { unique: true })

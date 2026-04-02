@@ -3,6 +3,7 @@ const mongoose = require("mongoose")
 /* ─── DeptStaff ─── */
 const DeptStaffSchema = new mongoose.Schema({
   tenant_id:     { type: String, required: true, index: true },
+  dept_staff_id: { type: String, index: true },
   created_by:    { type: String },
   deptId:        { type: String, required: true, index: true },
   name:          { type: String, required: true },
@@ -20,9 +21,10 @@ const DeptStaffSchema = new mongoose.Schema({
 
 /* ─── Accreditation ─── */
 const AccreditationSchema = new mongoose.Schema({
-  tenant_id:      { type: String, required: true, index: true },
-  created_by:     { type: String },
-  deptId:         { type: String, required: true, index: true },
+  tenant_id:        { type: String, required: true, index: true },
+  accreditation_id: { type: String, index: true },
+  created_by:       { type: String },
+  deptId:           { type: String, required: true, index: true },
   name:           { type: String, required: true },
   accreditedBy:   { type: String, required: true },
   validFrom:      { type: String },

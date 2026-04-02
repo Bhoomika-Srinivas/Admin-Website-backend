@@ -16,6 +16,7 @@ core_modules:
 
 # Product-specific modules (add when you run generate-module.sh --type app)
 app_modules:
+  - events-management
   - alumni-management
   - dept-branding-management
   - dept-activities-management

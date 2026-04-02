@@ -117,11 +117,9 @@ async function handleEvent(event) {
 
     // ── DeptStaff ─────────────────────────────────
     case 'getDeptStaff':
-      await requirePermission(ctx, 'dept-people:staff:read')
       return await getDeptStaff(ctx, event.arguments)
 
     case 'listDeptStaff':
-      await requirePermission(ctx, 'dept-people:staff:list')
       return await listDeptStaff(ctx, event.arguments)
 
     case 'createDeptStaff':
@@ -138,11 +136,9 @@ async function handleEvent(event) {
 
     // ── Accreditation ─────────────────────────────
     case 'getAccreditation':
-      await requirePermission(ctx, 'dept-people:accreditation:read')
       return await getAccreditation(ctx, event.arguments)
 
     case 'listAccreditations':
-      await requirePermission(ctx, 'dept-people:accreditation:list')
       return await listAccreditations(ctx, event.arguments)
 
     case 'createAccreditation':
@@ -182,10 +178,11 @@ async function getDeptStaff(ctx, args) {
 ─────────────────────────────*/
 
 async function listDeptStaff(ctx, args) {
-  const validated = validate(listDeptStaffSchema, args || {})
-  const query     = buildStaffQuery(validated)
-  const limit     = Math.min(validated.limit || 100, 100)
-  const fullFilter = { ...query, tenant_id: ctx.tenant_id }
+  const validated   = validate(listDeptStaffSchema, args || {})
+  const resolvedCtx = validated.tenantId ? { ...ctx, tenant_id: validated.tenantId } : ctx
+  const query       = buildStaffQuery(validated)
+  const limit       = Math.min(validated.limit || 100, 100)
+  const fullFilter  = { ...query, tenant_id: resolvedCtx.tenant_id }
 
   const items = await DeptStaff.find(fullFilter).sort({ order: 1 }).limit(limit).lean()
 

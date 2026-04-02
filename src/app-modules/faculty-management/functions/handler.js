@@ -106,13 +106,25 @@ async function listFaculty(ctx, args) {
   if (validated.status)      query.status       = validated.status
   if (validated.search)      query.name         = { $regex: validated.search, $options: 'i' }
 
-  const limit = Math.min(validated.limit || 20, 100)
+  const limit = Math.min(validated.limit || 50, 100)
+
+  if (validated.nextToken) {
+    const cursor = JSON.parse(Buffer.from(validated.nextToken, 'base64').toString('utf8'))
+    query.order = { $gt: cursor.order }
+  }
+
   const fullFilter = { ...query, tenant_id: resolvedCtx.tenant_id }
-  const items = await Faculty.find(fullFilter).sort({ order: 1 }).limit(limit).lean()
+  const items = await Faculty.find(fullFilter).sort({ order: 1 }).limit(limit + 1).lean()
+
+  const hasMore  = items.length > limit
+  const page     = hasMore ? items.slice(0, limit) : items
+  const nextToken = hasMore
+    ? Buffer.from(JSON.stringify({ order: page[page.length - 1].order })).toString('base64')
+    : null
 
   return {
-    items:     items.map(toFacultyResponse),
-    nextToken: null
+    items:     page.map(toFacultyResponse),
+    nextToken
   }
 }
 

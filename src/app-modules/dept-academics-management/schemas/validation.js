@@ -7,21 +7,27 @@ const Joi = require("joi")
 const VALID_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
 const listDeptSlotsSchema = Joi.object({
-  deptId:    Joi.string().required(),
-  sectionId: Joi.string().required(),
-  tenantId:  Joi.string().optional().allow(null)
+  deptId:      Joi.string().required(),
+  sectionId:   Joi.string().required(),
+  tenantId:    Joi.string().optional().allow(null),
+  programType: Joi.string().valid('UG', 'PG').optional().allow(null),
+  program:     Joi.string().optional().allow(null),
+  batch:       Joi.string().optional().allow(null)
 })
 
 const createDeptSlotSchema = Joi.object({
   input: Joi.object({
-    deptId:     Joi.string().required(),
-    sectionId:  Joi.string().required(),
-    day:        Joi.string().valid(...VALID_DAYS).required(),
-    period:     Joi.number().integer().min(1).max(7).required(),
-    courseCode: Joi.string().required(),
-    courseName: Joi.string().required(),
-    type:       Joi.string().valid('theory', 'lab', 'elective').required(),
-    facultyId:  Joi.string().optional().allow(null)
+    deptId:      Joi.string().required(),
+    programType: Joi.string().valid('UG', 'PG').optional().allow(null),
+    program:     Joi.string().optional().allow(null),
+    batch:       Joi.string().optional().allow(null),
+    sectionId:   Joi.string().required(),
+    day:         Joi.string().valid(...VALID_DAYS).required(),
+    period:      Joi.number().integer().min(1).max(7).required(),
+    courseCode:  Joi.string().required(),
+    courseName:  Joi.string().required(),
+    type:        Joi.string().valid('theory', 'lab', 'elective').required(),
+    facultyId:   Joi.string().optional().allow(null)
   }).required()
 })
 

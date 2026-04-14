@@ -103,10 +103,27 @@ exports.handler = withConnection(handleEvent)
    Handlers
 ─────────────────────────────*/
 
+async function autoCompleteExpiredEvents(tenantId) {
+  const today = new Date().toISOString().slice(0, 10) // "YYYY-MM-DD"
+  await Event.updateMany(
+    {
+      tenant_id: tenantId,
+      status: 'upcoming',
+      $or: [
+        { isMultiDay: false, date:    { $lt: today } },
+        { isMultiDay: true,  endDate: { $lt: today } }
+      ]
+    },
+    { $set: { status: 'completed' } }
+  )
+}
+
 async function listEvents(ctx, args) {
   const validated = validate(listEventsSchema, args || {})
   const { tenantId, ...rest } = validated
   const resolvedCtx = tenantId ? { ...ctx, tenant_id: tenantId } : ctx
+
+  await autoCompleteExpiredEvents(resolvedCtx.tenant_id)
 
   const query      = buildEventQuery(rest)
   const pagination = normalizePagination(validated)
@@ -132,7 +149,7 @@ async function getEvent(ctx, args) {
 
 async function createEvent(ctx, args) {
   const input = validate(createEventSchema, args || {})
-  const { deptId, title, date, time, venue, description, images, pinned, level, department } = input.input
+  const { deptId, title, isMultiDay, date, time, startDate, startTime, endDate, endTime, venue, description, images, pinned, level, department } = input.input
 
   const event_id = generateId()
   const isAdmin  = (ctx.permissions || []).includes('*:*:*')
@@ -141,8 +158,13 @@ async function createEvent(ctx, args) {
     event_id,
     deptId:         deptId      ?? null,
     title,
+    isMultiDay:     isMultiDay  ?? false,
     date:           date        ?? null,
     time:           time        ?? null,
+    startDate:      startDate   ?? null,
+    startTime:      startTime   ?? null,
+    endDate:        endDate     ?? null,
+    endTime:        endTime     ?? null,
     venue:          venue       ?? null,
     description:    description ?? null,
     images:         images      ?? [],
@@ -166,8 +188,13 @@ async function updateEvent(ctx, args) {
 
   const updates = {}
   if (fields.title          !== undefined) updates.title          = fields.title
+  if (fields.isMultiDay     !== undefined) updates.isMultiDay     = fields.isMultiDay
   if (fields.date           !== undefined) updates.date           = fields.date
   if (fields.time           !== undefined) updates.time           = fields.time
+  if (fields.startDate      !== undefined) updates.startDate      = fields.startDate
+  if (fields.startTime      !== undefined) updates.startTime      = fields.startTime
+  if (fields.endDate        !== undefined) updates.endDate        = fields.endDate
+  if (fields.endTime        !== undefined) updates.endTime        = fields.endTime
   if (fields.venue          !== undefined) updates.venue          = fields.venue
   if (fields.description    !== undefined) updates.description    = fields.description
   if (fields.images         !== undefined) updates.images         = fields.images

@@ -1,0 +1,61 @@
+type AccreditationRecord @aws_api_key @aws_cognito_user_pools {
+  accreditationId: ID!
+  type:            String!
+  section:         String
+  sub_section:     String
+  sub_sub_section: String
+  department:      String
+  title:           String!
+  description:     String
+  year:            String
+  program:         String
+  cycle:           String
+  file_url:        String!
+  order:           Int
+  createdBy:       String
+  createdAt:       AWSDateTime
+  updatedAt:       AWSDateTime
+}
+
+type AccreditationRecordList @aws_api_key @aws_cognito_user_pools { items: [AccreditationRecord] nextToken: String }
+
+input CreateAccreditationRecordInput {
+  type:            String!
+  section:         String
+  sub_section:     String
+  sub_sub_section: String
+  department:      String
+  title:           String!
+  description:     String
+  year:            String
+  program:         String
+  cycle:           String
+  file_url:        String!
+  order:           Int
+}
+
+input UpdateAccreditationRecordInput {
+  accreditationId: ID!
+  section:         String
+  sub_section:     String
+  sub_sub_section: String
+  department:      String
+  title:           String
+  description:     String
+  year:            String
+  program:         String
+  cycle:           String
+  file_url:        String
+  order:           Int
+}
+
+extend type Query {
+  listAccreditationRecords(type: String!, section: String, sub_section: String, sub_sub_section: String, department: String, tenantId: ID, limit: Int, nextToken: String): AccreditationRecordList @aws_api_key @aws_cognito_user_pools
+  getAccreditationRecord(accreditationId: ID!): AccreditationRecord @aws_api_key @aws_cognito_user_pools
+}
+
+extend type Mutation {
+  createAccreditationRecord(input: CreateAccreditationRecordInput!): AccreditationRecord!
+  updateAccreditationRecord(input: UpdateAccreditationRecordInput!): AccreditationRecord!
+  deleteAccreditationRecord(accreditationId: ID!): AccreditationRecord!
+}

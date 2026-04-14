@@ -1,0 +1,846 @@
+
+  AdmissionsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-admissions-${Environment}'
+      CodeUri: src/app-modules/admissions-management/
+      Handler: functions/handler.handler
+      Layers:
+        - !Ref CommonLayer
+        - !Ref PackagesLayer
+      Environment:
+        Variables:
+          BUCKET_NAME: !Ref AppBucket
+      Policies:
+        - EventBridgePutEventsPolicy:
+            EventBusName: !Ref AppEventBus
+        - SSMParameterReadPolicy:
+            ParameterName: !Sub '${ProjectName}/${Environment}/*'
+        - S3CrudPolicy:
+            BucketName: !Ref AppBucket
+      Tags:
+        Environment: !Ref Environment
+        ModuleName: admissions-management
+        ManagedBy: CloudFormation
+
+  AdmissionsDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      Name: AdmissionsDataSource
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !GetAtt AppSyncServiceRole.Arn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt AdmissionsFunction.Arn
+
+  # ── Queries ────────────────────────────────────────────────────────────────
+
+  AdmissionsGetAdmissionsOverviewResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: getAdmissionsOverview
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/getAdmissionsOverview.js
+
+  AdmissionsListAdmissionsProgramsResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listAdmissionsPrograms
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/listAdmissionsPrograms.js
+
+  AdmissionsListUGCoursesResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listUGCourses
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/listUGCourses.js
+
+  AdmissionsListPGCoursesResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listPGCourses
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/listPGCourses.js
+
+  AdmissionsListEligibilityEntriesResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listEligibilityEntries
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/listEligibilityEntries.js
+
+  AdmissionsListAdmissionStepsResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listAdmissionSteps
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/listAdmissionSteps.js
+
+  AdmissionsListImportantDatesResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listImportantDates
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/listImportantDates.js
+
+  AdmissionsGetProspectusResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: getProspectus
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/getProspectus.js
+
+  AdmissionsListFeeDocumentsResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listFeeDocuments
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/listFeeDocuments.js
+
+  AdmissionsListScholarshipsResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listScholarships
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/listScholarships.js
+
+  AdmissionsListAuditStatementsResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listAuditStatements
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/listAuditStatements.js
+
+  AdmissionsListAdmissionsEnquiriesResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listAdmissionsEnquiries
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/listAdmissionsEnquiries.js
+
+  AdmissionsListAdmissionsContactsResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listAdmissionsContacts
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/listAdmissionsContacts.js
+
+  AdmissionsGetWhyEnquireResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: getWhyEnquire
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/getWhyEnquire.js
+
+  AdmissionsListEnquiryCategoriesResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listEnquiryCategories
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/listEnquiryCategories.js
+
+  AdmissionsListInfoBlocksResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listInfoBlocks
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/listInfoBlocks.js
+
+  # ── Singleton Mutations ────────────────────────────────────────────────────
+
+  AdmissionsSaveAdmissionsOverviewResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: saveAdmissionsOverview
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/saveAdmissionsOverview.js
+
+  AdmissionsSaveProspectusResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: saveProspectus
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/saveProspectus.js
+
+  AdmissionsDeleteProspectusResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteProspectus
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/deleteProspectus.js
+
+  AdmissionsSaveWhyEnquireResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: saveWhyEnquire
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/saveWhyEnquire.js
+
+  # ── Program Mutations ──────────────────────────────────────────────────────
+
+  AdmissionsCreateAdmissionsProgramResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createAdmissionsProgram
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/createAdmissionsProgram.js
+
+  AdmissionsUpdateAdmissionsProgramResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateAdmissionsProgram
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/updateAdmissionsProgram.js
+
+  AdmissionsDeleteAdmissionsProgramResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteAdmissionsProgram
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/deleteAdmissionsProgram.js
+
+  # ── UG Course Mutations ────────────────────────────────────────────────────
+
+  AdmissionsCreateUGCourseResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createUGCourse
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/createUGCourse.js
+
+  AdmissionsUpdateUGCourseResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateUGCourse
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/updateUGCourse.js
+
+  AdmissionsDeleteUGCourseResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteUGCourse
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/deleteUGCourse.js
+
+  # ── PG Course Mutations ────────────────────────────────────────────────────
+
+  AdmissionsCreatePGCourseResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createPGCourse
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/createPGCourse.js
+
+  AdmissionsUpdatePGCourseResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updatePGCourse
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/updatePGCourse.js
+
+  AdmissionsDeletePGCourseResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deletePGCourse
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/deletePGCourse.js
+
+  # ── Eligibility Entry Mutations ────────────────────────────────────────────
+
+  AdmissionsCreateEligibilityEntryResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createEligibilityEntry
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/createEligibilityEntry.js
+
+  AdmissionsUpdateEligibilityEntryResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateEligibilityEntry
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/updateEligibilityEntry.js
+
+  AdmissionsDeleteEligibilityEntryResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteEligibilityEntry
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/deleteEligibilityEntry.js
+
+  # ── Step Mutations ─────────────────────────────────────────────────────────
+
+  AdmissionsCreateAdmissionStepResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createAdmissionStep
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/createAdmissionStep.js
+
+  AdmissionsUpdateAdmissionStepResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateAdmissionStep
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/updateAdmissionStep.js
+
+  AdmissionsDeleteAdmissionStepResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteAdmissionStep
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/deleteAdmissionStep.js
+
+  AdmissionsReorderAdmissionStepsResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: reorderAdmissionSteps
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/reorderAdmissionSteps.js
+
+  # ── Important Date Mutations ───────────────────────────────────────────────
+
+  AdmissionsCreateImportantDateResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createImportantDate
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/createImportantDate.js
+
+  AdmissionsUpdateImportantDateResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateImportantDate
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/updateImportantDate.js
+
+  AdmissionsDeleteImportantDateResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteImportantDate
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/deleteImportantDate.js
+
+  # ── Fee Document Mutations ─────────────────────────────────────────────────
+
+  AdmissionsCreateFeeDocumentResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createFeeDocument
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/createFeeDocument.js
+
+  AdmissionsUpdateFeeDocumentResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateFeeDocument
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/updateFeeDocument.js
+
+  AdmissionsDeleteFeeDocumentResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteFeeDocument
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/deleteFeeDocument.js
+
+  # ── Scholarship Mutations ──────────────────────────────────────────────────
+
+  AdmissionsCreateScholarshipResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createScholarship
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/createScholarship.js
+
+  AdmissionsUpdateScholarshipResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateScholarship
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/updateScholarship.js
+
+  AdmissionsDeleteScholarshipResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteScholarship
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/deleteScholarship.js
+
+  # ── Audit Statement Mutations ──────────────────────────────────────────────
+
+  AdmissionsCreateAuditStatementResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createAuditStatement
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/createAuditStatement.js
+
+  AdmissionsDeleteAuditStatementResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteAuditStatement
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/deleteAuditStatement.js
+
+  # ── Enquiry Category Mutations ─────────────────────────────────────────────
+
+  AdmissionsCreateEnquiryCategoryResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createEnquiryCategory
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/createEnquiryCategory.js
+
+  AdmissionsUpdateEnquiryCategoryResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateEnquiryCategory
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/updateEnquiryCategory.js
+
+  AdmissionsDeleteEnquiryCategoryResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteEnquiryCategory
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/deleteEnquiryCategory.js
+
+  # ── Info Block Mutations ───────────────────────────────────────────────────
+
+  AdmissionsCreateInfoBlockResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createInfoBlock
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/createInfoBlock.js
+
+  AdmissionsUpdateInfoBlockResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateInfoBlock
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/updateInfoBlock.js
+
+  AdmissionsDeleteInfoBlockResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteInfoBlock
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/deleteInfoBlock.js
+
+  # ── Enquiry & Contact Mutations ────────────────────────────────────────────
+
+  AdmissionsUpdateEnquiryStatusResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateEnquiryStatus
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/updateEnquiryStatus.js
+
+  AdmissionsUpdateAdmissionsContactResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateAdmissionsContact
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/updateAdmissionsContact.js
+
+  AdmissionsSubmitAdmissionsEnquiryResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: submitAdmissionsEnquiry
+      DataSourceName: !GetAtt AdmissionsDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/admissions-management/resolvers/submitAdmissionsEnquiry.js

@@ -26,4 +26,6 @@ app_modules:
   - dept-info-management
   - department-management
   - faculty-management
-  
+  - accreditations-management
+  - admissions-management
+

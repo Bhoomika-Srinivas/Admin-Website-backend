@@ -69,30 +69,36 @@ type ResultAnalysis @aws_api_key @aws_cognito_user_pools {
 }
 
 type DeptSlot @aws_api_key @aws_cognito_user_pools {
-  deptSlotId: ID!
-  deptId:     ID!
-  sectionId:  ID!
-  day:        String!
-  period:     Int!
-  courseCode: String!
-  courseName: String!
-  type:       String!
-  facultyId:  ID
-  createdAt:  AWSDateTime
-  updatedAt:  AWSDateTime
+  deptSlotId:  ID!
+  deptId:      ID!
+  programType: String
+  program:     String
+  batch:       String
+  sectionId:   ID!
+  day:         String!
+  period:      Int!
+  courseCode:  String!
+  courseName:  String!
+  type:        String!
+  facultyId:   ID
+  createdAt:   AWSDateTime
+  updatedAt:   AWSDateTime
 }
 
 type DeptSlotList @aws_api_key @aws_cognito_user_pools { items: [DeptSlot] nextToken: String }
 
 input CreateDeptSlotInput {
-  deptId:     ID!
-  sectionId:  ID!
-  day:        String!
-  period:     Int!
-  courseCode: String!
-  courseName: String!
-  type:       String!
-  facultyId:  ID
+  deptId:      ID!
+  programType: String
+  program:     String
+  batch:       String
+  sectionId:   ID!
+  day:         String!
+  period:      Int!
+  courseCode:  String!
+  courseName:  String!
+  type:        String!
+  facultyId:   ID
 }
 
 input UpdateDeptSlotInput {
@@ -242,7 +248,7 @@ input UpdateResultAnalysisInput {
 }
 
 extend type Query {
-  listDeptSlots(deptId: ID!, sectionId: ID!, tenantId: ID): DeptSlotList @aws_api_key @aws_cognito_user_pools
+  listDeptSlots(deptId: ID!, sectionId: ID!, tenantId: ID, programType: String, program: String, batch: String): DeptSlotList @aws_api_key @aws_cognito_user_pools
   listDeptSections(deptId: ID!, tenantId: ID, programId: ID, semester: Int, batchName: String): DeptSectionList @aws_api_key @aws_cognito_user_pools
   listDeptBatches(deptId: ID!, tenantId: ID, programType: String, program: String): DeptBatchList @aws_api_key @aws_cognito_user_pools
   listDeptCourses(deptId: ID!, tenantId: ID, programType: String, program: String, batch: String, semester: Int, type: String, limit: Int, nextToken: String): DeptCourseList @aws_api_key @aws_cognito_user_pools

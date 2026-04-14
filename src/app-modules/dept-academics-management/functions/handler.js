@@ -346,10 +346,12 @@ async function listDeptSlots(ctx, args) {
   const validated   = validate(listDeptSlotsSchema, args || {})
   const resolvedCtx = validated.tenantId ? { ...ctx, tenant_id: validated.tenantId } : ctx
 
-  const result = await deptSlotRepo.findMany(resolvedCtx, {
-    deptId:    validated.deptId,
-    sectionId: validated.sectionId
-  }, { sort: { day: 1, period: 1 } })
+  const slotQuery = { deptId: validated.deptId, sectionId: validated.sectionId }
+  if (validated.programType) slotQuery.programType = validated.programType
+  if (validated.program)     slotQuery.program     = validated.program
+  if (validated.batch)       slotQuery.batch       = validated.batch
+
+  const result = await deptSlotRepo.findMany(resolvedCtx, slotQuery, { sort: { day: 1, period: 1 } })
 
   return {
     items:     result.items.map(toDeptSlotResponse),
@@ -359,7 +361,7 @@ async function listDeptSlots(ctx, args) {
 
 async function createDeptSlot(ctx, args) {
   const input = validate(createDeptSlotSchema, args || {})
-  const { deptId, sectionId, day, period, courseCode, courseName, type, facultyId } = input.input
+  const { deptId, programType, program, batch, sectionId, day, period, courseCode, courseName, type, facultyId } = input.input
 
   // Validate Saturday period limit
   if (day === 'Sat' && period > 4) {
@@ -377,6 +379,9 @@ async function createDeptSlot(ctx, args) {
   const created = await deptSlotRepo.create(ctx, {
     dept_slot_id,
     deptId,
+    programType: programType ?? null,
+    program:     program     ?? null,
+    batch:       batch       ?? null,
     sectionId,
     day,
     period,

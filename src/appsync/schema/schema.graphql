@@ -35,11 +35,29 @@ type Query {
   getWorkflow(workflow_id: ID!): WorkflowDefinition
   listWorkflows(pagination: PaginationInput): WorkflowDefinitionConnection
   listWorkflowInstances(workflow_id: ID, pagination: PaginationInput): WorkflowInstanceConnection
+  listAccreditationRecords(type: String!, section: String, sub_section: String, sub_sub_section: String, department: String, tenantId: ID, limit: Int, nextToken: String): AccreditationRecordList @aws_api_key @aws_cognito_user_pools
+  getAccreditationRecord(accreditationId: ID!): AccreditationRecord @aws_api_key @aws_cognito_user_pools
+  getAdmissionsOverview(tenantId: ID):                   AdmissionsOverview  @aws_api_key @aws_cognito_user_pools
+  listAdmissionsPrograms(level: String, tenantId: ID):   [AdmissionsProgram] @aws_api_key @aws_cognito_user_pools
+  listUGCourses(tenantId: ID):                           [UGCourse]          @aws_api_key @aws_cognito_user_pools
+  listPGCourses(tenantId: ID):                           [PGCourse]          @aws_api_key @aws_cognito_user_pools
+  listEligibilityEntries(tenantId: ID):                  [EligibilityEntry]  @aws_api_key @aws_cognito_user_pools
+  listAdmissionSteps(tenantId: ID):                      [AdmissionStep]     @aws_api_key @aws_cognito_user_pools
+  listImportantDates(tenantId: ID):                      [ImportantDate]     @aws_api_key @aws_cognito_user_pools
+  getProspectus(tenantId: ID):                           Prospectus          @aws_api_key @aws_cognito_user_pools
+  listFeeDocuments(tenantId: ID):                        [FeeDocument]       @aws_api_key @aws_cognito_user_pools
+  listScholarships(tenantId: ID):                        [Scholarship]       @aws_api_key @aws_cognito_user_pools
+  listAuditStatements(tenantId: ID):                     [AuditStatement]    @aws_api_key @aws_cognito_user_pools
+  listAdmissionsEnquiries(status: String, tenantId: ID): [AdmissionsEnquiry] @aws_cognito_user_pools
+  listAdmissionsContacts(tenantId: ID):                  [AdmissionsContact] @aws_api_key @aws_cognito_user_pools
+  getWhyEnquire(tenantId: ID):                           WhyEnquire          @aws_api_key @aws_cognito_user_pools
+  listEnquiryCategories(tenantId: ID):                   [EnquiryCategory]   @aws_api_key @aws_cognito_user_pools
+  listInfoBlocks(tenantId: ID):                          [InfoBlock]         @aws_api_key @aws_cognito_user_pools
   getAlumni(alumniId: ID!, tenantId: ID): Alumni @aws_api_key @aws_cognito_user_pools
   listAlumni(tenantId: ID, deptId: ID, batch: String, search: String, limit: Int, nextToken: String): AlumniList @aws_api_key @aws_cognito_user_pools
   getDepartment(departmentId: ID!): Department @aws_cognito_user_pools @aws_api_key
   listDepartments(limit: Int, nextToken: String): DepartmentList @aws_cognito_user_pools @aws_api_key
-  listDeptSlots(deptId: ID!, sectionId: ID!, tenantId: ID): DeptSlotList @aws_api_key @aws_cognito_user_pools
+  listDeptSlots(deptId: ID!, sectionId: ID!, tenantId: ID, programType: String, program: String, batch: String): DeptSlotList @aws_api_key @aws_cognito_user_pools
   listDeptSections(deptId: ID!, tenantId: ID, programId: ID, semester: Int, batchName: String): DeptSectionList @aws_api_key @aws_cognito_user_pools
   listDeptBatches(deptId: ID!, tenantId: ID, programType: String, program: String): DeptBatchList @aws_api_key @aws_cognito_user_pools
   listDeptCourses(deptId: ID!, tenantId: ID, programType: String, program: String, batch: String, semester: Int, type: String, limit: Int, nextToken: String): DeptCourseList @aws_api_key @aws_cognito_user_pools
@@ -102,6 +120,76 @@ type Mutation {
   updateRole(role_id: ID!, input: UpdateRoleInput!): Role
   assignRole(user_id: ID!, role_id: ID!): User
   removeRole(user_id: ID!, role_id: ID!): User
+  createAccreditationRecord(input: CreateAccreditationRecordInput!): AccreditationRecord!
+  updateAccreditationRecord(input: UpdateAccreditationRecordInput!): AccreditationRecord!
+  deleteAccreditationRecord(accreditationId: ID!): AccreditationRecord!
+  # Singletons
+  saveAdmissionsOverview(input: SaveAdmissionsOverviewInput!): AdmissionsOverview!
+  saveProspectus(input: SaveProspectusInput!):                 Prospectus!
+  deleteProspectus:                                            Boolean!
+  saveWhyEnquire(input: SaveWhyEnquireInput!):                 WhyEnquire!
+
+  # Programs
+  createAdmissionsProgram(input: CreateAdmissionsProgramInput!): AdmissionsProgram!
+  updateAdmissionsProgram(input: UpdateAdmissionsProgramInput!): AdmissionsProgram!
+  deleteAdmissionsProgram(programId: ID!):                        AdmissionsProgram!
+
+  # UG Courses
+  createUGCourse(input: CreateUGCourseInput!): UGCourse!
+  updateUGCourse(input: UpdateUGCourseInput!): UGCourse!
+  deleteUGCourse(courseId: ID!):               UGCourse!
+
+  # PG Courses
+  createPGCourse(input: CreatePGCourseInput!): PGCourse!
+  updatePGCourse(input: UpdatePGCourseInput!): PGCourse!
+  deletePGCourse(courseId: ID!):               PGCourse!
+
+  # Eligibility entries
+  createEligibilityEntry(input: CreateEligibilityEntryInput!): EligibilityEntry!
+  updateEligibilityEntry(input: UpdateEligibilityEntryInput!): EligibilityEntry!
+  deleteEligibilityEntry(entryId: ID!):                         EligibilityEntry!
+
+  # Steps
+  createAdmissionStep(input: CreateAdmissionStepInput!): AdmissionStep!
+  updateAdmissionStep(input: UpdateAdmissionStepInput!): AdmissionStep!
+  deleteAdmissionStep(stepId: ID!):                       AdmissionStep!
+  reorderAdmissionSteps(ids: [ID!]!):                     [AdmissionStep]!
+
+  # Important Dates
+  createImportantDate(input: CreateImportantDateInput!): ImportantDate!
+  updateImportantDate(input: UpdateImportantDateInput!): ImportantDate!
+  deleteImportantDate(dateId: ID!):                       ImportantDate!
+
+  # Fee Documents
+  createFeeDocument(input: CreateFeeDocumentInput!): FeeDocument!
+  updateFeeDocument(input: UpdateFeeDocumentInput!): FeeDocument!
+  deleteFeeDocument(feeDocId: ID!):                   Boolean!
+
+  # Scholarships
+  createScholarship(input: CreateScholarshipInput!): Scholarship!
+  updateScholarship(input: UpdateScholarshipInput!): Scholarship!
+  deleteScholarship(scholarshipId: ID!):              Scholarship!
+
+  # Audit Statements
+  createAuditStatement(input: CreateAuditStatementInput!): AuditStatement!
+  deleteAuditStatement(auditId: ID!):                       Boolean!
+
+  # Enquiry Categories
+  createEnquiryCategory(input: CreateEnquiryCategoryInput!): EnquiryCategory!
+  updateEnquiryCategory(input: UpdateEnquiryCategoryInput!): EnquiryCategory!
+  deleteEnquiryCategory(categoryId: ID!):                     EnquiryCategory!
+
+  # Info Blocks
+  createInfoBlock(input: CreateInfoBlockInput!): InfoBlock!
+  updateInfoBlock(input: UpdateInfoBlockInput!): InfoBlock!
+  deleteInfoBlock(blockId: ID!):                  InfoBlock!
+
+  # Enquiries & Contacts
+  updateEnquiryStatus(enquiryId: ID!, status: EnquiryStatus!):                    AdmissionsEnquiry!
+  updateAdmissionsContact(contactId: ID!, input: UpdateAdmissionsContactInput!): AdmissionsContact!
+
+  # Public (unauthenticated)
+  submitAdmissionsEnquiry(input: EnquirySubmitInput!): Boolean! @aws_api_key
   createAlumni(input: CreateAlumniInput!): Alumni
   updateAlumni(input: UpdateAlumniInput!): Alumni
   deleteAlumni(alumniId: ID!): Alumni
@@ -594,6 +682,434 @@ type WorkflowInstanceConnection {
 }
 
 
+# module: accreditations-management
+type AccreditationRecord @aws_api_key @aws_cognito_user_pools {
+  accreditationId: ID!
+  type:            String!
+  section:         String
+  sub_section:     String
+  sub_sub_section: String
+  department:      String
+  title:           String!
+  description:     String
+  year:            String
+  program:         String
+  cycle:           String
+  file_url:        String!
+  order:           Int
+  createdBy:       String
+  createdAt:       AWSDateTime
+  updatedAt:       AWSDateTime
+}
+
+type AccreditationRecordList @aws_api_key @aws_cognito_user_pools { items: [AccreditationRecord] nextToken: String }
+
+input CreateAccreditationRecordInput {
+  type:            String!
+  section:         String
+  sub_section:     String
+  sub_sub_section: String
+  department:      String
+  title:           String!
+  description:     String
+  year:            String
+  program:         String
+  cycle:           String
+  file_url:        String!
+  order:           Int
+}
+
+input UpdateAccreditationRecordInput {
+  accreditationId: ID!
+  section:         String
+  sub_section:     String
+  sub_sub_section: String
+  department:      String
+  title:           String
+  description:     String
+  year:            String
+  program:         String
+  cycle:           String
+  file_url:        String
+  order:           Int
+}
+
+
+
+# module: admissions-management
+enum EnquiryStatus    { NEW CONTACTED CLOSED }
+enum ScholarshipType  { STATE GOVERNMENT_OF_INDIA INSTITUTIONAL OTHERS }
+enum InfoBlockType    { PHONE OFFICE_HOURS EMAIL }
+
+# ─── Singleton types ──────────────────────────────────────────────────────────
+
+type AdmissionsOverview @aws_api_key @aws_cognito_user_pools {
+  headline:    String
+  subheadline: String
+  description: String
+  highlights:  [String]
+  imageUrl:    String
+  bannerUrl:   String
+  updatedAt:   AWSDateTime
+}
+
+type AdmissionsProgram @aws_api_key @aws_cognito_user_pools {
+  programId:   ID!
+  level:       String!
+  name:        String!
+  duration:    String
+  seats:       Int
+  description: String
+  eligibility: String
+  order:       Int
+  createdAt:   AWSDateTime
+  updatedAt:   AWSDateTime
+}
+
+type UGCourse @aws_api_key @aws_cognito_user_pools {
+  courseId:    ID!
+  name:        String!
+  code:        String
+  duration:    String
+  seats:       Int
+  description: String
+  order:       Int
+  createdAt:   AWSDateTime
+  updatedAt:   AWSDateTime
+}
+
+type PGCourse @aws_api_key @aws_cognito_user_pools {
+  courseId:    ID!
+  name:        String!
+  code:        String
+  duration:    String
+  seats:       Int
+  description: String
+  order:       Int
+  createdAt:   AWSDateTime
+  updatedAt:   AWSDateTime
+}
+
+type EligibilityEntry @aws_api_key @aws_cognito_user_pools {
+  entryId:     ID!
+  title:       String!
+  description: String
+  order:       Int
+  createdAt:   AWSDateTime
+  updatedAt:   AWSDateTime
+}
+
+type AdmissionStep @aws_api_key @aws_cognito_user_pools {
+  stepId:      ID!
+  title:       String!
+  description: String
+  iconName:    String
+  order:       Int!
+  createdAt:   AWSDateTime
+  updatedAt:   AWSDateTime
+}
+
+type ImportantDate @aws_api_key @aws_cognito_user_pools {
+  dateId:      ID!
+  event:       String!
+  date:        String!
+  description: String
+  category:    String
+  createdAt:   AWSDateTime
+  updatedAt:   AWSDateTime
+}
+
+type Prospectus @aws_api_key @aws_cognito_user_pools {
+  title:       String
+  description: String
+  fileUrl:     String!
+  fileName:    String
+  uploadedAt:  AWSDateTime
+  updatedAt:   AWSDateTime
+}
+
+type FeeDocument @aws_api_key @aws_cognito_user_pools {
+  feeDocId:   ID!
+  title:      String!
+  fileUrl:    String!
+  fileName:   String
+  uploadedAt: AWSDateTime
+  updatedAt:  AWSDateTime
+}
+
+type Scholarship @aws_api_key @aws_cognito_user_pools {
+  scholarshipId: ID!
+  type:          ScholarshipType!
+  name:          String!
+  description:   String
+  amount:        String
+  eligibility:   String
+  order:         Int
+  createdAt:     AWSDateTime
+  updatedAt:     AWSDateTime
+}
+
+type AuditStatement @aws_api_key @aws_cognito_user_pools {
+  auditId:   ID!
+  year:      String!
+  title:     String!
+  fileUrl:   String!
+  fileName:  String
+  createdAt: AWSDateTime
+}
+
+type AdmissionsEnquiry @aws_cognito_user_pools {
+  enquiryId: ID!
+  name:      String!
+  email:     String!
+  phone:     String
+  program:   String
+  message:   String
+  status:    EnquiryStatus!
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}
+
+type AdmissionsContact @aws_api_key @aws_cognito_user_pools {
+  contactId:      ID!
+  role:           String!
+  name:           String
+  phone:          String
+  email:          String
+  officeLocation: String
+  updatedAt:      AWSDateTime
+}
+
+type WhyEnquire @aws_api_key @aws_cognito_user_pools {
+  title:     String
+  points:    [String]
+  updatedAt: AWSDateTime
+}
+
+type EnquiryCategory @aws_api_key @aws_cognito_user_pools {
+  categoryId:  ID!
+  title:       String!
+  description: String
+  createdAt:   AWSDateTime
+  updatedAt:   AWSDateTime
+}
+
+type InfoBlock @aws_api_key @aws_cognito_user_pools {
+  blockId:     ID!
+  type:        InfoBlockType!
+  description: String!
+  createdAt:   AWSDateTime
+  updatedAt:   AWSDateTime
+}
+
+# ─── Inputs ───────────────────────────────────────────────────────────────────
+
+input SaveAdmissionsOverviewInput {
+  headline:    String
+  subheadline: String
+  description: String
+  highlights:  [String]
+  imageUrl:    String
+  bannerUrl:   String
+}
+
+input CreateAdmissionsProgramInput {
+  level:       String!
+  name:        String!
+  duration:    String
+  seats:       Int
+  description: String
+  eligibility: String
+  order:       Int
+}
+
+input UpdateAdmissionsProgramInput {
+  programId:   ID!
+  level:       String
+  name:        String
+  duration:    String
+  seats:       Int
+  description: String
+  eligibility: String
+  order:       Int
+}
+
+input CreateUGCourseInput {
+  name:        String!
+  code:        String
+  duration:    String
+  seats:       Int
+  description: String
+  order:       Int
+}
+
+input UpdateUGCourseInput {
+  courseId:    ID!
+  name:        String
+  code:        String
+  duration:    String
+  seats:       Int
+  description: String
+  order:       Int
+}
+
+input CreatePGCourseInput {
+  name:        String!
+  code:        String
+  duration:    String
+  seats:       Int
+  description: String
+  order:       Int
+}
+
+input UpdatePGCourseInput {
+  courseId:    ID!
+  name:        String
+  code:        String
+  duration:    String
+  seats:       Int
+  description: String
+  order:       Int
+}
+
+input CreateEligibilityEntryInput {
+  title:       String!
+  description: String
+  order:       Int
+}
+
+input UpdateEligibilityEntryInput {
+  entryId:     ID!
+  title:       String
+  description: String
+  order:       Int
+}
+
+input CreateAdmissionStepInput {
+  title:       String!
+  description: String
+  iconName:    String
+  order:       Int
+}
+
+input UpdateAdmissionStepInput {
+  stepId:      ID!
+  title:       String
+  description: String
+  iconName:    String
+  order:       Int
+}
+
+input CreateImportantDateInput {
+  event:       String!
+  date:        String!
+  description: String
+  category:    String
+}
+
+input UpdateImportantDateInput {
+  dateId:      ID!
+  event:       String
+  date:        String
+  description: String
+  category:    String
+}
+
+input SaveProspectusInput {
+  title:       String
+  description: String
+  fileBase64:  String!
+  fileName:    String!
+}
+
+input CreateFeeDocumentInput {
+  title:      String!
+  fileBase64: String!
+  fileName:   String!
+}
+
+input UpdateFeeDocumentInput {
+  feeDocId:   ID!
+  title:      String
+  fileBase64: String
+  fileName:   String
+}
+
+input CreateScholarshipInput {
+  type:        ScholarshipType!
+  name:        String!
+  description: String
+  amount:      String
+  eligibility: String
+  order:       Int
+}
+
+input UpdateScholarshipInput {
+  scholarshipId: ID!
+  type:          ScholarshipType
+  name:          String
+  description:   String
+  amount:        String
+  eligibility:   String
+  order:         Int
+}
+
+input CreateAuditStatementInput {
+  year:       String!
+  title:      String!
+  fileBase64: String!
+  fileName:   String!
+}
+
+input EnquirySubmitInput {
+  tenantId: ID!
+  name:     String!
+  email:    String!
+  phone:    String
+  program:  String
+  message:  String
+}
+
+input UpdateAdmissionsContactInput {
+  name:           String
+  phone:          String
+  email:          String
+  officeLocation: String
+}
+
+input SaveWhyEnquireInput {
+  title:  String
+  points: [String]
+}
+
+input CreateEnquiryCategoryInput {
+  title:       String!
+  description: String
+}
+
+input UpdateEnquiryCategoryInput {
+  categoryId:  ID!
+  title:       String
+  description: String
+}
+
+input CreateInfoBlockInput {
+  type:        InfoBlockType!
+  description: String!
+}
+
+input UpdateInfoBlockInput {
+  blockId:     ID!
+  type:        InfoBlockType
+  description: String
+}
+
+# ─── Queries ──────────────────────────────────────────────────────────────────
+
+
+# ─── Mutations ────────────────────────────────────────────────────────────────
+
+
 # module: alumni-management
 type Alumni @aws_api_key @aws_cognito_user_pools {
   alumniId:    ID!
@@ -769,30 +1285,36 @@ type ResultAnalysis @aws_api_key @aws_cognito_user_pools {
 }
 
 type DeptSlot @aws_api_key @aws_cognito_user_pools {
-  deptSlotId: ID!
-  deptId:     ID!
-  sectionId:  ID!
-  day:        String!
-  period:     Int!
-  courseCode: String!
-  courseName: String!
-  type:       String!
-  facultyId:  ID
-  createdAt:  AWSDateTime
-  updatedAt:  AWSDateTime
+  deptSlotId:  ID!
+  deptId:      ID!
+  programType: String
+  program:     String
+  batch:       String
+  sectionId:   ID!
+  day:         String!
+  period:      Int!
+  courseCode:  String!
+  courseName:  String!
+  type:        String!
+  facultyId:   ID
+  createdAt:   AWSDateTime
+  updatedAt:   AWSDateTime
 }
 
 type DeptSlotList @aws_api_key @aws_cognito_user_pools { items: [DeptSlot] nextToken: String }
 
 input CreateDeptSlotInput {
-  deptId:     ID!
-  sectionId:  ID!
-  day:        String!
-  period:     Int!
-  courseCode: String!
-  courseName: String!
-  type:       String!
-  facultyId:  ID
+  deptId:      ID!
+  programType: String
+  program:     String
+  batch:       String
+  sectionId:   ID!
+  day:         String!
+  period:      Int!
+  courseCode:  String!
+  courseName:  String!
+  type:        String!
+  facultyId:   ID
 }
 
 input UpdateDeptSlotInput {
@@ -1617,8 +2139,13 @@ type Event @aws_api_key @aws_cognito_user_pools {
   eventId:        ID!
   deptId:         ID
   title:          String!
+  isMultiDay:     Boolean
   date:           String
   time:           String
+  startDate:      String
+  startTime:      String
+  endDate:        String
+  endTime:        String
   venue:          String
   description:    String
   images:         [String]
@@ -1637,8 +2164,13 @@ type EventList @aws_api_key @aws_cognito_user_pools { items: [Event] nextToken: 
 input CreateEventInput {
   deptId:      ID
   title:       String!
+  isMultiDay:  Boolean
   date:        String
   time:        String
+  startDate:   String
+  startTime:   String
+  endDate:     String
+  endTime:     String
   venue:       String
   description: String
   images:      [String]
@@ -1650,8 +2182,13 @@ input CreateEventInput {
 input UpdateEventInput {
   eventId:        ID!
   title:          String
+  isMultiDay:     Boolean
   date:           String
   time:           String
+  startDate:      String
+  startTime:      String
+  endDate:        String
+  endTime:        String
   venue:          String
   description:    String
   images:         [String]

@@ -8,6 +8,7 @@ const { generateId } = require('/opt/nodejs/utils/id-generator');
 const { MongoRepository } = require('/opt/nodejs/db/mongo-repository');
 const { NotFoundError, ConflictError } = require('/opt/nodejs/middleware/error-handler');
 const { normalizePagination } = require('/opt/nodejs/utils/pagination');
+const { invalidateUserPermissions } = require('/opt/nodejs/utils/redis-cache');
 const {
   getUserSchema,
   listUsersSchema,
@@ -187,6 +188,10 @@ async function assignRole(ctx, args) {
   if (roles.includes(role_id)) return user;
   roles.push(role_id);
   const updated = await userRepo.updateById(ctx, user_id, { roles });
+  // Invalidate cache for this user
+  if (user.cognito_sub) {
+    await invalidateUserPermissions(user.cognito_sub);
+  }
   await publishEvent('user-management', 'RoleAssigned', {
     user_id,
     role_id,
@@ -202,5 +207,10 @@ async function removeRole(ctx, args) {
   const user = await userRepo.findById(ctx, user_id);
   if (!user) throw new NotFoundError('User not found');
   const roles = (user.roles || []).filter((r) => r !== role_id);
-  return await userRepo.updateById(ctx, user_id, { roles });
+  const updated = await userRepo.updateById(ctx, user_id, { roles });
+  // Invalidate cache for this user
+  if (user.cognito_sub) {
+    await invalidateUserPermissions(user.cognito_sub);
+  }
+  return updated;
 }

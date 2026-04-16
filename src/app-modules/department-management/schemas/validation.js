@@ -7,12 +7,14 @@ const currentYear = new Date().getFullYear()
 ─────────────────────────────*/
 
 const getDepartmentSchema = Joi.object({
-  departmentId: Joi.string().required()
+  departmentId: Joi.string().required(),
+  tenantId:     Joi.string().required()  // Required for public endpoint tenant isolation
 })
 
 const listDepartmentsSchema = Joi.object({
+  tenantId:   Joi.string().required(),  // Required for public endpoint tenant isolation
   search:     Joi.string().optional().allow(""),
-  status:     Joi.string().valid("active", "inactive").optional(),
+  // Note: status filter removed for public - always returns 'active' only
   sortBy:     Joi.string().valid("name", "shortName", "established", "createdAt").optional(),
   sortOrder:  Joi.string().valid("asc", "desc").optional(),
   limit:      Joi.number().integer().min(1).max(100).optional(),

@@ -104,9 +104,12 @@ exports.handler = withConnection(handleEvent)
 ─────────────────────────────*/
 
 async function getDepartment(ctx, args) {
-  const { departmentId } = validate(getDepartmentSchema, args || {})
-  // tenant filter skipped — public query
-  const doc = await Department.findOne({ department_id: departmentId }).lean()
+  const { departmentId, tenantId } = validate(getDepartmentSchema, args || {})
+  // Public endpoint - enforce tenant isolation
+  const doc = await Department.findOne({
+    department_id: departmentId,
+    tenant_id: tenantId || ctx.tenant_id  // Use provided tenantId or from auth context
+  }).lean()
   if (!doc) throw new NotFoundError('Department not found')
   return toDepartmentResponse(doc)
 }
@@ -121,8 +124,13 @@ async function listDepartments(ctx, args) {
   const query     = buildQuery(validated)
   const sort      = buildSort(validated.sortBy, validated.sortOrder)
 
-  // tenant filter skipped — public query
-  const docs = await Department.find(query).sort(sort).lean()
+  // Public endpoint - enforce tenant isolation
+  // Only return active departments for the specified tenant
+  const docs = await Department.find({
+    ...query,
+    tenant_id: validated.tenantId || ctx.tenant_id,
+    status: 'active'  // Public only sees active departments
+  }).sort(sort).lean()
 
   return {
     items:     docs.map(toDepartmentResponse),

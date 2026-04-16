@@ -43,7 +43,7 @@ This is an AWS SAM-based multi-tenant SaaS backend using AppSync (GraphQL) + Lam
 ### Module Types
 
 - **Core modules** (`src/core-modules/`): tenant-management, user-management, audit-log, notification-management, storage-management, form-management, workflow-management
-- **App modules** (`src/app-modules/`): product-specific modules (team-management, news-management, development-management, faculty-management)
+- **App modules** (`src/app-modules/`): department-management, dept-info-management, dept-branding-management, dept-people-management, dept-academics-management, dept-research-management, dept-activities-management, faculty-management, alumni-management, events-management, accreditations-management, admissions-management
 
 ### Request Flow
 
@@ -80,11 +80,15 @@ Run `npm run compose-template` to regenerate.
 ### Layers (src/layers/common/)
 
 Middleware imported from `/opt/nodejs/`:
-- `middleware/tenant-resolver` — `resolveTenant(event)` → ctx
+- `middleware/tenant-resolver` — `resolveTenant(event)` → ctx; `resolveSecureTenantContext(ctx, requestedTenantId)` for cross-tenant guard
 - `middleware/auth-guard` — `requirePermission(ctx, 'module:resource:action')`
 - `middleware/input-validator` — `validate(joiSchema, data)`
 - `middleware/with-connection` — `withConnection(handler)` wraps handler with MongoDB connection
+- `middleware/rate-limiter` — `checkRateLimit(ctx, identifier?)` — DynamoDB-backed (in-memory fallback for local)
+- `middleware/sanitizer` — `sanitizePlainText`, `sanitizeRichText`, `sanitizeObject`, `escapeHtml`, `stripHtml`
 - `utils/event-publisher` — `publishEvent(source, eventType, payload)`
+- `utils/file-validator` — `validateBase64File(base64, filename, opts)` — validates by magic bytes, not extension
+- `utils/redis-cache` — `getUserPermissions`, `setUserPermissions`, `getTenantConfig`, `setTenantConfig`, `getRole`, `setRole` (in-memory cache, Redis-ready)
 - `db/mongo-repository` — `MongoRepository({ model, primaryKey })`
 
 ### Permission Format
@@ -111,3 +115,6 @@ const { handler } = require('../../../../src/app-modules/<module>/functions/hand
 | `EVENT_BUS_NAME` | EventBridge custom bus name |
 | `MONGODB_SSM_PARAM_NAME` | SSM path for MongoDB URI |
 | `AWS_SAM_LOCAL` | Set to `TRUE` for local dev; uses `MONGODB_URI` directly |
+| `RATE_LIMIT_TABLE` | DynamoDB table name for rate limiting (omit to use in-memory fallback) |
+| `RATE_LIMIT_PER_MINUTE` | Max requests per minute per user (default: 60) |
+| `RATE_LIMIT_PER_HOUR` | Max requests per hour per user (default: 1000) |

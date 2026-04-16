@@ -112,6 +112,116 @@ jest.mock('/opt/nodejs/utils/retry', () => ({
   withRetry: (fn) => fn(),
 }), { virtual: true });
 
+// Security utilities mocks
+const mockValidateBase64File = jest.fn((base64, filename, options = {}) => {
+  const maxSize = options.maxSize || 10 * 1024 * 1024;
+  try {
+    if (!base64 || base64.length === 0) {
+      return { valid: false, error: 'Empty base64' };
+    }
+    const buffer = Buffer.from(base64.replace(/^data:[^;]+;base64,/, ''), 'base64');
+    if (buffer.length > maxSize) {
+      return { valid: false, error: 'File too large' };
+    }
+    const ext = filename ? filename.split('.').pop().toLowerCase() : '';
+    const mimeType = ext === 'pdf' ? 'application/pdf' : `application/${ext}`;
+    return {
+      valid: true,
+      buffer,
+      mimeType,
+      extension: ext ? `.${ext}` : '',
+      filename: filename || 'unknown',
+      size: buffer.length,
+    };
+  } catch (e) {
+    return { valid: false, error: 'Invalid base64' };
+  }
+});
+
+const mockCheckRateLimit = jest.fn().mockResolvedValue({
+  allowed: true,
+  remaining: 59,
+  retryAfter: null,
+});
+
+const mockSanitizePlainText = jest.fn((text) => {
+  if (text === null || text === undefined) return null;
+  return text
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/&/g, '&amp;')
+    .trim();
+});
+
+const mockSanitizeRichText = jest.fn((html) => {
+  if (html === null || html === undefined) return null;
+  return html
+    .replace(/<script[^>]*>.*?<\/script>/gi, '')
+    .replace(/\s*on\w+="[^"]*"/gi, '')
+    .replace(/javascript:/gi, '')
+    .trim();
+});
+
+const mockSanitizeObject = jest.fn((obj) => {
+  if (typeof obj !== 'object' || obj === null) return obj;
+  if (Array.isArray(obj)) {
+    return obj.map((item) => mockSanitizeObject(item));
+  }
+  const sanitized = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (typeof value === 'string') {
+      sanitized[key] = mockSanitizePlainText(value);
+    } else if (typeof value === 'object' && value !== null) {
+      sanitized[key] = mockSanitizeObject(value);
+    } else {
+      sanitized[key] = value;
+    }
+  }
+  return sanitized;
+});
+
+jest.mock('/opt/nodejs/utils/file-validator', () => ({
+  validateBase64File: mockValidateBase64File,
+  getFileExtension: jest.fn((filename) => {
+    if (!filename) return '';
+    const parts = filename.split('.');
+    return parts.length > 1 ? `.${parts.pop().toLowerCase()}` : '';
+  }),
+  generateSafeFilename: jest.fn((filename) => {
+    const safe = filename ? filename.replace(/[^a-zA-Z0-9.-]/g, '_') : 'file';
+    return `${safe.substring(0, 50)}_${Date.now()}`;
+  }),
+  ALLOWED_MIME_TYPES: {
+    'application/pdf': { extensions: ['.pdf'], signatures: [[0x25, 0x50, 0x44, 0x46]] },
+    'image/jpeg': { extensions: ['.jpg', '.jpeg'], signatures: [[0xFF, 0xD8, 0xFF]] },
+    'image/png': { extensions: ['.png'], signatures: [[0x89, 0x50, 0x4E, 0x47]] },
+  },
+  MAX_FILE_SIZE: 10 * 1024 * 1024,
+}), { virtual: true });
+
+jest.mock('/opt/nodejs/middleware/rate-limiter', () => ({
+  checkRateLimit: mockCheckRateLimit,
+  RateLimitError: class RateLimitError extends Error {
+    constructor(message = 'Rate limit exceeded') {
+      super(message);
+      this.code = 'RATE_LIMIT_EXCEEDED';
+      this.statusCode = 429;
+    }
+  },
+}), { virtual: true });
+
+jest.mock('/opt/nodejs/middleware/sanitizer', () => ({
+  escapeHtml: mockSanitizePlainText,
+  sanitizePlainText: mockSanitizePlainText,
+  sanitizeRichText: mockSanitizeRichText,
+  sanitizeObject: mockSanitizeObject,
+  stripHtml: jest.fn((html) => {
+    if (!html) return '';
+    return html.replace(/<[^>]+>/g, '').trim();
+  }),
+}), { virtual: true });
+
 function getMocks() {
   const errorHandlerModule = require('/opt/nodejs/middleware/error-handler');
   return {
@@ -124,6 +234,20 @@ function getMocks() {
     handleError: errorHandlerModule.handleError,
     /** Array of mock repo instances in the order they were constructed (e.g. [userRepo, roleRepo]) */
     repos: repoMocks,
+    // Security utilities
+    validateBase64File: mockValidateBase64File,
+    checkRateLimit: mockCheckRateLimit,
+    sanitizePlainText: mockSanitizePlainText,
+    sanitizeRichText: mockSanitizeRichText,
+    sanitizeObject: mockSanitizeObject,
+    // Cache utilities
+    getUserPermissions: mockGetUserPermissions,
+    setUserPermissions: mockSetUserPermissions,
+    invalidateUserPermissions: mockInvalidateUserPermissions,
+    getTenantConfig: mockGetTenantConfig,
+    setTenantConfig: mockSetTenantConfig,
+    getRole: mockGetRole,
+    setRole: mockSetRole,
   };
 }
 
@@ -147,7 +271,45 @@ function resetAllMocks() {
   if (errorHandlerModule.handleError?.mockClear) {
     errorHandlerModule.handleError.mockClear();
   }
+  // Clear security utility mocks
+  mockValidateBase64File.mockClear();
+  mockCheckRateLimit.mockClear();
+  mockSanitizePlainText.mockClear();
+  mockSanitizeRichText.mockClear();
+  mockSanitizeObject.mockClear();
+  // Clear cache mocks
+  mockGetUserPermissions.mockClear();
+  mockSetUserPermissions.mockClear();
+  mockInvalidateUserPermissions.mockClear();
+  mockGetTenantConfig.mockClear();
+  mockSetTenantConfig.mockClear();
+  mockGetRole.mockClear();
+  mockSetRole.mockClear();
 }
+
+// Redis cache mocks
+const mockGetUserPermissions = jest.fn().mockResolvedValue(null);
+const mockSetUserPermissions = jest.fn().mockResolvedValue(undefined);
+const mockInvalidateUserPermissions = jest.fn().mockResolvedValue(undefined);
+const mockGetTenantConfig = jest.fn().mockResolvedValue(null);
+const mockSetTenantConfig = jest.fn().mockResolvedValue(undefined);
+const mockGetRole = jest.fn().mockResolvedValue(null);
+const mockSetRole = jest.fn().mockResolvedValue(undefined);
+
+jest.mock('/opt/nodejs/utils/redis-cache', () => ({
+  getUserPermissions: mockGetUserPermissions,
+  setUserPermissions: mockSetUserPermissions,
+  invalidateUserPermissions: mockInvalidateUserPermissions,
+  getTenantConfig: mockGetTenantConfig,
+  setTenantConfig: mockSetTenantConfig,
+  getRole: mockGetRole,
+  setRole: mockSetRole,
+  invalidateTenant: jest.fn().mockResolvedValue(undefined),
+  clearAll: jest.fn().mockResolvedValue(undefined),
+  getStats: jest.fn().mockReturnValue({ size: 0, keys: [] }),
+  getCacheKey: jest.fn((prefix, id) => `${prefix}:${id}`),
+  DEFAULT_TTL: 300,
+}), { virtual: true });
 
 module.exports = {
   createMockRepo,

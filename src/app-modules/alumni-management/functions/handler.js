@@ -37,9 +37,11 @@ async function handleEvent(event) {
   switch (event.field) {
 
     case 'getAlumni':
+      await requirePermission(ctx, 'alumni:alumni:read')
       return await getAlumni(ctx, event.arguments)
 
     case 'listAlumni':
+      await requirePermission(ctx, 'alumni:alumni:list')
       return await listAlumni(ctx, event.arguments)
 
     case 'createAlumni':
@@ -65,9 +67,9 @@ exports.handler = withConnection(handleEvent)
 /* ── Get Alumni ── */
 
 async function getAlumni(ctx, args) {
-  const { alumniId, tenantId } = validate(getAlumniSchema, args || {})
-  const resolvedCtx = tenantId ? { ...ctx, tenant_id: tenantId } : ctx
-  const doc = await alumniRepo.findById(resolvedCtx, alumniId)
+  const { alumniId } = validate(getAlumniSchema, args || {})
+  // Always use authenticated tenant context - never allow override
+  const doc = await alumniRepo.findById(ctx, alumniId)
   if (!doc) throw new NotFoundError('Alumni not found')
   return toAlumniResponse(doc)
 }

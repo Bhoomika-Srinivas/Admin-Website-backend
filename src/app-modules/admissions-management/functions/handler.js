@@ -5,7 +5,10 @@ const { withConnection }    = require('/opt/nodejs/middleware/with-connection')
 const { log }               = require('/opt/nodejs/middleware/request-logger')
 const { generateId }        = require('/opt/nodejs/utils/id-generator')
 const { MongoRepository }   = require('/opt/nodejs/db/mongo-repository')
-const { NotFoundError }     = require('/opt/nodejs/middleware/error-handler')
+const { NotFoundError, ValidationError } = require('/opt/nodejs/middleware/error-handler')
+const { checkRateLimit }  = require('/opt/nodejs/middleware/rate-limiter')
+const { validateBase64File } = require('/opt/nodejs/utils/file-validator')
+const { sanitizePlainText, sanitizeRichText } = require('/opt/nodejs/middleware/sanitizer')
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3')
 const path = require('path')
 
@@ -74,24 +77,47 @@ const {
 } = require('../schemas/validation')
 
 /* ─────────────────────────────
-   S3
+   S3 - Secure File Upload
 ─────────────────────────────*/
 
 const s3     = new S3Client({ region: process.env.AWS_REGION })
 const BUCKET = process.env.BUCKET_NAME
 const REGION = process.env.AWS_REGION
 
-async function uploadToS3(key, fileBase64, fileName) {
-  const ext      = path.extname(fileName).toLowerCase()
-  const mimeType = ext === '.pdf' ? 'application/pdf' : 'application/octet-stream'
-  const base64   = fileBase64.replace(/^data:[^;]+;base64,/, '')
-  const buffer   = Buffer.from(base64, 'base64')
+/**
+ * Securely upload file to S3 with validation
+ * @param {string} key - S3 key path
+ * @param {string} fileBase64 - Base64 encoded file
+ * @param {string} fileName - Original filename
+ * @param {Object} options - Upload options
+ * @returns {Promise<string>} - File URL
+ * @throws {Error} - If validation fails
+ */
+async function uploadToS3(key, fileBase64, fileName, options = {}) {
+  // Validate file before upload
+  const validation = validateBase64File(fileBase64, fileName, {
+    maxSize: options.maxSize || 10 * 1024 * 1024, // 10MB default
+    allowedTypes: options.allowedTypes || ['application/pdf', 'image/jpeg', 'image/png'],
+  })
 
+  if (!validation.valid) {
+    throw new Error(`File validation failed: ${validation.error}`)
+  }
+
+  const { buffer, mimeType } = validation
+
+  // Upload to S3 with security headers
   await s3.send(new PutObjectCommand({
     Bucket:      BUCKET,
     Key:         key,
     Body:        buffer,
     ContentType: mimeType,
+    ContentDisposition: `attachment; filename="${validation.filename}"`,
+    Metadata: {
+      'uploaded-by': options.userId || 'unknown',
+      'uploaded-at': new Date().toISOString(),
+      'original-filename': validation.filename,
+    },
   }))
 
   return `https://${BUCKET}.s3.${REGION}.amazonaws.com/${key}`
@@ -464,7 +490,7 @@ async function handleEvent(event) {
 
     /* ── Public ── */
     case 'submitAdmissionsEnquiry':
-      return await submitAdmissionsEnquiry(event.arguments)
+      return await submitAdmissionsEnquiry(event.arguments, event)
 
     default:
       throw new Error(`Unknown field: ${event.field}`)
@@ -770,15 +796,33 @@ async function getProspectus(ctx, args) {
   return toProspectusResponse(doc)
 }
 
+/**
+ * Save prospectus with secure file upload
+ * Uses random filename to prevent enumeration attacks
+ */
 async function saveProspectus(ctx, args) {
   const { input } = validate(saveProspectusSchema, args || {})
-  const ext = path.extname(input.fileName).toLowerCase() || '.pdf'
-  const key = `${ctx.tenant_id}/admissions/prospectus/current${ext}`
-  const fileUrl = await uploadToS3(key, input.fileBase64, input.fileName)
 
-  const update = { file_url: fileUrl, file_name: input.fileName, uploaded_at: new Date() }
-  if (input.title       !== undefined) update.title       = input.title
-  if (input.description !== undefined) update.description = input.description
+  // Generate secure random filename to prevent enumeration
+  const crypto = require('crypto')
+  const randomName = crypto.randomBytes(16).toString('hex')
+  const ext = path.extname(input.fileName).toLowerCase() || '.pdf'
+  const key = `${ctx.tenant_id}/admissions/prospectus/${randomName}${ext}`
+
+  const fileUrl = await uploadToS3(key, input.fileBase64, input.fileName, {
+    maxSize: 50 * 1024 * 1024, // 50MB for prospectus
+    allowedTypes: ['application/pdf'],
+    userId: ctx.user_id,
+  })
+
+  const update = {
+    file_url: fileUrl,
+    file_name: input.fileName,
+    file_key: key, // Store key for future deletion/management
+    uploaded_at: new Date(),
+  }
+  if (input.title       !== undefined) update.title       = sanitizePlainText(input.title)
+  if (input.description !== undefined) update.description = sanitizeRichText(input.description)
 
   const doc = await Prospectus.findOneAndUpdate(
     { tenant_id: ctx.tenant_id },
@@ -801,18 +845,27 @@ async function listFeeDocuments(ctx, args) {
   return result.items.map(toFeeDocResponse)
 }
 
+/**
+ * Create fee document with secure file upload
+ */
 async function createFeeDocument(ctx, args) {
   const { input } = validate(createFeeDocumentSchema, args || {})
   const fee_doc_id = generateId()
   const ext = path.extname(input.fileName).toLowerCase() || '.pdf'
   const key = `${ctx.tenant_id}/admissions/fee-documents/${fee_doc_id}${ext}`
-  const fileUrl = await uploadToS3(key, input.fileBase64, input.fileName)
+
+  const fileUrl = await uploadToS3(key, input.fileBase64, input.fileName, {
+    maxSize: 20 * 1024 * 1024, // 20MB for fee documents
+    allowedTypes: ['application/pdf'],
+    userId: ctx.user_id,
+  })
 
   const created = await feeDocRepo.create(ctx, {
     fee_doc_id,
-    title:       input.title,
+    title:       sanitizePlainText(input.title),
     file_url:    fileUrl,
     file_name:   input.fileName,
+    file_key:    key,
     uploaded_at: new Date(),
   })
   return toFeeDocResponse(created)
@@ -950,19 +1003,41 @@ async function updateEnquiryStatus(ctx, args) {
   return toEnquiryResponse(updated)
 }
 
-async function submitAdmissionsEnquiry(args) {
+/**
+ * Submit admissions enquiry - PUBLIC ENDPOINT (no auth required)
+ * Protected with rate limiting, tenant validation, and input sanitization
+ */
+async function submitAdmissionsEnquiry(args, event) {
   const { input } = validate(submitAdmissionsEnquirySchema, args || {})
+
+  // Validate tenant exists - prevents cross-tenant data injection
+  const Tenant = require('../../../core-modules/tenant-management/schemas/tenant.model')
+  const tenant = await Tenant.findOne({ tenant_id: input.tenantId }).lean()
+  if (!tenant) {
+    throw new ValidationError('Invalid tenant ID')
+  }
+
+  // Rate limiting for public endpoint - use tenant + IP as identifier
+  const rateLimitKey = `${input.tenantId}:${event.identity?.sourceIp || 'unknown'}`
+  const rateLimit = await checkRateLimit(rateLimitKey, { perMinute: 5, perHour: 20 })
+  if (!rateLimit.allowed) {
+    throw new Error('Rate limit exceeded. Please try again later.')
+  }
+
   const enquiry_id = generateId()
 
+  // Sanitize inputs to prevent XSS
   await AdmissionsEnquiry.create({
     tenant_id:  input.tenantId,
     enquiry_id,
-    name:       input.name,
-    email:      input.email,
-    phone:      input.phone   ?? null,
-    program:    input.program ?? null,
-    message:    input.message ?? null,
+    name:       sanitizePlainText(input.name),
+    email:      input.email.toLowerCase().trim(),
+    phone:      input.phone   ? sanitizePlainText(input.phone)   : null,
+    program:    input.program ? sanitizePlainText(input.program) : null,
+    message:    input.message ? sanitizePlainText(input.message) : null,
     status:     'NEW',
+    source_ip:  event.identity?.sourceIp || null,
+    submitted_at: new Date(),
   })
 
   return true

@@ -44,6 +44,8 @@ Multi-tenant backend for a college website and admin panel. Built on AWS SAM wit
 | `faculty-management` | Faculty profiles |
 | `alumni-management` | Alumni records |
 | `events-management` | Institutional/department events; approval workflow; auto-status (upcoming → completed) |
+| `accreditations-management` | NBA/NAAC accreditation records, criteria, metrics, evidence documents |
+| `admissions-management` | Admissions overview, UG/PG programs, eligibility, steps, fee documents, scholarships, enquiries |
 
 ---
 
@@ -85,13 +87,15 @@ Department
 ```
 ├── src/
 │   ├── layers/
-│   │   ├── common/          # middleware (tenant-resolver, auth-guard, input-validator, with-connection, request-logger)
-│   │   │                    # utils (id-generator, pagination, event-publisher)
+│   │   ├── common/          # middleware (tenant-resolver, auth-guard, input-validator, with-connection,
+│   │   │                    #           request-logger, rate-limiter, sanitizer)
+│   │   │                    # utils (id-generator, pagination, event-publisher, file-validator, redis-cache)
 │   │   │                    # db (mongo-repository)
 │   │   └── packages/        # npm deps (mongoose, AWS SDK v3)
 │   ├── core-modules/        # tenant, user, audit-log, notification, storage, form, workflow
 │   └── app-modules/         # department, dept-info, dept-branding, dept-people, dept-academics,
-│                            # dept-research, dept-activities, faculty, alumni, events
+│                            # dept-research, dept-activities, faculty, alumni, events,
+│                            # accreditations, admissions
 ├── stacks/
 │   ├── infrastructure.yaml  # Layers, EventBus, Cognito, AppSync, S3, SQS
 │   ├── core/                # One .yaml per core module
@@ -174,6 +178,20 @@ Requires `MONGODB_URI` in `.env`.
 | `EVENT_BUS_NAME` | EventBridge custom bus name |
 | `MONGODB_SSM_PARAM_NAME` | SSM path for MongoDB URI |
 | `AWS_SAM_LOCAL` | Set `TRUE` for local dev; uses `MONGODB_URI` directly |
+| `RATE_LIMIT_TABLE` | DynamoDB table name for rate limiting (omit to use in-memory fallback) |
+| `RATE_LIMIT_PER_MINUTE` | Max requests/minute per user (default: 60) |
+| `RATE_LIMIT_PER_HOUR` | Max requests/hour per user (default: 1000) |
+
+---
+
+## Security Utilities (CommonLayer)
+
+| Utility | Path | Purpose |
+|---------|------|---------|
+| `rate-limiter` | `middleware/rate-limiter` | Per-user rate limiting via DynamoDB (in-memory for local dev). Call `checkRateLimit(ctx)` early in handlers that accept public/untrusted input. |
+| `sanitizer` | `middleware/sanitizer` | XSS prevention. `sanitizePlainText` escapes HTML entities; `sanitizeRichText` strips dangerous tags/attributes; `sanitizeObject` deep-sanitizes input objects. |
+| `file-validator` | `utils/file-validator` | Validates uploaded files by magic-byte signature (not extension). Use `validateBase64File(base64, filename)` before passing to S3. |
+| `redis-cache` | `utils/redis-cache` | In-memory cache (Redis-ready) for user permissions and tenant configs. Invalidate with `invalidateUserPermissions(userId)` after role changes. |
 
 ---
 

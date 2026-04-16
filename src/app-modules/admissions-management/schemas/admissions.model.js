@@ -29,6 +29,8 @@ const admissionsProgramSchema = new Schema({
   order:       Number,
 }, { timestamps: true, collection: 'admissions_programs' })
 admissionsProgramSchema.index({ tenant_id: 1, program_id: 1 }, { unique: true })
+admissionsProgramSchema.index({ tenant_id: 1, level: 1, order: 1 }) // List with filtering
+admissionsProgramSchema.index({ tenant_id: 1, createdAt: -1 }) // Pagination
 
 /* ─────────────────────────────
    UGCourse
@@ -44,6 +46,8 @@ const ugCourseSchema = new Schema({
   order:       Number,
 }, { timestamps: true, collection: 'admissions_ug_courses' })
 ugCourseSchema.index({ tenant_id: 1, course_id: 1 }, { unique: true })
+ugCourseSchema.index({ tenant_id: 1, order: 1 })
+ugCourseSchema.index({ tenant_id: 1, createdAt: -1 })
 
 /* ─────────────────────────────
    PGCourse
@@ -59,6 +63,8 @@ const pgCourseSchema = new Schema({
   order:       Number,
 }, { timestamps: true, collection: 'admissions_pg_courses' })
 pgCourseSchema.index({ tenant_id: 1, course_id: 1 }, { unique: true })
+pgCourseSchema.index({ tenant_id: 1, order: 1 })
+pgCourseSchema.index({ tenant_id: 1, createdAt: -1 })
 
 /* ─────────────────────────────
    EligibilityEntry  (replaces singleton eligibility)
@@ -71,6 +77,7 @@ const eligibilityEntrySchema = new Schema({
   order:       Number,
 }, { timestamps: true, collection: 'admissions_eligibility_entries' })
 eligibilityEntrySchema.index({ tenant_id: 1, entry_id: 1 }, { unique: true })
+eligibilityEntrySchema.index({ tenant_id: 1, order: 1 })
 
 /* ─────────────────────────────
    AdmissionStep
@@ -84,6 +91,7 @@ const admissionStepSchema = new Schema({
   order:       { type: Number, required: true },
 }, { timestamps: true, collection: 'admission_steps' })
 admissionStepSchema.index({ tenant_id: 1, step_id: 1 }, { unique: true })
+admissionStepSchema.index({ tenant_id: 1, order: 1 })
 
 /* ─────────────────────────────
    ImportantDate
@@ -106,6 +114,7 @@ const prospectusSchema = new Schema({
   title:       String,
   description: String,
   file_url:    { type: String, required: true },
+  file_key:    String, // S3 object key for management operations
   file_name:   String,
   uploaded_at: Date,
 }, { timestamps: true, collection: 'admissions_prospectus' })
@@ -118,10 +127,12 @@ const feeDocumentSchema = new Schema({
   fee_doc_id:  { type: String, required: true },
   title:       { type: String, required: true },
   file_url:    { type: String, required: true },
+  file_key:    String, // S3 object key for management operations
   file_name:   String,
   uploaded_at: Date,
 }, { timestamps: true, collection: 'admissions_fee_documents' })
 feeDocumentSchema.index({ tenant_id: 1, fee_doc_id: 1 }, { unique: true })
+feeDocumentSchema.index({ tenant_id: 1, uploaded_at: -1 })
 
 /* ─────────────────────────────
    Scholarship
@@ -139,6 +150,7 @@ const scholarshipSchema = new Schema({
   order:          Number,
 }, { timestamps: true, collection: 'admissions_scholarships' })
 scholarshipSchema.index({ tenant_id: 1, scholarship_id: 1 }, { unique: true })
+scholarshipSchema.index({ tenant_id: 1, type: 1, order: 1 })
 
 /* ─────────────────────────────
    AuditStatement
@@ -157,16 +169,22 @@ auditStatementSchema.index({ tenant_id: 1, audit_id: 1 }, { unique: true })
    AdmissionsEnquiry
 ─────────────────────────────*/
 const admissionsEnquirySchema = new Schema({
-  tenant_id:  { type: String, required: true },
-  enquiry_id: { type: String, required: true },
-  name:       { type: String, required: true },
-  email:      { type: String, required: true },
-  phone:      String,
-  program:    String,
-  message:    String,
-  status:     { type: String, enum: ['NEW', 'CONTACTED', 'CLOSED'], default: 'NEW' },
+  tenant_id:    { type: String, required: true },
+  enquiry_id:   { type: String, required: true },
+  name:         { type: String, required: true },
+  email:        { type: String, required: true },
+  phone:        String,
+  program:      String,
+  message:      String,
+  status:       { type: String, enum: ['NEW', 'CONTACTED', 'CLOSED'], default: 'NEW' },
+  source_ip:    String,        // For rate limiting and abuse detection
+  submitted_at: Date,          // Exact submission time (may differ from createdAt)
 }, { timestamps: true, collection: 'admissions_enquiries' })
 admissionsEnquirySchema.index({ tenant_id: 1, enquiry_id: 1 }, { unique: true })
+admissionsEnquirySchema.index({ tenant_id: 1, status: 1, createdAt: -1 }) // List with status filter
+admissionsEnquirySchema.index({ tenant_id: 1, email: 1 }) // Check for duplicate submissions
+admissionsEnquirySchema.index({ tenant_id: 1, createdAt: -1 }) // Pagination
+admissionsEnquirySchema.index({ email: 1 }) // Rate limiting lookups
 
 /* ─────────────────────────────
    AdmissionsContact

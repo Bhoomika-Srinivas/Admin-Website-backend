@@ -246,8 +246,9 @@ Resources:
           listInfoBlocks(tenantId: ID):                          [InfoBlock]         @aws_api_key @aws_cognito_user_pools
           getAlumni(alumniId: ID!, tenantId: ID): Alumni @aws_api_key @aws_cognito_user_pools
           listAlumni(tenantId: ID, deptId: ID, batch: String, search: String, limit: Int, nextToken: String): AlumniList @aws_api_key @aws_cognito_user_pools
-          getDepartment(departmentId: ID!): Department @aws_cognito_user_pools @aws_api_key
-          listDepartments(limit: Int, nextToken: String): DepartmentList @aws_cognito_user_pools @aws_api_key
+          # Public endpoints now require tenantId for tenant isolation
+          getDepartment(departmentId: ID!, tenantId: ID!): Department @aws_cognito_user_pools @aws_api_key
+          listDepartments(tenantId: ID!, limit: Int, nextToken: String): DepartmentList @aws_cognito_user_pools @aws_api_key
           listDeptSlots(deptId: ID!, sectionId: ID!, tenantId: ID, programType: String, program: String, batch: String): DeptSlotList @aws_api_key @aws_cognito_user_pools
           listDeptSections(deptId: ID!, tenantId: ID, programId: ID, semester: Int, batchName: String): DeptSectionList @aws_api_key @aws_cognito_user_pools
           listDeptBatches(deptId: ID!, tenantId: ID, programType: String, program: String): DeptBatchList @aws_api_key @aws_cognito_user_pools

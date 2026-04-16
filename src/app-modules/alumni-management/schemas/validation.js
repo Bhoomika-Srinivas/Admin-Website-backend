@@ -1,12 +1,12 @@
 const Joi = require("joi")
 
 const getAlumniSchema = Joi.object({
-  alumniId: Joi.string().required(),
-  tenantId: Joi.string().optional().allow(null)
+  alumniId: Joi.string().required()
+  // tenantId removed - always use authenticated context
 })
 
 const listAlumniSchema = Joi.object({
-  tenantId:   Joi.string().optional().allow(null),
+  // tenantId removed - always use authenticated context
   deptId:     Joi.string().optional().allow(null),
   batch:      Joi.string().optional().allow(null, ''),
   search:     Joi.string().optional().allow(null, ''),

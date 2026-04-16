@@ -18,11 +18,21 @@ const AccreditationSchema = new mongoose.Schema({
   order:            { type: Number },
 }, { timestamps: true })
 
+// Query optimization indexes
 AccreditationSchema.index({ tenant_id: 1, type: 1 })
 AccreditationSchema.index({ tenant_id: 1, type: 1, section: 1 })
 AccreditationSchema.index({ tenant_id: 1, type: 1, section: 1, sub_section: 1, sub_sub_section: 1 })
 AccreditationSchema.index({ tenant_id: 1, type: 1, department: 1 })
 AccreditationSchema.index({ order: 1 })
+
+// Pagination: compound index for efficient cursor-based pagination
+AccreditationSchema.index({ tenant_id: 1, createdAt: -1 })
+
+// Text search index
+AccreditationSchema.index(
+  { title: 'text', description: 'text' },
+  { weights: { title: 10, description: 5 }, name: 'text_search' }
+)
 
 module.exports = {
   Accreditation: mongoose.model("Accreditation", AccreditationSchema),

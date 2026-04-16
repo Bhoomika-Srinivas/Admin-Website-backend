@@ -22,7 +22,7 @@
   },
   "jest": {
     "testEnvironment": "node",
-    "maxWorkers": 2,
+    "maxWorkers": 1,
     "testMatch": [
       "**/tests/**/*.test.js"
     ],

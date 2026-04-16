@@ -168,6 +168,7 @@ async function handleEvent(event) {
 
     // ── PublicationProfile ────────────────────────
     case 'listPublicationProfiles':
+      await requirePermission(ctx, 'dept-research:pub-profile:read')
       return await listPublicationProfiles(ctx, event.arguments)
 
     case 'savePublicationProfile':
@@ -180,6 +181,7 @@ async function handleEvent(event) {
 
     // ── ResearchGrant ─────────────────────────────
     case 'listResearchGrants':
+      await requirePermission(ctx, 'dept-research:grant:read')
       return await listResearchGrants(ctx, event.arguments)
 
     case 'createResearchGrant':

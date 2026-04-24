@@ -5,7 +5,7 @@ stack_name = "myapp-dev"
 resolve_s3 = true
 s3_prefix = "myapp-dev"
 region = "ap-south-1"
-capabilities = "CAPABILITY_IAM CAPABILITY_AUTO_EXPAND"
+capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND"
 parameter_overrides = "ProjectName=\"myapp\" Environment=\"dev\""
 image_repositories = []
 confirm_changeset = true
@@ -19,7 +19,7 @@ stack_name = "myapp-prod"
 resolve_s3 = true
 s3_prefix = "myapp-prod"
 region = "ap-south-1"
-capabilities = "CAPABILITY_IAM CAPABILITY_AUTO_EXPAND"
+capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND"
 parameter_overrides = "ProjectName=\"myapp\" Environment=\"prod\""
 image_repositories = []
 
@@ -28,7 +28,7 @@ stack_name = "test-app-dev"
 resolve_s3 = true
 s3_prefix = "test-app-dev"
 region = "ap-south-1"
-capabilities = "CAPABILITY_IAM CAPABILITY_AUTO_EXPAND"
+capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND"
 parameter_overrides = "ProjectName=\"test-app\" Environment=\"dev\""
 image_repositories = []
 template_file = "template.test-app.yaml"

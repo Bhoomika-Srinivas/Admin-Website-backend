@@ -77,4 +77,50 @@ function resolveTenant(event) {
   };
 }
 
-module.exports = { resolveTenant };
+/**
+ * Securely resolve tenant context with optional override.
+ * Only allows tenant override if user has explicit cross-tenant permission.
+ * @param {Object} ctx - Original context from resolveTenant
+ * @param {string} requestedTenantId - Tenant ID requested via args (optional)
+ * @returns {Object} - Secure context with validated tenant_id
+ * @throws {ForbiddenError} - If tenant switch is not allowed
+ */
+function resolveSecureTenantContext(ctx, requestedTenantId) {
+  // If no override requested, use authenticated tenant
+  if (!requestedTenantId) {
+    return ctx;
+  }
+
+  // If same tenant, no issue
+  if (requestedTenantId === ctx.tenant_id) {
+    return ctx;
+  }
+
+  // Check if user has cross-tenant access permission
+  const permissions = ctx.permissions || [];
+  const hasCrossTenantAccess = permissions.some(p =>
+    p === 'system:tenant:switch' ||
+    p === 'admin:*:access' ||
+    p === '*:*:*'
+  );
+
+  if (!hasCrossTenantAccess) {
+    // Log attempted breach
+    console.error(JSON.stringify({
+      level: 'security',
+      event: 'TENANT_ACCESS_DENIED',
+      user_id: ctx.user_id,
+      authenticated_tenant: ctx.tenant_id,
+      requested_tenant: requestedTenantId,
+      timestamp: new Date().toISOString()
+    }));
+
+    // Return original context - ignore the override
+    return ctx;
+  }
+
+  // Allow the switch for authorized users
+  return { ...ctx, tenant_id: requestedTenantId };
+}
+
+module.exports = { resolveTenant, resolveSecureTenantContext };

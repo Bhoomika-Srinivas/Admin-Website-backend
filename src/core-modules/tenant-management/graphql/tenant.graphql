@@ -38,6 +38,7 @@ type Tenant {
 type TenantConnection {
   items: [Tenant!]!
   nextCursor: String
+  pageInfo: PageInfo
 }
 
 input CreateTenantInput {

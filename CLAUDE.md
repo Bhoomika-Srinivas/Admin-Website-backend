@@ -14,6 +14,7 @@ APP=<app-name> npm run build:app
 # Run all tests
 npm test
 
+
 # Run unit tests only
 npm run test:unit
 

@@ -7,8 +7,11 @@ const userSchema = new mongoose.Schema(
     cognito_sub: { type: String, required: true },
     email: { type: String, required: true },
     name: { type: String },
+    phone: { type: String },
     status: { type: String, enum: ['active', 'invited', 'suspended', 'deactivated'], default: 'active' },
     roles: [{ type: String }],
+    department: { type: String },
+    last_login_at: { type: Date },
     profile: { type: mongoose.Schema.Types.Mixed },
   },
   { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } }

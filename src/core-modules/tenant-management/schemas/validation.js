@@ -2,11 +2,12 @@ const Joi = require('joi');
 
 const tenantIdSchema = Joi.object({
   tenant_id: Joi.string().required(),
-});
+}).allow(null);
 
 const paginationSchema = Joi.object({
   limit: Joi.number().integer().min(1).max(100),
   cursor: Joi.string().allow(''),
+  page: Joi.number().integer().min(1),
 });
 
 const createTenantSchema = Joi.object({

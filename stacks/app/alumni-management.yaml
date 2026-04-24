@@ -8,11 +8,16 @@
       Layers:
         - !Ref CommonLayer
         - !Ref PackagesLayer
+      Environment:
+        Variables:
+          BUCKET_NAME: !Ref AppBucket
       Policies:
         - EventBridgePutEventsPolicy:
             EventBusName: !Ref AppEventBus
         - SSMParameterReadPolicy:
             ParameterName: !Sub '${ProjectName}/${Environment}/*'
+        - S3ReadPolicy:
+            BucketName: !Ref AppBucket
       Tags:
         Environment: !Ref Environment
         ModuleName: alumni-management
@@ -97,3 +102,381 @@
         Name: APPSYNC_JS
         RuntimeVersion: 1.0.0
       CodeS3Location: src/app-modules/alumni-management/resolvers/deleteAlumni.js
+
+  AlumniGetAlumniEventResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: getAlumniEvent
+      DataSourceName: !GetAtt AlumniDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/alumni-management/resolvers/getAlumniEvent.js
+
+  AlumniListAlumniEventsResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listAlumniEvents
+      DataSourceName: !GetAtt AlumniDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/alumni-management/resolvers/listAlumniEvents.js
+
+  AlumniCreateAlumniEventResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createAlumniEvent
+      DataSourceName: !GetAtt AlumniDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/alumni-management/resolvers/createAlumniEvent.js
+
+  AlumniUpdateAlumniEventResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateAlumniEvent
+      DataSourceName: !GetAtt AlumniDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/alumni-management/resolvers/updateAlumniEvent.js
+
+  AlumniDeleteAlumniEventResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteAlumniEvent
+      DataSourceName: !GetAtt AlumniDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/alumni-management/resolvers/deleteAlumniEvent.js
+
+  AlumniListAlumniTimelineEntriesResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listAlumniTimelineEntries
+      DataSourceName: !GetAtt AlumniDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/alumni-management/resolvers/listAlumniTimelineEntries.js
+
+  AlumniCreateAlumniTimelineEntryResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createAlumniTimelineEntry
+      DataSourceName: !GetAtt AlumniDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/alumni-management/resolvers/createAlumniTimelineEntry.js
+
+  AlumniUpdateAlumniTimelineEntryResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateAlumniTimelineEntry
+      DataSourceName: !GetAtt AlumniDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/alumni-management/resolvers/updateAlumniTimelineEntry.js
+
+  AlumniDeleteAlumniTimelineEntryResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteAlumniTimelineEntry
+      DataSourceName: !GetAtt AlumniDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/alumni-management/resolvers/deleteAlumniTimelineEntry.js
+
+  AlumniGetAlumniVisionMissionResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: getAlumniVisionMission
+      DataSourceName: !GetAtt AlumniDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/alumni-management/resolvers/getAlumniVisionMission.js
+
+  AlumniUpsertAlumniVisionMissionResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: upsertAlumniVisionMission
+      DataSourceName: !GetAtt AlumniDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/alumni-management/resolvers/upsertAlumniVisionMission.js
+
+  AlumniListAlumniCommitteeMembersResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listAlumniCommitteeMembers
+      DataSourceName: !GetAtt AlumniDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/alumni-management/resolvers/listAlumniCommitteeMembers.js
+
+  AlumniCreateAlumniCommitteeMemberResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createAlumniCommitteeMember
+      DataSourceName: !GetAtt AlumniDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/alumni-management/resolvers/createAlumniCommitteeMember.js
+
+  AlumniUpdateAlumniCommitteeMemberResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateAlumniCommitteeMember
+      DataSourceName: !GetAtt AlumniDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/alumni-management/resolvers/updateAlumniCommitteeMember.js
+
+  AlumniDeleteAlumniCommitteeMemberResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteAlumniCommitteeMember
+      DataSourceName: !GetAtt AlumniDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/alumni-management/resolvers/deleteAlumniCommitteeMember.js
+
+  AlumniGetAlumniDeanMessageResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: getAlumniDeanMessage
+      DataSourceName: !GetAtt AlumniDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/alumni-management/resolvers/getAlumniDeanMessage.js
+
+  AlumniUpsertAlumniDeanMessageResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: upsertAlumniDeanMessage
+      DataSourceName: !GetAtt AlumniDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/alumni-management/resolvers/upsertAlumniDeanMessage.js
+
+  AlumniListAlumniCoordinatorsResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listAlumniCoordinators
+      DataSourceName: !GetAtt AlumniDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/alumni-management/resolvers/listAlumniCoordinators.js
+
+  AlumniCreateAlumniCoordinatorResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createAlumniCoordinator
+      DataSourceName: !GetAtt AlumniDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/alumni-management/resolvers/createAlumniCoordinator.js
+
+  AlumniUpdateAlumniCoordinatorResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateAlumniCoordinator
+      DataSourceName: !GetAtt AlumniDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/alumni-management/resolvers/updateAlumniCoordinator.js
+
+  AlumniDeleteAlumniCoordinatorResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteAlumniCoordinator
+      DataSourceName: !GetAtt AlumniDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/alumni-management/resolvers/deleteAlumniCoordinator.js
+
+  AlumniGetAlumniRegistrationSettingsResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: getAlumniRegistrationSettings
+      DataSourceName: !GetAtt AlumniDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/alumni-management/resolvers/getAlumniRegistrationSettings.js
+
+  AlumniUpsertAlumniRegistrationSettingsResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: upsertAlumniRegistrationSettings
+      DataSourceName: !GetAtt AlumniDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/alumni-management/resolvers/upsertAlumniRegistrationSettings.js
+
+  AlumniListAlumniContactsResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: listAlumniContacts
+      DataSourceName: !GetAtt AlumniDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/alumni-management/resolvers/listAlumniContacts.js
+
+  AlumniCreateAlumniContactResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: createAlumniContact
+      DataSourceName: !GetAtt AlumniDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/alumni-management/resolvers/createAlumniContact.js
+
+  AlumniUpdateAlumniContactResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: updateAlumniContact
+      DataSourceName: !GetAtt AlumniDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/alumni-management/resolvers/updateAlumniContact.js
+
+  AlumniDeleteAlumniContactResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Mutation
+      FieldName: deleteAlumniContact
+      DataSourceName: !GetAtt AlumniDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/app-modules/alumni-management/resolvers/deleteAlumniContact.js

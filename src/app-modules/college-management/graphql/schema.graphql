@@ -1,0 +1,53 @@
+enum CollegeType {
+  private_aided
+  private_unaided
+  government
+  government_aided
+  autonomous
+  deemed_university
+  central_university
+}
+
+type CollegeProfile {
+  tenant_id:            ID!
+  logo_url:             String
+  name:                 String
+  shortName:            String
+  established:          Int
+  affiliatedUniversity: String
+  collegeType:          CollegeType
+  address:              String
+  city:                 String
+  state:                String
+  pincode:              String
+  phone:                String
+  email:                String
+  website:              String
+  created_at:           AWSDateTime
+  updated_at:           AWSDateTime
+}
+
+input CollegeProfileInput {
+  logo_url:             String
+  name:                 String
+  shortName:            String
+  established:          Int
+  affiliatedUniversity: String
+  collegeType:          CollegeType
+  address:              String
+  city:                 String
+  state:                String
+  pincode:              String
+  phone:                String
+  email:                String
+  website:              String
+}
+
+extend type Query {
+  getCollegeProfile: CollegeProfile
+  listColleges: [CollegeProfile]
+}
+
+extend type Mutation {
+  upsertCollegeProfile(input: CollegeProfileInput!): CollegeProfile
+}

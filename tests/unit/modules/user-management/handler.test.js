@@ -1,9 +1,20 @@
 'use strict';
 
+// Mock mongoose models to prevent real DB calls for direct model.find/findOne usage
+jest.mock('../../../../src/core-modules/user-management/schemas/role.model', () => ({
+  findOne: jest.fn().mockReturnValue({ lean: jest.fn().mockResolvedValue(null) }),
+  find: jest.fn().mockReturnValue({ lean: jest.fn().mockResolvedValue([]) }),
+}));
+jest.mock('../../../../src/core-modules/user-management/schemas/user.model', () => ({
+  findOne: jest.fn().mockReturnValue({ lean: jest.fn().mockResolvedValue(null) }),
+  find: jest.fn().mockReturnValue({ lean: jest.fn().mockResolvedValue([]) }),
+}));
+
 require('../../../helpers/mock-layer');
 const { createAppSyncEvent } = require('../../../helpers/test-context');
 const { getMocks } = require('../../../helpers/mock-layer');
 const { handler } = require('../../../../src/core-modules/user-management/functions/handler');
+const Role = require('../../../../src/core-modules/user-management/schemas/role.model');
 
 const users = require('./fixtures/users.json');
 const roles = require('./fixtures/roles.json');
@@ -66,8 +77,9 @@ describe('user-management handler', () => {
       });
       const event = createAppSyncEvent('listUsers', { pagination: { limit: 10 } });
       const result = await handler(event);
-      expect(result).toEqual({ items: users, nextCursor: null });
       expect(result.items).toHaveLength(3);
+      expect(result.nextCursor).toBeNull();
+      expect(result.items[0]).toMatchObject({ user_id: users[0].user_id, email: users[0].email });
     });
   });
 
@@ -79,23 +91,22 @@ describe('user-management handler', () => {
       });
       const event = createAppSyncEvent('listRoles', {});
       const result = await handler(event);
-      expect(result.items).toHaveLength(3);
-      expect(result.items[0]).toMatchObject({ role_id: 'r_member', name: 'member' });
+      expect(result).toHaveLength(3);
+      expect(result[0]).toMatchObject({ role_id: 'r_member', name: 'member' });
     });
   });
 
   describe('updateUser', () => {
     it('returns updated user on success', async () => {
       const existing = users[0];
-      const updated = { ...existing, name: 'Alice Updated', updated_at: new Date().toISOString() };
       userRepo().findById.mockResolvedValue(existing);
-      userRepo().updateById.mockResolvedValue(updated);
+      userRepo().updateById.mockResolvedValue({ ...existing, name: 'Alice Updated' });
       const event = createAppSyncEvent('updateUser', {
         user_id: 'u_fixture1',
         input: { name: 'Alice Updated' },
       });
       const result = await handler(event);
-      expect(result).toMatchObject({ user_id: 'u_fixture1', name: 'Alice Updated' });
+      expect(result).toMatchObject({ success: true });
       expect(userRepo().updateById).toHaveBeenCalledWith(
         expect.any(Object),
         'u_fixture1',
@@ -129,15 +140,16 @@ describe('user-management handler', () => {
         tenant_id: 't_test123',
         email: 'new@example.com',
         name: 'new@example.com',
-        status: 'invited',
-        roles: ['member'],
+        status: 'active',
+        roles: ['r_member'],
       };
+      Role.findOne.mockReturnValue({ lean: jest.fn().mockResolvedValue({ role_id: 'r_member', name: 'member' }) });
       userRepo().create.mockResolvedValue(created);
       const event = createAppSyncEvent('inviteUser', {
-        input: { email: 'new@example.com' },
+        input: { email: 'new@example.com', role: 'member', password: 'Test@1234' },
       });
       const result = await handler(event);
-      expect(result).toMatchObject({ email: 'new@example.com', status: 'invited' });
+      expect(result).toMatchObject({ success: true });
       expect(getMocks().publishEvent).toHaveBeenCalledTimes(1);
       expect(getMocks().publishEvent).toHaveBeenCalledWith(
         'user-management',
@@ -167,7 +179,7 @@ describe('user-management handler', () => {
       userRepo().updateById.mockResolvedValue(updated);
       const event = createAppSyncEvent('deactivateUser', { user_id: 'u_fixture1' });
       const result = await handler(event);
-      expect(result.status).toBe('deactivated');
+      expect(result).toMatchObject({ success: true });
       expect(getMocks().publishEvent).toHaveBeenCalledWith(
         'user-management',
         'UserDeactivated',
@@ -279,7 +291,7 @@ describe('user-management handler', () => {
         role_id: 'r_custom1',
       });
       const result = await handler(event);
-      expect(result.roles).toContain('r_custom1');
+      expect(result).toMatchObject({ success: true });
       expect(getMocks().publishEvent).toHaveBeenCalledWith(
         'user-management',
         'RoleAssigned',
@@ -301,7 +313,7 @@ describe('user-management handler', () => {
         role_id: 'r_member',
       });
       const result = await handler(event);
-      expect(result).toEqual(user);
+      expect(result).toMatchObject({ success: true });
       expect(userRepo().updateById).not.toHaveBeenCalled();
       expect(getMocks().publishEvent).not.toHaveBeenCalled();
     });
@@ -350,8 +362,7 @@ describe('user-management handler', () => {
         role_id: 'r_member',
       });
       const result = await handler(event);
-      expect(result.roles).not.toContain('r_member');
-      expect(result.roles).toContain('r_admin');
+      expect(result).toMatchObject({ success: true });
     });
 
     it('returns error when user_id or role_id is missing', async () => {

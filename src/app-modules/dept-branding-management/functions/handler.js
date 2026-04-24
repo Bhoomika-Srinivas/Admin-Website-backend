@@ -3,6 +3,37 @@ const { requirePermission } = require('/opt/nodejs/middleware/auth-guard')
 const { validate }          = require('/opt/nodejs/middleware/input-validator')
 const { withConnection }    = require('/opt/nodejs/middleware/with-connection')
 const { log }               = require('/opt/nodejs/middleware/request-logger')
+const { getSignedUrl }               = require('@aws-sdk/s3-request-presigner')
+const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3')
+
+const s3     = new S3Client({ region: process.env.AWS_REGION })
+const BUCKET = process.env.BUCKET_NAME
+
+async function getPresignedUrl(key) {
+  if (!key) return null
+  if (key.startsWith('http://') || key.startsWith('https://')) {
+    try {
+      const url = new URL(key)
+      if (url.hostname.endsWith('amazonaws.com')) {
+        const s3Key = url.hostname.startsWith(BUCKET + '.')
+          ? url.pathname.slice(1)
+          : url.pathname.slice(BUCKET.length + 2)
+        if (s3Key) {
+          const command = new GetObjectCommand({ Bucket: BUCKET, Key: s3Key })
+          return await getSignedUrl(s3, command, { expiresIn: 3600 })
+        }
+      }
+    } catch {}
+    return key
+  }
+  try {
+    const command = new GetObjectCommand({ Bucket: BUCKET, Key: key })
+    return await getSignedUrl(s3, command, { expiresIn: 3600 })
+  } catch (err) {
+    console.error('Failed to generate presigned URL for key:', key, err.message)
+    return null
+  }
+}
 
 const {
   getInstituteSettingsSchema,
@@ -20,22 +51,22 @@ const {
    Response Normalizers
 ─────────────────────────────*/
 
-function toInstituteSettingsResponse(doc) {
+async function toInstituteSettingsResponse(doc) {
   const plain = doc && doc.toObject ? doc.toObject() : { ...doc }
   return {
     instituteName:         plain.institute_name          ?? '',
-    instituteLogoUrl:      plain.institute_logo          ?? '',
+    instituteLogoUrl:      await getPresignedUrl(plain.institute_logo) ?? '',
     defaultCopyrightText:  plain.default_copyright_text  ?? '',
     defaultWebsiteCredits: plain.default_website_credits ?? '',
   }
 }
 
-function toDeptBrandingResponse(doc) {
+async function toDeptBrandingResponse(doc) {
   const plain = doc && doc.toObject ? doc.toObject() : { ...doc }
   return {
     deptId:            plain.deptId             ?? '',
     departmentTitle:   plain.department_title   ?? '',
-    departmentLogoUrl: plain.department_logo    ?? '',
+    departmentLogoUrl: await getPresignedUrl(plain.department_logo) ?? '',
     twitterUrl:        plain.twitter_url        ?? '',
     linkedinUrl:       plain.linkedin_url       ?? '',
     youtubeUrl:        plain.youtube_url        ?? '',
@@ -134,7 +165,7 @@ async function getInstituteSettings(ctx, args) {
 
   if (!doc) return emptyInstituteSettings()
 
-  return toInstituteSettingsResponse(doc)
+  return await toInstituteSettingsResponse(doc)
 }
 
 async function saveInstituteSettings(ctx, args) {
@@ -154,7 +185,7 @@ async function saveInstituteSettings(ctx, args) {
     { upsert: true, new: true, setDefaultsOnInsert: true },
   ).lean()
 
-  return toInstituteSettingsResponse(doc)
+  return await toInstituteSettingsResponse(doc)
 }
 
 
@@ -170,7 +201,7 @@ async function getDeptBranding(ctx, args) {
 
   if (!doc) return emptyDeptBranding(deptId)
 
-  return toDeptBrandingResponse(doc)
+  return await toDeptBrandingResponse(doc)
 }
 
 async function saveDeptBranding(ctx, args) {
@@ -201,5 +232,5 @@ async function saveDeptBranding(ctx, args) {
     { upsert: true, new: true, setDefaultsOnInsert: true },
   ).lean()
 
-  return toDeptBrandingResponse(doc)
+  return await toDeptBrandingResponse(doc)
 }

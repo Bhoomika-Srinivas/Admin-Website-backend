@@ -1,4 +1,4 @@
-const { resolveTenant }       = require('/opt/nodejs/middleware/tenant-resolver')
+const { resolveTenant, resolveSecureTenantContext } = require('/opt/nodejs/middleware/tenant-resolver')
 const { requirePermission }   = require('/opt/nodejs/middleware/auth-guard')
 const { validate }            = require('/opt/nodejs/middleware/input-validator')
 const { withConnection }      = require('/opt/nodejs/middleware/with-connection')
@@ -7,6 +7,37 @@ const { generateId }          = require('/opt/nodejs/utils/id-generator')
 const { MongoRepository }     = require('/opt/nodejs/db/mongo-repository')
 const { NotFoundError }       = require('/opt/nodejs/middleware/error-handler')
 const { normalizePagination } = require('/opt/nodejs/utils/pagination')
+const { getSignedUrl }        = require('@aws-sdk/s3-request-presigner')
+const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3')
+
+const s3 = new S3Client({ region: process.env.AWS_REGION })
+const BUCKET = process.env.BUCKET_NAME
+
+async function getPresignedUrl(key) {
+  if (!key) return null
+  if (key.startsWith('http://') || key.startsWith('https://')) {
+    try {
+      const url = new URL(key)
+      if (url.hostname.endsWith('amazonaws.com')) {
+        const s3Key = url.hostname.startsWith(BUCKET + '.')
+          ? url.pathname.slice(1)
+          : url.pathname.slice(BUCKET.length + 2)
+        if (s3Key) {
+          const command = new GetObjectCommand({ Bucket: BUCKET, Key: s3Key })
+          return await getSignedUrl(s3, command, { expiresIn: 3600 })
+        }
+      }
+    } catch {}
+    return key
+  }
+  try {
+    const command = new GetObjectCommand({ Bucket: BUCKET, Key: key })
+    return await getSignedUrl(s3, command, { expiresIn: 3600 })
+  } catch (err) {
+    console.error('Failed to generate presigned URL for key:', key, err.message)
+    return null
+  }
+}
 
 const {
   getDeptStaffSchema,
@@ -44,19 +75,21 @@ const accreditationRepo = new MongoRepository({
    Response Normalizers
 ─────────────────────────────*/
 
-function toDeptStaffResponse(doc) {
+async function toDeptStaffResponse(doc) {
   const plain = doc && doc.toObject ? doc.toObject() : { ...doc }
   return {
     ...plain,
-    deptStaffId: plain.dept_staff_id || (plain._id ? plain._id.toString() : null)
+    deptStaffId: plain.dept_staff_id || (plain._id ? plain._id.toString() : null),
+    imageUrl:    await getPresignedUrl(plain.imageUrl)
   }
 }
 
-function toAccreditationResponse(doc) {
+async function toAccreditationResponse(doc) {
   const plain = doc && doc.toObject ? doc.toObject() : { ...doc }
   return {
     ...plain,
-    accreditationId: plain.accreditation_id || (plain._id ? plain._id.toString() : null)
+    accreditationId: plain.accreditation_id || (plain._id ? plain._id.toString() : null),
+    certificateUrl:  await getPresignedUrl(plain.certificateUrl)
   }
 }
 
@@ -169,7 +202,7 @@ async function getDeptStaff(ctx, args) {
   const { deptStaffId } = validate(getDeptStaffSchema, args || {})
   const doc = await deptStaffRepo.findById(ctx, deptStaffId)
   if (!doc) throw new NotFoundError('Staff member not found')
-  return toDeptStaffResponse(doc)
+  return await toDeptStaffResponse(doc)
 }
 
 
@@ -179,7 +212,7 @@ async function getDeptStaff(ctx, args) {
 
 async function listDeptStaff(ctx, args) {
   const validated   = validate(listDeptStaffSchema, args || {})
-  const resolvedCtx = validated.tenantId ? { ...ctx, tenant_id: validated.tenantId } : ctx
+  const resolvedCtx = resolveSecureTenantContext(ctx, validated.tenantId)
   const query       = buildStaffQuery(validated)
   const limit       = Math.min(validated.limit || 100, 100)
   const fullFilter  = { ...query, tenant_id: resolvedCtx.tenant_id }
@@ -187,7 +220,7 @@ async function listDeptStaff(ctx, args) {
   const items = await DeptStaff.find(fullFilter).sort({ order: 1 }).limit(limit).lean()
 
   return {
-    items:     items.map(toDeptStaffResponse),
+    items:     await Promise.all(items.map(toDeptStaffResponse)),
     nextToken: null
   }
 }
@@ -227,7 +260,7 @@ async function createDeptStaff(ctx, args) {
     created_by: ctx.user_id
   })
 
-  return toDeptStaffResponse(created)
+  return await toDeptStaffResponse(created)
 }
 
 
@@ -272,7 +305,7 @@ async function updateDeptStaff(ctx, args) {
 
   const updated = await deptStaffRepo.updateById(ctx, deptStaffId, updates)
 
-  return toDeptStaffResponse(updated)
+  return await toDeptStaffResponse(updated)
 }
 
 
@@ -301,7 +334,7 @@ async function deleteDeptStaff(ctx, args) {
     )
   }
 
-  return toDeptStaffResponse(existing)
+  return await toDeptStaffResponse(existing)
 }
 
 
@@ -313,7 +346,7 @@ async function getAccreditation(ctx, args) {
   const { accreditationId } = validate(getAccreditationSchema, args || {})
   const doc = await accreditationRepo.findById(ctx, accreditationId)
   if (!doc) throw new NotFoundError('Accreditation not found')
-  return toAccreditationResponse(doc)
+  return await toAccreditationResponse(doc)
 }
 
 
@@ -330,7 +363,7 @@ async function listAccreditations(ctx, args) {
   const result = await accreditationRepo.findMany(ctx, query, { ...pagination, sort })
 
   return {
-    items:     result.items.map(toAccreditationResponse),
+    items:     await Promise.all(result.items.map(toAccreditationResponse)),
     nextToken: result.nextCursor
   }
 }
@@ -363,7 +396,7 @@ async function createAccreditation(ctx, args) {
     created_by:     ctx.user_id
   })
 
-  return toAccreditationResponse(created)
+  return await toAccreditationResponse(created)
 }
 
 
@@ -389,7 +422,7 @@ async function updateAccreditation(ctx, args) {
 
   const updated = await accreditationRepo.updateById(ctx, accreditationId, updates)
 
-  return toAccreditationResponse(updated)
+  return await toAccreditationResponse(updated)
 }
 
 
@@ -405,5 +438,5 @@ async function deleteAccreditation(ctx, args) {
 
   await accreditationRepo.deleteById(ctx, accreditationId)
 
-  return toAccreditationResponse(existing)
+  return await toAccreditationResponse(existing)
 }

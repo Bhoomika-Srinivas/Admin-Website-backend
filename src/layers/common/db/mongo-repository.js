@@ -39,28 +39,35 @@ class MongoRepository extends BaseRepository {
    * Find many with pagination
    */
   async _find(filter, pagination = {}) {
-    const limit = Math.min(pagination.limit || 20, 100);
+    const limit = Math.min(pagination.limit || 100, 500);
+    const page = Math.max(pagination.page || 1, 1);
+    const skip = (page - 1) * limit;
 
-    let query = this.model
-      .find(filter)
-      .sort({ created_at: -1 })
-      .limit(limit + 1)
-      .lean();
+    let baseQuery = this.model.find(filter);
 
+    // Cursor-based (legacy support)
     if (pagination.cursor) {
-      query = query.where('created_at').lt(new Date(pagination.cursor));
+      baseQuery = baseQuery.where('created_at').lt(new Date(pagination.cursor));
+      const items = await baseQuery.sort({ created_at: -1 }).limit(limit + 1).lean();
+      const hasMore = items.length > limit;
+      const nextCursor = hasMore ? items[limit - 1]?.created_at?.toISOString() : null;
+      return {
+        items: hasMore ? items.slice(0, limit) : items,
+        nextCursor: nextCursor || null,
+        pageInfo: { hasNextPage: hasMore, endCursor: nextCursor || null, page, limit },
+      };
     }
 
-    const items = await query;
-
-    const hasMore = items.length > limit;
-    const nextCursor = hasMore
-      ? items[limit - 1]?.created_at?.toISOString()
-      : null;
+    // Offset-based pagination
+    const [items, total] = await Promise.all([
+      baseQuery.clone().sort({ created_at: -1 }).skip(skip).limit(limit).lean(),
+      baseQuery.clone().countDocuments(),
+    ]);
 
     return {
-      items: hasMore ? items.slice(0, limit) : items,
-      nextCursor: nextCursor || undefined,
+      items,
+      nextCursor: null,
+      pageInfo: { total, page, limit, hasNextPage: skip + items.length < total, endCursor: null },
     };
   }
 

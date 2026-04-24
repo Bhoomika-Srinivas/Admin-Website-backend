@@ -8,11 +8,28 @@
       Layers:
         - !Ref CommonLayer
         - !Ref PackagesLayer
+      Environment:
+        Variables:
+          COGNITO_USER_POOL_ID: !Ref CognitoUserPool
+          BREVO_USER: !Sub '{{resolve:ssm:/${ProjectName}/${Environment}/brevo-user}}'
+          BREVO_PASS: !Sub '{{resolve:ssm:/${ProjectName}/${Environment}/brevo-pass}}'
+          BREVO_FROM: !Sub '{{resolve:ssm:/${ProjectName}/${Environment}/brevo-from}}'
+          COLLEGE_NAME: !Sub '{{resolve:ssm:/${ProjectName}/${Environment}/college-name}}'
+          APP_URL: !Sub '{{resolve:ssm:/${ProjectName}/${Environment}/app-url}}'
       Policies:
         - EventBridgePutEventsPolicy:
             EventBusName: !Ref AppEventBus
         - SSMParameterReadPolicy:
             ParameterName: !Sub '${ProjectName}/${Environment}/*'
+        - Statement:
+            - Effect: Allow
+              Action:
+                - cognito-idp:AdminCreateUser
+                - cognito-idp:AdminSetUserPassword
+                - cognito-idp:AdminDisableUser
+                - cognito-idp:AdminEnableUser
+                - cognito-idp:AdminUpdateUserAttributes
+              Resource: !GetAtt CognitoUserPool.Arn
       Tags:
         Environment: !Ref Environment
         ModuleName: user-management
@@ -27,6 +44,20 @@
       ServiceRoleArn: !GetAtt AppSyncServiceRole.Arn
       LambdaConfig:
         LambdaFunctionArn: !GetAtt UserFunction.Arn
+
+  UserGetMeResolver:
+    Type: AWS::AppSync::Resolver
+    DependsOn: AppSyncSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      TypeName: Query
+      FieldName: getMe
+      DataSourceName: !GetAtt UserDataSource.Name
+      Kind: UNIT
+      Runtime:
+        Name: APPSYNC_JS
+        RuntimeVersion: 1.0.0
+      CodeS3Location: src/core-modules/user-management/resolvers/getMe.js
 
   UserGetResolver:
     Type: AWS::AppSync::Resolver

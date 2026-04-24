@@ -1,4 +1,4 @@
-const { resolveTenant }       = require('/opt/nodejs/middleware/tenant-resolver')
+const { resolveTenant, resolveSecureTenantContext } = require('/opt/nodejs/middleware/tenant-resolver')
 const { requirePermission }   = require('/opt/nodejs/middleware/auth-guard')
 const { validate }            = require('/opt/nodejs/middleware/input-validator')
 const { withConnection }      = require('/opt/nodejs/middleware/with-connection')
@@ -8,6 +8,37 @@ const { generateId }          = require('/opt/nodejs/utils/id-generator')
 const { MongoRepository }     = require('/opt/nodejs/db/mongo-repository')
 const { NotFoundError }       = require('/opt/nodejs/middleware/error-handler')
 const { normalizePagination } = require('/opt/nodejs/utils/pagination')
+const { getSignedUrl }        = require('@aws-sdk/s3-request-presigner')
+const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3')
+
+const s3 = new S3Client({ region: process.env.AWS_REGION })
+const BUCKET = process.env.BUCKET_NAME
+
+async function getPresignedUrl(key) {
+  if (!key) return null
+  if (key.startsWith('http://') || key.startsWith('https://')) {
+    try {
+      const url = new URL(key)
+      if (url.hostname.endsWith('amazonaws.com')) {
+        const s3Key = url.hostname.startsWith(BUCKET + '.')
+          ? url.pathname.slice(1)
+          : url.pathname.slice(BUCKET.length + 2)
+        if (s3Key) {
+          const command = new GetObjectCommand({ Bucket: BUCKET, Key: s3Key })
+          return await getSignedUrl(s3, command, { expiresIn: 3600 })
+        }
+      }
+    } catch {}
+    return key
+  }
+  try {
+    const command = new GetObjectCommand({ Bucket: BUCKET, Key: key })
+    return await getSignedUrl(s3, command, { expiresIn: 3600 })
+  } catch (err) {
+    console.error('Failed to generate presigned URL for key:', key, err.message)
+    return null
+  }
+}
 
 const {
   getDeptIntroductionSchema,
@@ -66,27 +97,37 @@ const distinguishedAlumnusRepo = new MongoRepository({
    Response Normalizers
 ─────────────────────────────*/
 
-function toIntroductionResponse(doc) {
+async function toIntroductionResponse(doc) {
+  const plain = doc && doc.toObject ? doc.toObject() : { ...doc }
+  return {
+    ...plain,
+    deptId:  plain.deptId,
+    logoUrl: await getPresignedUrl(plain.logoUrl),
+    imageUrl: await getPresignedUrl(plain.imageUrl)
+  }
+}
+
+async function toAboutResponse(doc) {
   const plain = doc && doc.toObject ? doc.toObject() : { ...doc }
   return { ...plain, deptId: plain.deptId }
 }
 
-function toAboutResponse(doc) {
+async function toSwotResponse(doc) {
   const plain = doc && doc.toObject ? doc.toObject() : { ...doc }
   return { ...plain, deptId: plain.deptId }
 }
 
-function toSwotResponse(doc) {
+async function toHodProfileResponse(doc) {
   const plain = doc && doc.toObject ? doc.toObject() : { ...doc }
-  return { ...plain, deptId: plain.deptId }
+  return {
+    ...plain,
+    deptId:   plain.deptId,
+    imageUrl: await getPresignedUrl(plain.imageUrl),
+    cvUrl:    await getPresignedUrl(plain.cvUrl)
+  }
 }
 
-function toHodProfileResponse(doc) {
-  const plain = doc && doc.toObject ? doc.toObject() : { ...doc }
-  return { ...plain, deptId: plain.deptId }
-}
-
-function toProgramOutcomeResponse(doc) {
+async function toProgramOutcomeResponse(doc) {
   const plain = doc && doc.toObject ? doc.toObject() : { ...doc }
   return {
     ...plain,
@@ -94,7 +135,7 @@ function toProgramOutcomeResponse(doc) {
   }
 }
 
-function toCommitteeMemberResponse(doc) {
+async function toCommitteeMemberResponse(doc) {
   const plain = doc && doc.toObject ? doc.toObject() : { ...doc }
   return {
     ...plain,
@@ -102,11 +143,12 @@ function toCommitteeMemberResponse(doc) {
   }
 }
 
-function toDistinguishedAlumnusResponse(doc) {
+async function toDistinguishedAlumnusResponse(doc) {
   const plain = doc && doc.toObject ? doc.toObject() : { ...doc }
   return {
     ...plain,
-    distinguishedAlumnusId: plain.distinguished_alumnus_id || (plain._id ? plain._id.toString() : null)
+    distinguishedAlumnusId: plain.distinguished_alumnus_id || (plain._id ? plain._id.toString() : null),
+    imageUrl:               await getPresignedUrl(plain.imageUrl)
   }
 }
 
@@ -244,7 +286,7 @@ async function getDeptIntroduction(ctx, args) {
   const tenant_id = tenantId ?? ctx.tenant_id
   const doc = await DeptIntroduction.findOne({ tenant_id, deptId })
   if (!doc) return { deptId, departmentName: '', logoUrl: '', imageUrl: '', description: '' }
-  return toIntroductionResponse(doc)
+  return await toIntroductionResponse(doc)
 }
 
 async function saveDeptIntroduction(ctx, args) {
@@ -264,7 +306,7 @@ async function saveDeptIntroduction(ctx, args) {
     timestamp:  new Date().toISOString()
   })
 
-  const res = toIntroductionResponse(doc)
+  const res = await toIntroductionResponse(doc)
   return { ...res, deptId: res.deptId ?? deptId }
 }
 
@@ -349,7 +391,7 @@ async function getHodProfile(ctx, args) {
     message: '', profileSummary: '', email: '', phone: '',
     imageUrl: '', cvUrl: ''
   }
-  return toHodProfileResponse(doc)
+  return await toHodProfileResponse(doc)
 }
 
 async function saveHodProfile(ctx, args) {
@@ -377,7 +419,7 @@ async function saveHodProfile(ctx, args) {
     timestamp:  new Date().toISOString()
   })
 
-  const res = toHodProfileResponse(doc)
+  const res = await toHodProfileResponse(doc)
   return { ...res, deptId: res.deptId ?? deptId }
 }
 
@@ -389,7 +431,7 @@ async function saveHodProfile(ctx, args) {
 async function listProgramOutcomes(ctx, args) {
   const validated  = validate(listProgramOutcomesSchema, args || {})
   const pagination = normalizePagination(validated)
-  const resolvedCtx = validated.tenantId ? { ...ctx, tenant_id: validated.tenantId } : ctx
+  const resolvedCtx = resolveSecureTenantContext(ctx, validated.tenantId)
 
   const query = { deptId: validated.deptId }
   if (validated.type) query.type = validated.type
@@ -472,7 +514,7 @@ async function reorderProgramOutcomes(ctx, args) {
 
 async function listCommitteeMembers(ctx, args) {
   const validated   = validate(listCommitteeMembersSchema, args || {})
-  const resolvedCtx = validated.tenantId ? { ...ctx, tenant_id: validated.tenantId } : ctx
+  const resolvedCtx = resolveSecureTenantContext(ctx, validated.tenantId)
 
   const query = { deptId: validated.deptId }
   if (validated.committee) query.committee = validated.committee
@@ -482,7 +524,7 @@ async function listCommitteeMembers(ctx, args) {
   const result = await committeeMemberRepo.findMany(resolvedCtx, query, { sort })
 
   return {
-    items:     result.items.map(toCommitteeMemberResponse),
+    items:     await Promise.all(result.items.map(toCommitteeMemberResponse)),
     nextToken: result.nextCursor
   }
 }
@@ -503,7 +545,7 @@ async function createCommitteeMember(ctx, args) {
     created_by:  ctx.user_id
   })
 
-  return toCommitteeMemberResponse(created)
+  return await toCommitteeMemberResponse(created)
 }
 
 async function updateCommitteeMember(ctx, args) {
@@ -520,7 +562,7 @@ async function updateCommitteeMember(ctx, args) {
 
   const updated = await committeeMemberRepo.updateById(ctx, committeeMemberId, updates)
 
-  return toCommitteeMemberResponse(updated)
+  return await toCommitteeMemberResponse(updated)
 }
 
 async function deleteCommitteeMember(ctx, args) {
@@ -531,7 +573,7 @@ async function deleteCommitteeMember(ctx, args) {
 
   await committeeMemberRepo.deleteById(ctx, committeeMemberId)
 
-  return toCommitteeMemberResponse(existing)
+  return await toCommitteeMemberResponse(existing)
 }
 
 
@@ -542,7 +584,7 @@ async function deleteCommitteeMember(ctx, args) {
 async function listDistinguishedAlumni(ctx, args) {
   const validated   = validate(listDistinguishedAlumniSchema, args || {})
   const pagination  = normalizePagination(validated)
-  const resolvedCtx = validated.tenantId ? { ...ctx, tenant_id: validated.tenantId } : ctx
+  const resolvedCtx = resolveSecureTenantContext(ctx, validated.tenantId)
 
   const query = { deptId: validated.deptId }
   const sort  = buildSort('createdAt', 'desc')
@@ -550,7 +592,7 @@ async function listDistinguishedAlumni(ctx, args) {
   const result = await distinguishedAlumnusRepo.findMany(resolvedCtx, query, { ...pagination, sort })
 
   return {
-    items:     result.items.map(toDistinguishedAlumnusResponse),
+    items:     await Promise.all(result.items.map(toDistinguishedAlumnusResponse)),
     nextToken: result.nextCursor
   }
 }
@@ -574,7 +616,7 @@ async function createDistinguishedAlumnus(ctx, args) {
     created_by:   ctx.user_id
   })
 
-  return toDistinguishedAlumnusResponse(created)
+  return await toDistinguishedAlumnusResponse(created)
 }
 
 async function updateDistinguishedAlumnus(ctx, args) {
@@ -595,7 +637,7 @@ async function updateDistinguishedAlumnus(ctx, args) {
 
   const updated = await distinguishedAlumnusRepo.updateById(ctx, distinguishedAlumnusId, updates)
 
-  return toDistinguishedAlumnusResponse(updated)
+  return await toDistinguishedAlumnusResponse(updated)
 }
 
 async function deleteDistinguishedAlumnus(ctx, args) {
@@ -606,5 +648,5 @@ async function deleteDistinguishedAlumnus(ctx, args) {
 
   await distinguishedAlumnusRepo.deleteById(ctx, distinguishedAlumnusId)
 
-  return toDistinguishedAlumnusResponse(existing)
+  return await toDistinguishedAlumnusResponse(existing)
 }

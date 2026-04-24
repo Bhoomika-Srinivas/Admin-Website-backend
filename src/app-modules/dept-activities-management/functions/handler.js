@@ -1,4 +1,4 @@
-const { resolveTenant }       = require('/opt/nodejs/middleware/tenant-resolver')
+const { resolveTenant, resolveSecureTenantContext } = require('/opt/nodejs/middleware/tenant-resolver')
 const { requirePermission }   = require('/opt/nodejs/middleware/auth-guard')
 const { validate }            = require('/opt/nodejs/middleware/input-validator')
 const { withConnection }      = require('/opt/nodejs/middleware/with-connection')
@@ -7,6 +7,37 @@ const { generateId }          = require('/opt/nodejs/utils/id-generator')
 const { MongoRepository }     = require('/opt/nodejs/db/mongo-repository')
 const { NotFoundError }       = require('/opt/nodejs/middleware/error-handler')
 const { normalizePagination } = require('/opt/nodejs/utils/pagination')
+const { getSignedUrl }        = require('@aws-sdk/s3-request-presigner')
+const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3')
+
+const s3 = new S3Client({ region: process.env.AWS_REGION })
+const BUCKET = process.env.BUCKET_NAME
+
+async function getPresignedUrl(key) {
+  if (!key) return null
+  if (key.startsWith('http://') || key.startsWith('https://')) {
+    try {
+      const url = new URL(key)
+      if (url.hostname.endsWith('amazonaws.com')) {
+        const s3Key = url.hostname.startsWith(BUCKET + '.')
+          ? url.pathname.slice(1)
+          : url.pathname.slice(BUCKET.length + 2)
+        if (s3Key) {
+          const command = new GetObjectCommand({ Bucket: BUCKET, Key: s3Key })
+          return await getSignedUrl(s3, command, { expiresIn: 3600 })
+        }
+      }
+    } catch {}
+    return key
+  }
+  try {
+    const command = new GetObjectCommand({ Bucket: BUCKET, Key: key })
+    return await getSignedUrl(s3, command, { expiresIn: 3600 })
+  } catch (err) {
+    console.error('Failed to generate presigned URL for key:', key, err.message)
+    return null
+  }
+}
 
 const {
   listPlacementOverviewsSchema,
@@ -78,9 +109,9 @@ function toPlacementOverviewResponse(doc) {
   return { ...plain, placementOverviewId: plain.placement_overview_id || (plain._id ? plain._id.toString() : null) }
 }
 
-function toStudentPlacementResponse(doc) {
+async function toStudentPlacementResponse(doc) {
   const plain = doc && doc.toObject ? doc.toObject() : { ...doc }
-  return { ...plain, studentPlacementId: plain.student_placement_id || (plain._id ? plain._id.toString() : null) }
+  return { ...plain, studentPlacementId: plain.student_placement_id || (plain._id ? plain._id.toString() : null), imageUrl: await getPresignedUrl(plain.imageUrl) }
 }
 
 function toAchievementResponse(doc) {
@@ -93,14 +124,14 @@ function toDeptActivityResponse(doc) {
   return { ...plain, deptActivityId: plain.dept_activity_id || (plain._id ? plain._id.toString() : null) }
 }
 
-function toNewsletterResponse(doc) {
+async function toNewsletterResponse(doc) {
   const plain = doc && doc.toObject ? doc.toObject() : { ...doc }
-  return { ...plain, newsletterId: plain.newsletter_id || (plain._id ? plain._id.toString() : null) }
+  return { ...plain, newsletterId: plain.newsletter_id || (plain._id ? plain._id.toString() : null), fileUrl: await getPresignedUrl(plain.fileUrl) }
 }
 
-function toGalleryPhotoResponse(doc) {
+async function toGalleryPhotoResponse(doc) {
   const plain = doc && doc.toObject ? doc.toObject() : { ...doc }
-  return { ...plain, galleryPhotoId: plain.gallery_photo_id || (plain._id ? plain._id.toString() : null) }
+  return { ...plain, galleryPhotoId: plain.gallery_photo_id || (plain._id ? plain._id.toString() : null), imageUrl: await getPresignedUrl(plain.imageUrl) }
 }
 
 function toForumSectionResponse(doc) {
@@ -108,9 +139,9 @@ function toForumSectionResponse(doc) {
   return { ...plain, forumSectionId: plain.forum_section_id || (plain._id ? plain._id.toString() : null) }
 }
 
-function toForumEventResponse(doc) {
+async function toForumEventResponse(doc) {
   const plain = doc && doc.toObject ? doc.toObject() : { ...doc }
-  return { ...plain, forumEventId: plain.forum_event_id || (plain._id ? plain._id.toString() : null) }
+  return { ...plain, forumEventId: plain.forum_event_id || (plain._id ? plain._id.toString() : null), attachmentUrl: await getPresignedUrl(plain.attachmentUrl) }
 }
 
 function toDepartmentActivityResponse(doc) {
@@ -413,7 +444,7 @@ exports.handler = withConnection(handleEvent)
 async function listPlacementOverviews(ctx, args) {
   const validated   = validate(listPlacementOverviewsSchema, args || {})
   const { tenantId, ...rest } = validated
-  const resolvedCtx = tenantId ? { ...ctx, tenant_id: tenantId } : ctx
+  const resolvedCtx = resolveSecureTenantContext(ctx, tenantId)
   const query       = buildPlacementOverviewQuery(rest)
   const sort        = buildSort(rest.sortBy, rest.sortOrder)
 
@@ -480,7 +511,7 @@ async function deletePlacementOverview(ctx, args) {
 async function listStudentPlacements(ctx, args) {
   const validated          = validate(listStudentPlacementsSchema, args || {})
   const { tenantId, ...rest } = validated
-  const resolvedCtx        = tenantId ? { ...ctx, tenant_id: tenantId } : ctx
+  const resolvedCtx = resolveSecureTenantContext(ctx, tenantId)
   const query              = buildStudentPlacementQuery(rest)
   const sort               = buildSort(rest.sortBy, rest.sortOrder)
   const pagination         = normalizePagination(validated)
@@ -488,8 +519,8 @@ async function listStudentPlacements(ctx, args) {
   const result = await studentPlacementRepo.findMany(resolvedCtx, query, { ...pagination, sort })
 
   return {
-    items:     result.items.map(toStudentPlacementResponse),
-    nextToken: result.nextCursor,
+    items:     await Promise.all(result.items.map(toStudentPlacementResponse)),
+    nextToken: result.nextCursor, pageInfo: result.pageInfo,
   }
 }
 
@@ -512,7 +543,7 @@ async function createStudentPlacement(ctx, args) {
     created_by: ctx.user_id,
   })
 
-  return toStudentPlacementResponse(created)
+  return await toStudentPlacementResponse(created)
 }
 
 async function updateStudentPlacement(ctx, args) {
@@ -533,7 +564,7 @@ async function updateStudentPlacement(ctx, args) {
 
   const updated = await studentPlacementRepo.updateById(ctx, studentPlacementId, updates)
 
-  return toStudentPlacementResponse(updated)
+  return await toStudentPlacementResponse(updated)
 }
 
 async function deleteStudentPlacement(ctx, args) {
@@ -544,7 +575,7 @@ async function deleteStudentPlacement(ctx, args) {
 
   await studentPlacementRepo.deleteById(ctx, studentPlacementId)
 
-  return toStudentPlacementResponse(existing)
+  return await toStudentPlacementResponse(existing)
 }
 
 
@@ -555,7 +586,7 @@ async function deleteStudentPlacement(ctx, args) {
 async function listAchievements(ctx, args) {
   const validated   = validate(listAchievementsSchema, args || {})
   const { tenantId, ...rest } = validated
-  const resolvedCtx = tenantId ? { ...ctx, tenant_id: tenantId } : ctx
+  const resolvedCtx = resolveSecureTenantContext(ctx, tenantId)
   const query       = buildAchievementQuery(rest)
   const sort        = buildSort(rest.sortBy, rest.sortOrder)
 
@@ -616,7 +647,7 @@ async function deleteAchievement(ctx, args) {
 async function listDeptActivities(ctx, args) {
   const validated          = validate(listDeptActivitiesSchema, args || {})
   const { tenantId, ...rest } = validated
-  const resolvedCtx        = tenantId ? { ...ctx, tenant_id: tenantId } : ctx
+  const resolvedCtx = resolveSecureTenantContext(ctx, tenantId)
   const query              = buildDeptActivityQuery(rest)
   const sort               = buildSort(rest.sortBy, rest.sortOrder)
   const pagination         = normalizePagination(validated)
@@ -625,7 +656,7 @@ async function listDeptActivities(ctx, args) {
 
   return {
     items:     result.items.map(toDeptActivityResponse),
-    nextToken: result.nextCursor,
+    nextToken: result.nextCursor, pageInfo: result.pageInfo,
   }
 }
 
@@ -691,13 +722,13 @@ async function deleteDeptActivity(ctx, args) {
 async function listNewsletters(ctx, args) {
   const validated   = validate(listNewslettersSchema, args || {})
   const { tenantId, ...rest } = validated
-  const resolvedCtx = tenantId ? { ...ctx, tenant_id: tenantId } : ctx
+  const resolvedCtx = resolveSecureTenantContext(ctx, tenantId)
   const query       = buildNewsletterQuery(rest)
   const sort        = buildSort(rest.sortBy, rest.sortOrder)
 
   const docs = await Newsletter.find({ tenant_id: resolvedCtx.tenant_id, ...query }).sort(sort).lean()
 
-  return { items: docs.map(toNewsletterResponse), nextToken: null }
+  return { items: await Promise.all(docs.map(toNewsletterResponse)), nextToken: null }
 }
 
 async function createNewsletter(ctx, args) {
@@ -714,7 +745,7 @@ async function createNewsletter(ctx, args) {
     created_by: ctx.user_id,
   })
 
-  return toNewsletterResponse(created)
+  return await toNewsletterResponse(created)
 }
 
 async function updateNewsletter(ctx, args) {
@@ -730,7 +761,7 @@ async function updateNewsletter(ctx, args) {
 
   const updated = await newsletterRepo.updateById(ctx, newsletterId, updates)
 
-  return toNewsletterResponse(updated)
+  return await toNewsletterResponse(updated)
 }
 
 async function deleteNewsletter(ctx, args) {
@@ -741,7 +772,7 @@ async function deleteNewsletter(ctx, args) {
 
   await newsletterRepo.deleteById(ctx, newsletterId)
 
-  return toNewsletterResponse(existing)
+  return await toNewsletterResponse(existing)
 }
 
 
@@ -752,7 +783,7 @@ async function deleteNewsletter(ctx, args) {
 async function listGalleryPhotos(ctx, args) {
   const validated          = validate(listGalleryPhotosSchema, args || {})
   const { tenantId, ...rest } = validated
-  const resolvedCtx        = tenantId ? { ...ctx, tenant_id: tenantId } : ctx
+  const resolvedCtx = resolveSecureTenantContext(ctx, tenantId)
   const query              = buildGalleryPhotoQuery(rest)
   const sort               = buildSort(rest.sortBy, rest.sortOrder)
   const pagination         = normalizePagination(validated)
@@ -760,8 +791,8 @@ async function listGalleryPhotos(ctx, args) {
   const result = await galleryPhotoRepo.findMany(resolvedCtx, query, { ...pagination, sort })
 
   return {
-    items:     result.items.map(toGalleryPhotoResponse),
-    nextToken: result.nextCursor,
+    items:     await Promise.all(result.items.map(toGalleryPhotoResponse)),
+    nextToken: result.nextCursor, pageInfo: result.pageInfo,
   }
 }
 
@@ -781,7 +812,7 @@ async function createGalleryPhoto(ctx, args) {
     created_by: ctx.user_id,
   })
 
-  return toGalleryPhotoResponse(created)
+  return await toGalleryPhotoResponse(created)
 }
 
 async function updateGalleryPhoto(ctx, args) {
@@ -799,7 +830,7 @@ async function updateGalleryPhoto(ctx, args) {
 
   const updated = await galleryPhotoRepo.updateById(ctx, galleryPhotoId, updates)
 
-  return toGalleryPhotoResponse(updated)
+  return await toGalleryPhotoResponse(updated)
 }
 
 async function deleteGalleryPhoto(ctx, args) {
@@ -810,7 +841,7 @@ async function deleteGalleryPhoto(ctx, args) {
 
   await galleryPhotoRepo.deleteById(ctx, galleryPhotoId)
 
-  return toGalleryPhotoResponse(existing)
+  return await toGalleryPhotoResponse(existing)
 }
 
 
@@ -820,7 +851,7 @@ async function deleteGalleryPhoto(ctx, args) {
 
 async function getForumSection(ctx, args) {
   const { deptId, tenantId } = args
-  const resolvedCtx = tenantId ? { ...ctx, tenant_id: tenantId } : ctx
+  const resolvedCtx = resolveSecureTenantContext(ctx, tenantId)
 
   const doc = await ForumSection.findOne({ tenant_id: resolvedCtx.tenant_id, deptId }).lean()
 
@@ -852,13 +883,13 @@ async function saveForumSection(ctx, args) {
 async function listForumEvents(ctx, args) {
   const validated   = validate(listForumEventsSchema, args || {})
   const { tenantId, ...rest } = validated
-  const resolvedCtx = tenantId ? { ...ctx, tenant_id: tenantId } : ctx
+  const resolvedCtx = resolveSecureTenantContext(ctx, tenantId)
   const query       = buildForumEventQuery(rest)
   const sort        = buildSort(rest.sortBy, rest.sortOrder)
 
   const docs = await ForumEvent.find({ tenant_id: resolvedCtx.tenant_id, ...query }).sort(sort).lean()
 
-  return { items: docs.map(toForumEventResponse), nextToken: null }
+  return { items: await Promise.all(docs.map(toForumEventResponse)), nextToken: null }
 }
 
 async function createForumEvent(ctx, args) {
@@ -876,7 +907,7 @@ async function createForumEvent(ctx, args) {
     created_by:    ctx.user_id,
   })
 
-  return toForumEventResponse(created)
+  return await toForumEventResponse(created)
 }
 
 async function updateForumEvent(ctx, args) {
@@ -893,7 +924,7 @@ async function updateForumEvent(ctx, args) {
 
   const updated = await forumEventRepo.updateById(ctx, forumEventId, updates)
 
-  return toForumEventResponse(updated)
+  return await toForumEventResponse(updated)
 }
 
 async function deleteForumEvent(ctx, args) {
@@ -904,7 +935,7 @@ async function deleteForumEvent(ctx, args) {
 
   await forumEventRepo.deleteById(ctx, forumEventId)
 
-  return toForumEventResponse(existing)
+  return await toForumEventResponse(existing)
 }
 
 
@@ -915,7 +946,7 @@ async function deleteForumEvent(ctx, args) {
 async function listDepartmentActivities(ctx, args) {
   const validated   = validate(listDepartmentActivitiesSchema, args || {})
   const { tenantId, ...rest } = validated
-  const resolvedCtx = tenantId ? { ...ctx, tenant_id: tenantId } : ctx
+  const resolvedCtx = resolveSecureTenantContext(ctx, tenantId)
   const query       = buildDepartmentActivityQuery(rest)
   const sort        = buildSort(rest.sortBy || 'createdAt', rest.sortOrder || 'desc')
 

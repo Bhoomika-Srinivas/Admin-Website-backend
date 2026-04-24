@@ -21,11 +21,13 @@ type WorkflowInstance {
 type WorkflowDefinitionConnection {
   items: [WorkflowDefinition!]!
   nextCursor: String
+  pageInfo: PageInfo
 }
 
 type WorkflowInstanceConnection {
   items: [WorkflowInstance!]!
   nextCursor: String
+  pageInfo: PageInfo
 }
 
 extend type Query {

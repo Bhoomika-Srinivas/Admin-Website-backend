@@ -2,8 +2,9 @@ const Joi = require('joi');
 
 const paginationSchema = Joi.object({
   limit: Joi.number().integer().min(1).max(100),
+  page: Joi.number().integer().min(1),
   cursor: Joi.string().allow(''),
-});
+}).allow(null);
 
 const userIdSchema = Joi.object({
   user_id: Joi.string().required(),
@@ -11,8 +12,11 @@ const userIdSchema = Joi.object({
 
 const updateUserInputSchema = Joi.object({
   name: Joi.string(),
+  phone: Joi.string().allow('', null),
   profile: Joi.any(),
   status: Joi.string().valid('active', 'invited', 'suspended', 'deactivated'),
+  role: Joi.string(),
+  department: Joi.string().allow('', null),
 }).min(1).options({ stripUnknown: true });
 
 const updateUserSchema = Joi.object({
@@ -28,6 +32,10 @@ const roleIdSchema = Joi.object({
 const inviteUserSchema = Joi.object({
   email: Joi.string().email().required(),
   name: Joi.string(),
+  phone: Joi.string().allow('', null),
+  role: Joi.string().required(),
+  department: Joi.string().allow('', null),
+  password: Joi.string().required(),
 }).options({ stripUnknown: true });
 
 const createRoleSchema = Joi.object({

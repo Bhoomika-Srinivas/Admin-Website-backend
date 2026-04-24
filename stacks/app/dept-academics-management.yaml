@@ -8,11 +8,16 @@
       Layers:
         - !Ref CommonLayer
         - !Ref PackagesLayer
+      Environment:
+        Variables:
+          BUCKET_NAME: !Ref AppBucket
       Policies:
         - EventBridgePutEventsPolicy:
             EventBusName: !Ref AppEventBus
         - SSMParameterReadPolicy:
             ParameterName: !Sub '${ProjectName}/${Environment}/*'
+        - S3ReadPolicy:
+            BucketName: !Ref AppBucket
       Tags:
         Environment: !Ref Environment
         ModuleName: dept-academics-management

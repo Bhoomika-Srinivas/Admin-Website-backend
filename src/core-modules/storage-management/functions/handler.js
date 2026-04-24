@@ -76,7 +76,7 @@ async function listFiles(ctx, args) {
   if (validated.module) filter.module = validated.module;
   if (validated.entity_id) filter.entity_id = validated.entity_id;
   const result = await fileRepo.findMany(ctx, filter, pagination);
-  return { items: result.items, nextCursor: result.nextCursor };
+  return { items: result.items, nextCursor: result.nextCursor, pageInfo: result.pageInfo };
 }
 
 async function deleteFile(ctx, args) {

@@ -23,11 +23,13 @@ type FormSubmission {
 type FormDefinitionConnection {
   items: [FormDefinition!]!
   nextCursor: String
+  pageInfo: PageInfo
 }
 
 type FormSubmissionConnection {
   items: [FormSubmission!]!
   nextCursor: String
+  pageInfo: PageInfo
 }
 
 input CreateFormInput {

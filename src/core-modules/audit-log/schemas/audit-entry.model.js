@@ -11,6 +11,7 @@ const auditEntrySchema = new mongoose.Schema(
     resource_id: { type: String },
     before: { type: mongoose.Schema.Types.Mixed },
     after: { type: mongoose.Schema.Types.Mixed },
+    severity: { type: String, enum: ['info', 'warn', 'critical'], default: 'info' },
     metadata: {
       ip: String,
       user_agent: String,

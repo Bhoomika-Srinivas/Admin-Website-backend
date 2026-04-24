@@ -31,8 +31,18 @@ function error(code, message, details) {
   return { success: false, error: err };
 }
 
+/**
+ * Convert a Mongoose document or plain object to a plain JS object.
+ * @param {*} doc
+ * @returns {Object}
+ */
+function toPlain(doc) {
+  return doc && doc.toObject ? doc.toObject() : { ...doc };
+}
+
 module.exports = {
   success,
   paginated,
   error,
+  toPlain,
 };

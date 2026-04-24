@@ -1,4 +1,4 @@
-const { resolveTenant }       = require('/opt/nodejs/middleware/tenant-resolver')
+const { resolveTenant, resolveSecureTenantContext } = require('/opt/nodejs/middleware/tenant-resolver')
 const { requirePermission }   = require('/opt/nodejs/middleware/auth-guard')
 const { validate }            = require('/opt/nodejs/middleware/input-validator')
 const { withConnection }      = require('/opt/nodejs/middleware/with-connection')
@@ -7,6 +7,37 @@ const { generateId }          = require('/opt/nodejs/utils/id-generator')
 const { MongoRepository }     = require('/opt/nodejs/db/mongo-repository')
 const { NotFoundError }       = require('/opt/nodejs/middleware/error-handler')
 const { normalizePagination } = require('/opt/nodejs/utils/pagination')
+const { getSignedUrl }               = require('@aws-sdk/s3-request-presigner')
+const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3')
+
+const s3     = new S3Client({ region: process.env.AWS_REGION })
+const BUCKET = process.env.BUCKET_NAME
+
+async function getPresignedUrl(key) {
+  if (!key) return null
+  if (key.startsWith('http://') || key.startsWith('https://')) {
+    try {
+      const url = new URL(key)
+      if (url.hostname.endsWith('amazonaws.com')) {
+        const s3Key = url.hostname.startsWith(BUCKET + '.')
+          ? url.pathname.slice(1)
+          : url.pathname.slice(BUCKET.length + 2)
+        if (s3Key) {
+          const command = new GetObjectCommand({ Bucket: BUCKET, Key: s3Key })
+          return await getSignedUrl(s3, command, { expiresIn: 3600 })
+        }
+      }
+    } catch {}
+    return key
+  }
+  try {
+    const command = new GetObjectCommand({ Bucket: BUCKET, Key: key })
+    return await getSignedUrl(s3, command, { expiresIn: 3600 })
+  } catch (err) {
+    console.error('Failed to generate presigned URL for key:', key, err.message)
+    return null
+  }
+}
 
 const {
   listDeptSlotsSchema,
@@ -90,24 +121,42 @@ function toDeptCourseResponse(doc) {
   return { ...plain, deptCourseId: plain.dept_course_id || (plain._id ? plain._id.toString() : null) }
 }
 
-function toDeptTimetableResponse(doc) {
+async function toDeptTimetableResponse(doc) {
   const plain = doc && doc.toObject ? doc.toObject() : { ...doc }
-  return { ...plain, deptTimetableId: plain.dept_timetable_id || (plain._id ? plain._id.toString() : null) }
+  return {
+    ...plain,
+    deptTimetableId: plain.dept_timetable_id || (plain._id ? plain._id.toString() : null),
+    fileUrl: await getPresignedUrl(plain.fileUrl),
+  }
 }
 
-function toLearningMaterialResponse(doc) {
+async function toLearningMaterialResponse(doc) {
   const plain = doc && doc.toObject ? doc.toObject() : { ...doc }
-  return { ...plain, learningMaterialId: plain.learning_material_id || (plain._id ? plain._id.toString() : null) }
+  return {
+    ...plain,
+    learningMaterialId: plain.learning_material_id || (plain._id ? plain._id.toString() : null),
+    fileUrl: await getPresignedUrl(plain.fileUrl),
+  }
 }
 
-function toInnovativeTeachingResponse(doc) {
+async function toInnovativeTeachingResponse(doc) {
   const plain = doc && doc.toObject ? doc.toObject() : { ...doc }
-  return { ...plain, innovativeTeachingId: plain.innovative_teaching_id || (plain._id ? plain._id.toString() : null) }
+  return {
+    ...plain,
+    innovativeTeachingId: plain.innovative_teaching_id || (plain._id ? plain._id.toString() : null),
+    imageUrls: await Promise.all((plain.imageUrls || []).map(getPresignedUrl)),
+    pdfUrl:    await getPresignedUrl(plain.pdfUrl),
+  }
 }
 
-function toResultAnalysisResponse(doc) {
+async function toResultAnalysisResponse(doc) {
   const plain = doc && doc.toObject ? doc.toObject() : { ...doc }
-  return { ...plain, resultAnalysisId: plain.result_analysis_id || (plain._id ? plain._id.toString() : null) }
+  return {
+    ...plain,
+    resultAnalysisId: plain.result_analysis_id || (plain._id ? plain._id.toString() : null),
+    pdfUrl:        await getPresignedUrl(plain.pdfUrl),
+    graphImageUrl: await getPresignedUrl(plain.graphImageUrl),
+  }
 }
 
 /* ─────────────────────────────
@@ -344,7 +393,7 @@ exports.handler = withConnection(handleEvent)
 
 async function listDeptSlots(ctx, args) {
   const validated   = validate(listDeptSlotsSchema, args || {})
-  const resolvedCtx = validated.tenantId ? { ...ctx, tenant_id: validated.tenantId } : ctx
+  const resolvedCtx = resolveSecureTenantContext(ctx, validated.tenantId)
 
   const slotQuery = { deptId: validated.deptId, sectionId: validated.sectionId }
   if (validated.programType) slotQuery.programType = validated.programType
@@ -431,7 +480,7 @@ async function deleteDeptSlot(ctx, args) {
 
 async function listDeptSections(ctx, args) {
   const validated   = validate(listDeptSectionsSchema, args || {})
-  const resolvedCtx = validated.tenantId ? { ...ctx, tenant_id: validated.tenantId } : ctx
+  const resolvedCtx = resolveSecureTenantContext(ctx, validated.tenantId)
 
   const query = { deptId: validated.deptId }
   if (validated.programId) query.programId = validated.programId
@@ -483,7 +532,7 @@ async function deleteDeptSection(ctx, args) {
 
 async function listDeptBatches(ctx, args) {
   const validated   = validate(listDeptBatchesSchema, args || {})
-  const resolvedCtx = validated.tenantId ? { ...ctx, tenant_id: validated.tenantId } : ctx
+  const resolvedCtx = resolveSecureTenantContext(ctx, validated.tenantId)
 
   const query = { deptId: validated.deptId }
   if (validated.programType) query.programType = validated.programType
@@ -542,7 +591,7 @@ async function getDeptCourse(ctx, args) {
 
 async function listDeptCourses(ctx, args) {
   const validated   = validate(listDeptCoursesSchema, args || {})
-  const resolvedCtx = validated.tenantId ? { ...ctx, tenant_id: validated.tenantId } : ctx
+  const resolvedCtx = resolveSecureTenantContext(ctx, validated.tenantId)
   const query       = buildCourseQuery(validated)
   const sort        = buildSort(validated.sortBy, validated.sortOrder)
   const pagination  = normalizePagination(validated)
@@ -620,14 +669,14 @@ async function deleteDeptCourse(ctx, args) {
 
 async function listDeptTimetables(ctx, args) {
   const validated   = validate(listDeptTimetablesSchema, args || {})
-  const resolvedCtx = validated.tenantId ? { ...ctx, tenant_id: validated.tenantId } : ctx
+  const resolvedCtx = resolveSecureTenantContext(ctx, validated.tenantId)
   const query       = buildTimetableQuery(validated)
   const sort        = buildSort(validated.sortBy, validated.sortOrder)
 
   const result = await deptTimetableRepo.findMany(resolvedCtx, query, { sort })
 
   return {
-    items:     result.items.map(toDeptTimetableResponse),
+    items:     await Promise.all(result.items.map(toDeptTimetableResponse)),
     nextToken: result.nextCursor
   }
 }
@@ -649,7 +698,7 @@ async function createDeptTimetable(ctx, args) {
     created_by:   ctx.user_id
   })
 
-  return toDeptTimetableResponse(created)
+  return await toDeptTimetableResponse(created)
 }
 
 async function updateDeptTimetable(ctx, args) {
@@ -667,7 +716,7 @@ async function updateDeptTimetable(ctx, args) {
 
   const updated = await deptTimetableRepo.updateById(ctx, deptTimetableId, updates)
 
-  return toDeptTimetableResponse(updated)
+  return await toDeptTimetableResponse(updated)
 }
 
 async function deleteDeptTimetable(ctx, args) {
@@ -678,7 +727,7 @@ async function deleteDeptTimetable(ctx, args) {
 
   await deptTimetableRepo.deleteById(ctx, deptTimetableId)
 
-  return toDeptTimetableResponse(existing)
+  return await toDeptTimetableResponse(existing)
 }
 
 
@@ -688,7 +737,7 @@ async function deleteDeptTimetable(ctx, args) {
 
 async function listLearningMaterials(ctx, args) {
   const validated   = validate(listLearningMaterialsSchema, args || {})
-  const resolvedCtx = validated.tenantId ? { ...ctx, tenant_id: validated.tenantId } : ctx
+  const resolvedCtx = resolveSecureTenantContext(ctx, validated.tenantId)
   const query       = buildMaterialQuery(validated)
   const sort        = buildSort(validated.sortBy, validated.sortOrder)
   const pagination  = normalizePagination(validated)
@@ -696,7 +745,7 @@ async function listLearningMaterials(ctx, args) {
   const result = await learningMaterialRepo.findMany(resolvedCtx, query, { ...pagination, sort })
 
   return {
-    items:     result.items.map(toLearningMaterialResponse),
+    items:     await Promise.all(result.items.map(toLearningMaterialResponse)),
     nextToken: result.nextCursor
   }
 }
@@ -719,7 +768,7 @@ async function createLearningMaterial(ctx, args) {
     created_by:  ctx.user_id
   })
 
-  return toLearningMaterialResponse(created)
+  return await toLearningMaterialResponse(created)
 }
 
 async function updateLearningMaterial(ctx, args) {
@@ -738,7 +787,7 @@ async function updateLearningMaterial(ctx, args) {
 
   const updated = await learningMaterialRepo.updateById(ctx, learningMaterialId, updates)
 
-  return toLearningMaterialResponse(updated)
+  return await toLearningMaterialResponse(updated)
 }
 
 async function deleteLearningMaterial(ctx, args) {
@@ -749,7 +798,7 @@ async function deleteLearningMaterial(ctx, args) {
 
   await learningMaterialRepo.deleteById(ctx, learningMaterialId)
 
-  return toLearningMaterialResponse(existing)
+  return await toLearningMaterialResponse(existing)
 }
 
 
@@ -759,14 +808,14 @@ async function deleteLearningMaterial(ctx, args) {
 
 async function listInnovativeTeaching(ctx, args) {
   const validated   = validate(listInnovativeTeachingSchema, args || {})
-  const resolvedCtx = validated.tenantId ? { ...ctx, tenant_id: validated.tenantId } : ctx
+  const resolvedCtx = resolveSecureTenantContext(ctx, validated.tenantId)
   const query       = buildInnovativeTeachingQuery(validated)
   const sort        = buildSort(validated.sortBy, validated.sortOrder)
 
   const result = await innovativeTeachingRepo.findMany(resolvedCtx, query, { sort })
 
   return {
-    items:     result.items.map(toInnovativeTeachingResponse),
+    items:     await Promise.all(result.items.map(toInnovativeTeachingResponse)),
     nextToken: result.nextCursor
   }
 }
@@ -787,7 +836,7 @@ async function createInnovativeTeaching(ctx, args) {
     created_by:  ctx.user_id
   })
 
-  return toInnovativeTeachingResponse(created)
+  return await toInnovativeTeachingResponse(created)
 }
 
 async function updateInnovativeTeaching(ctx, args) {
@@ -805,7 +854,7 @@ async function updateInnovativeTeaching(ctx, args) {
 
   const updated = await innovativeTeachingRepo.updateById(ctx, innovativeTeachingId, updates)
 
-  return toInnovativeTeachingResponse(updated)
+  return await toInnovativeTeachingResponse(updated)
 }
 
 async function deleteInnovativeTeaching(ctx, args) {
@@ -816,7 +865,7 @@ async function deleteInnovativeTeaching(ctx, args) {
 
   await innovativeTeachingRepo.deleteById(ctx, innovativeTeachingId)
 
-  return toInnovativeTeachingResponse(existing)
+  return await toInnovativeTeachingResponse(existing)
 }
 
 
@@ -826,14 +875,14 @@ async function deleteInnovativeTeaching(ctx, args) {
 
 async function listResultAnalyses(ctx, args) {
   const validated   = validate(listResultAnalysesSchema, args || {})
-  const resolvedCtx = validated.tenantId ? { ...ctx, tenant_id: validated.tenantId } : ctx
+  const resolvedCtx = resolveSecureTenantContext(ctx, validated.tenantId)
   const query       = buildResultAnalysisQuery(validated)
   const sort        = buildSort(validated.sortBy, validated.sortOrder)
 
   const result = await resultAnalysisRepo.findMany(resolvedCtx, query, { sort })
 
   return {
-    items:     result.items.map(toResultAnalysisResponse),
+    items:     await Promise.all(result.items.map(toResultAnalysisResponse)),
     nextToken: result.nextCursor
   }
 }
@@ -855,7 +904,7 @@ async function createResultAnalysis(ctx, args) {
     created_by:    ctx.user_id
   })
 
-  return toResultAnalysisResponse(created)
+  return await toResultAnalysisResponse(created)
 }
 
 async function updateResultAnalysis(ctx, args) {
@@ -874,7 +923,7 @@ async function updateResultAnalysis(ctx, args) {
 
   const updated = await resultAnalysisRepo.updateById(ctx, resultAnalysisId, updates)
 
-  return toResultAnalysisResponse(updated)
+  return await toResultAnalysisResponse(updated)
 }
 
 async function deleteResultAnalysis(ctx, args) {
@@ -885,5 +934,5 @@ async function deleteResultAnalysis(ctx, args) {
 
   await resultAnalysisRepo.deleteById(ctx, resultAnalysisId)
 
-  return toResultAnalysisResponse(existing)
+  return await toResultAnalysisResponse(existing)
 }

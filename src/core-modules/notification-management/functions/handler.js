@@ -80,7 +80,7 @@ async function listNotifications(ctx, args) {
   const validated = validate(listNotificationsSchema, args || {});
   const pagination = normalizePagination(validated.pagination);
   const result = await notificationRepo.findMany(ctx, {}, pagination);
-  return { items: result.items, nextCursor: result.nextCursor };
+  return { items: result.items, nextCursor: result.nextCursor, pageInfo: result.pageInfo };
 }
 
 async function updatePreference(ctx, args) {

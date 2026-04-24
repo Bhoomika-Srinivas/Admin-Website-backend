@@ -17,6 +17,8 @@
             EventBusName: !Ref AppEventBus
         - SSMParameterReadPolicy:
             ParameterName: !Sub '${ProjectName}/${Environment}/*'
+        - S3ReadPolicy:
+            BucketName: !Ref AppBucket
       Tags:
         Environment: !Ref Environment
         ModuleName: tenant-management

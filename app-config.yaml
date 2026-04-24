@@ -9,6 +9,7 @@ core_modules:
   - tenant-management
   - user-management
   - audit-log
+  - settings-management
   - notification-management
   - storage-management
   - form-management
@@ -16,6 +17,8 @@ core_modules:
 
 # Product-specific modules (add when you run generate-module.sh --type app)
 app_modules:
+  - college-management
+  - academics-management
   - events-management
   - alumni-management
   - dept-branding-management

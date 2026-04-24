@@ -1,0 +1,32 @@
+type Setting {
+  key: String!
+  value: String!
+  category: String
+  sensitivity: String
+  updated_by: String
+  updated_at: AWSDateTime
+}
+
+input CreateSettingInput {
+  key: String!
+  value: String!
+  category: String
+  sensitivity: String
+}
+
+input UpdateSettingInput {
+  value: String!
+  category: String
+  sensitivity: String
+}
+
+extend type Query {
+  listSettings(category: String): [Setting!]!
+  getSetting(key: String!): Setting
+}
+
+extend type Mutation {
+  createSetting(input: CreateSettingInput!): Setting!
+  updateSetting(key: String!, input: UpdateSettingInput!): Setting!
+  deleteSetting(key: String!): MutationResponse!
+}

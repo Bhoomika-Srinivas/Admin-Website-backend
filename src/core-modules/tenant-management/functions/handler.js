@@ -8,6 +8,44 @@ const { generateId } = require('/opt/nodejs/utils/id-generator');
 const { MongoRepository } = require('/opt/nodejs/db/mongo-repository');
 const { NotFoundError, ConflictError } = require('/opt/nodejs/middleware/error-handler');
 const { normalizePagination } = require('/opt/nodejs/utils/pagination');
+const { getSignedUrl }               = require('@aws-sdk/s3-request-presigner');
+const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3');
+
+const s3     = new S3Client({ region: process.env.AWS_REGION });
+const BUCKET = process.env.BUCKET_NAME;
+
+async function getPresignedUrl(key) {
+  if (!key) return null;
+  if (key.startsWith('http://') || key.startsWith('https://')) {
+    try {
+      const url = new URL(key);
+      if (url.hostname.endsWith('amazonaws.com')) {
+        const s3Key = url.hostname.startsWith(BUCKET + '.')
+          ? url.pathname.slice(1)
+          : url.pathname.slice(BUCKET.length + 2);
+        if (s3Key) {
+          const command = new GetObjectCommand({ Bucket: BUCKET, Key: s3Key });
+          return await getSignedUrl(s3, command, { expiresIn: 3600 });
+        }
+      }
+    } catch {}
+    return key;
+  }
+  try {
+    const command = new GetObjectCommand({ Bucket: BUCKET, Key: key });
+    return await getSignedUrl(s3, command, { expiresIn: 3600 });
+  } catch (err) {
+    console.error('Failed to generate presigned URL for key:', key, err.message);
+    return null;
+  }
+}
+
+async function toTenantResponse(doc) {
+  if (!doc) return null;
+  const plain = doc && doc.toObject ? doc.toObject() : { ...doc };
+  return { ...plain, logo_url: await getPresignedUrl(plain.logo_url) };
+}
+
 const {
   getTenantSchema,
   listTenantsSchema,
@@ -57,7 +95,7 @@ async function getTenant(ctx, args) {
   const { tenant_id } = validate(getTenantSchema, args || {});
   const doc = await tenantRepo.findById(ctx, tenant_id);
   if (!doc) throw new NotFoundError('Tenant not found');
-  return doc;
+  return await toTenantResponse(doc);
 }
 
 async function listTenants(ctx, args) {
@@ -65,8 +103,9 @@ async function listTenants(ctx, args) {
   const pagination = normalizePagination(validated.pagination);
   const result = await tenantRepo.findMany(ctx, {}, pagination);
   return {
-    items: result.items,
+    items: await Promise.all(result.items.map(toTenantResponse)),
     nextCursor: result.nextCursor,
+    pageInfo: result.pageInfo,
   };
 }
 
@@ -101,7 +140,7 @@ async function createTenant(ctx, args) {
     created_by: ctx.user_id,
     timestamp: new Date().toISOString(),
   });
-  return created;
+  return await toTenantResponse(created);
 }
 
 async function updateTenant(ctx, args) {
@@ -124,7 +163,7 @@ async function updateTenant(ctx, args) {
     updated_by: ctx.user_id,
     timestamp: new Date().toISOString(),
   });
-  return updated;
+  return await toTenantResponse(updated);
 }
 
 async function suspendTenant(ctx, args) {
@@ -139,5 +178,5 @@ async function suspendTenant(ctx, args) {
     suspended_by: ctx.user_id,
     timestamp: new Date().toISOString(),
   });
-  return updated;
+  return await toTenantResponse(updated);
 }

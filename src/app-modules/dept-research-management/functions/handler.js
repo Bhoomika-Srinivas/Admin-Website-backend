@@ -1,4 +1,4 @@
-const { resolveTenant }       = require('/opt/nodejs/middleware/tenant-resolver')
+const { resolveTenant, resolveSecureTenantContext } = require('/opt/nodejs/middleware/tenant-resolver')
 const { requirePermission }   = require('/opt/nodejs/middleware/auth-guard')
 const { validate }            = require('/opt/nodejs/middleware/input-validator')
 const { withConnection }      = require('/opt/nodejs/middleware/with-connection')
@@ -6,6 +6,37 @@ const { log }                 = require('/opt/nodejs/middleware/request-logger')
 const { generateId }          = require('/opt/nodejs/utils/id-generator')
 const { MongoRepository }     = require('/opt/nodejs/db/mongo-repository')
 const { NotFoundError }       = require('/opt/nodejs/middleware/error-handler')
+const { getSignedUrl }               = require('@aws-sdk/s3-request-presigner')
+const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3')
+
+const s3     = new S3Client({ region: process.env.AWS_REGION })
+const BUCKET = process.env.BUCKET_NAME
+
+async function getPresignedUrl(key) {
+  if (!key) return null
+  if (key.startsWith('http://') || key.startsWith('https://')) {
+    try {
+      const url = new URL(key)
+      if (url.hostname.endsWith('amazonaws.com')) {
+        const s3Key = url.hostname.startsWith(BUCKET + '.')
+          ? url.pathname.slice(1)
+          : url.pathname.slice(BUCKET.length + 2)
+        if (s3Key) {
+          const command = new GetObjectCommand({ Bucket: BUCKET, Key: s3Key })
+          return await getSignedUrl(s3, command, { expiresIn: 3600 })
+        }
+      }
+    } catch {}
+    return key
+  }
+  try {
+    const command = new GetObjectCommand({ Bucket: BUCKET, Key: key })
+    return await getSignedUrl(s3, command, { expiresIn: 3600 })
+  } catch (err) {
+    console.error('Failed to generate presigned URL for key:', key, err.message)
+    return null
+  }
+}
 
 const {
   listPublicationProfilesSchema,
@@ -72,9 +103,13 @@ function toPatentResponse(doc) {
   return { ...plain, patentId: plain.patent_id || (plain._id ? plain._id.toString() : null) }
 }
 
-function toFacultyResearchSummaryResponse(doc) {
+async function toFacultyResearchSummaryResponse(doc) {
   const plain = doc && doc.toObject ? doc.toObject() : { ...doc }
-  return { ...plain, facultyResearchSummaryId: plain.faculty_research_summary_id || (plain._id ? plain._id.toString() : null) }
+  return {
+    ...plain,
+    facultyResearchSummaryId: plain.faculty_research_summary_id || (plain._id ? plain._id.toString() : null),
+    thesisDocumentUrl: await getPresignedUrl(plain.thesisDocumentUrl),
+  }
 }
 
 function toPhdGuideResponse(doc) {
@@ -274,7 +309,7 @@ exports.handler = withConnection(handleEvent)
 
 async function listPublicationProfiles(ctx, args) {
   const validated   = validate(listPublicationProfilesSchema, args || {})
-  const resolvedCtx = validated.tenantId ? { ...ctx, tenant_id: validated.tenantId } : ctx
+  const resolvedCtx = resolveSecureTenantContext(ctx, validated.tenantId)
 
   const query = { deptId: validated.deptId }
   const sort  = buildSort('createdAt', 'asc')
@@ -324,7 +359,7 @@ async function savePublicationProfile(ctx, args) {
 
 async function listResearchGrants(ctx, args) {
   const validated   = validate(listResearchGrantsSchema, args || {})
-  const resolvedCtx = validated.tenantId ? { ...ctx, tenant_id: validated.tenantId } : ctx
+  const resolvedCtx = resolveSecureTenantContext(ctx, validated.tenantId)
   const query       = buildTextQuery(validated)
   const sort        = buildSort(validated.sortBy, validated.sortOrder)
 
@@ -380,7 +415,7 @@ async function deleteResearchGrant(ctx, args) {
 
 async function listPatents(ctx, args) {
   const validated   = validate(listPatentsSchema, args || {})
-  const resolvedCtx = validated.tenantId ? { ...ctx, tenant_id: validated.tenantId } : ctx
+  const resolvedCtx = resolveSecureTenantContext(ctx, validated.tenantId)
   const query       = buildTextQuery(validated)
   const sort        = buildSort(validated.sortBy, validated.sortOrder)
 
@@ -436,7 +471,7 @@ async function deletePatent(ctx, args) {
 
 async function listFacultyResearchSummaries(ctx, args) {
   const validated   = validate(listFacultyResearchSummariesSchema, args || {})
-  const resolvedCtx = validated.tenantId ? { ...ctx, tenant_id: validated.tenantId } : ctx
+  const resolvedCtx = resolveSecureTenantContext(ctx, validated.tenantId)
   const query       = buildResearchSummaryQuery(validated)
   const sort        = buildSort(validated.sortBy, validated.sortOrder)
   const limit       = Math.min(validated.limit || 100, 100)
@@ -445,7 +480,7 @@ async function listFacultyResearchSummaries(ctx, args) {
   const items = await FacultyResearchSummary.find(fullFilter).sort(sort).limit(limit).lean()
 
   return {
-    items:     items.map(toFacultyResearchSummaryResponse),
+    items:     await Promise.all(items.map(toFacultyResearchSummaryResponse)),
     nextToken: null
   }
 }
@@ -477,7 +512,7 @@ async function createFacultyResearchSummary(ctx, args) {
     created_by:           ctx.user_id
   })
 
-  return toFacultyResearchSummaryResponse(created)
+  return await toFacultyResearchSummaryResponse(created)
 }
 
 async function updateFacultyResearchSummary(ctx, args) {
@@ -506,7 +541,7 @@ async function updateFacultyResearchSummary(ctx, args) {
 
   const updated = await facultyResearchSummaryRepo.updateById(ctx, facultyResearchSummaryId, updates)
 
-  return toFacultyResearchSummaryResponse(updated)
+  return await toFacultyResearchSummaryResponse(updated)
 }
 
 async function deleteFacultyResearchSummary(ctx, args) {
@@ -517,7 +552,7 @@ async function deleteFacultyResearchSummary(ctx, args) {
 
   await facultyResearchSummaryRepo.deleteById(ctx, facultyResearchSummaryId)
 
-  return toFacultyResearchSummaryResponse(existing)
+  return await toFacultyResearchSummaryResponse(existing)
 }
 
 
@@ -527,7 +562,7 @@ async function deleteFacultyResearchSummary(ctx, args) {
 
 async function listPhdGuides(ctx, args) {
   const validated   = validate(listPhdGuidesSchema, args || {})
-  const resolvedCtx = validated.tenantId ? { ...ctx, tenant_id: validated.tenantId } : ctx
+  const resolvedCtx = resolveSecureTenantContext(ctx, validated.tenantId)
   const query       = buildPhdGuideQuery(validated)
   const sort        = buildSort(validated.sortBy, validated.sortOrder)
 
@@ -596,7 +631,7 @@ async function deletePhdGuide(ctx, args) {
 
 async function listPhdScholars(ctx, args) {
   const validated   = validate(listPhdScholarsSchema, args || {})
-  const resolvedCtx = validated.tenantId ? { ...ctx, tenant_id: validated.tenantId } : ctx
+  const resolvedCtx = resolveSecureTenantContext(ctx, validated.tenantId)
   const query       = buildPhdScholarQuery(validated)
   const sort        = buildSort(validated.sortBy, validated.sortOrder)
 

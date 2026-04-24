@@ -8,11 +8,39 @@
       Layers:
         - !Ref CommonLayer
         - !Ref PackagesLayer
+      Environment:
+        Variables:
+          BUCKET_NAME: !Ref AppBucket
       Policies:
         - EventBridgePutEventsPolicy:
             EventBusName: !Ref AppEventBus
         - SSMParameterReadPolicy:
             ParameterName: !Sub '${ProjectName}/${Environment}/*'
+        - S3ReadPolicy:
+            BucketName: !Ref AppBucket
+      Tags:
+        Environment: !Ref Environment
+        ModuleName: events-management
+        ManagedBy: CloudFormation
+
+  EventsSchedulerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-events-scheduler-${Environment}'
+      CodeUri: src/app-modules/events-management/
+      Handler: functions/scheduler.handler
+      Layers:
+        - !Ref CommonLayer
+        - !Ref PackagesLayer
+      Policies:
+        - SSMParameterReadPolicy:
+            ParameterName: !Sub '${ProjectName}/${Environment}/*'
+      Events:
+        HourlySchedule:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 hour)
+            Enabled: true
       Tags:
         Environment: !Ref Environment
         ModuleName: events-management

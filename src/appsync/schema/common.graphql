@@ -2,7 +2,10 @@ scalar AWSDateTime
 scalar AWSJSON
 
 type PageInfo {
-  hasNextPage: Boolean!
+  total: Int
+  page: Int
+  limit: Int
+  hasNextPage: Boolean
   endCursor: String
 }
 
@@ -13,5 +16,6 @@ type MutationResponse {
 
 input PaginationInput {
   limit: Int
+  page: Int
   cursor: String
 }

@@ -34,6 +34,7 @@ get_core_lambda_id() {
     tenant-management) echo "TenantFunction" ;;
     user-management) echo "UserFunction" ;;
     audit-log) echo "AuditQueryFunction" ;;
+    settings-management) echo "SettingsFunction" ;;
     notification-management) echo "NotificationFunction" ;;
     storage-management) echo "StorageFunction" ;;
     form-management) echo "FormFunction" ;;
@@ -138,6 +139,11 @@ done <<< "$(get_app_list)"
   echo "  Function:"
   echo "    Runtime: nodejs20.x"
   echo "    Timeout: 30"
+  echo "    Tracing: Active"
+  echo "    LoggingConfig:"
+  echo "      LogFormat: JSON"
+  echo "      ApplicationLogLevel: INFO"
+  echo "      SystemLogLevel: INFO"
   echo "    Environment:"
   echo "      Variables:"
   echo "        STAGE: !Ref Environment"

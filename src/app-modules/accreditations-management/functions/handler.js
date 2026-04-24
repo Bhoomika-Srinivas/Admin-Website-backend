@@ -1,4 +1,4 @@
-const { resolveTenant }       = require('/opt/nodejs/middleware/tenant-resolver')
+const { resolveTenant, resolveSecureTenantContext } = require('/opt/nodejs/middleware/tenant-resolver')
 const { requirePermission }   = require('/opt/nodejs/middleware/auth-guard')
 const { validate }            = require('/opt/nodejs/middleware/input-validator')
 const { withConnection }      = require('/opt/nodejs/middleware/with-connection')
@@ -7,6 +7,37 @@ const { generateId }          = require('/opt/nodejs/utils/id-generator')
 const { MongoRepository }     = require('/opt/nodejs/db/mongo-repository')
 const { NotFoundError }       = require('/opt/nodejs/middleware/error-handler')
 const { normalizePagination } = require('/opt/nodejs/utils/pagination')
+const { getSignedUrl }               = require('@aws-sdk/s3-request-presigner')
+const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3')
+
+const s3     = new S3Client({ region: process.env.AWS_REGION })
+const BUCKET = process.env.BUCKET_NAME
+
+async function getPresignedUrl(key) {
+  if (!key) return null
+  if (key.startsWith('http://') || key.startsWith('https://')) {
+    try {
+      const url = new URL(key)
+      if (url.hostname.endsWith('amazonaws.com')) {
+        const s3Key = url.hostname.startsWith(BUCKET + '.')
+          ? url.pathname.slice(1)
+          : url.pathname.slice(BUCKET.length + 2)
+        if (s3Key) {
+          const command = new GetObjectCommand({ Bucket: BUCKET, Key: s3Key })
+          return await getSignedUrl(s3, command, { expiresIn: 3600 })
+        }
+      }
+    } catch {}
+    return key
+  }
+  try {
+    const command = new GetObjectCommand({ Bucket: BUCKET, Key: key })
+    return await getSignedUrl(s3, command, { expiresIn: 3600 })
+  } catch (err) {
+    console.error('Failed to generate presigned URL for key:', key, err.message)
+    return null
+  }
+}
 
 const {
   listAccreditationsSchema,
@@ -24,9 +55,13 @@ const accreditationRepo = new MongoRepository({ model: Accreditation, primaryKey
    Response Normalizer
 ─────────────────────────────*/
 
-function toAccreditationResponse(doc) {
+async function toAccreditationResponse(doc) {
   const plain = doc && doc.toObject ? doc.toObject() : { ...doc }
-  return { ...plain, accreditationId: plain.accreditation_id || (plain._id ? plain._id.toString() : null) }
+  return {
+    ...plain,
+    accreditationId: plain.accreditation_id || (plain._id ? plain._id.toString() : null),
+    file_url: await getPresignedUrl(plain.file_url),
+  }
 }
 
 /* ─────────────────────────────
@@ -84,7 +119,7 @@ exports.handler = withConnection(handleEvent)
 async function listAccreditations(ctx, args) {
   const validated  = validate(listAccreditationsSchema, args || {})
   const { tenantId, ...rest } = validated
-  const resolvedCtx = tenantId ? { ...ctx, tenant_id: tenantId } : ctx
+  const resolvedCtx = resolveSecureTenantContext(ctx, tenantId)
 
   const query      = buildAccreditationQuery(rest)
   const pagination = normalizePagination(validated)
@@ -93,8 +128,8 @@ async function listAccreditations(ctx, args) {
   const result = await accreditationRepo.findMany(resolvedCtx, query, { ...pagination, sort })
 
   return {
-    items:     result.items.map(toAccreditationResponse),
-    nextToken: result.nextCursor,
+    items:     await Promise.all(result.items.map(toAccreditationResponse)),
+    nextToken: result.nextCursor, pageInfo: result.pageInfo,
   }
 }
 
@@ -104,7 +139,7 @@ async function getAccreditation(ctx, args) {
   const doc = await Accreditation.findOne({ accreditation_id: accreditationId }).lean()
   if (!doc) throw new NotFoundError('Accreditation not found')
 
-  return toAccreditationResponse(doc)
+  return await toAccreditationResponse(doc)
 }
 
 async function createAccreditation(ctx, args) {
@@ -142,7 +177,7 @@ async function createAccreditation(ctx, args) {
     created_by:      ctx.user_id,
   })
 
-  return toAccreditationResponse(created)
+  return await toAccreditationResponse(created)
 }
 
 async function updateAccreditation(ctx, args) {
@@ -167,7 +202,7 @@ async function updateAccreditation(ctx, args) {
 
   const updated = await accreditationRepo.updateById(ctx, accreditationId, updates)
 
-  return toAccreditationResponse(updated)
+  return await toAccreditationResponse(updated)
 }
 
 async function deleteAccreditation(ctx, args) {
@@ -178,5 +213,5 @@ async function deleteAccreditation(ctx, args) {
 
   await accreditationRepo.deleteById(ctx, accreditationId)
 
-  return toAccreditationResponse(existing)
+  return await toAccreditationResponse(existing)
 }

@@ -1,0 +1,197 @@
+# Enums
+
+enum AcademicCalendarType {
+  CURRENT
+  HISTORIC
+}
+
+enum AcademicCalendarAuthority {
+  INSTITUTE
+  VTU
+}
+
+enum AcademicCalendarProgram {
+  UG
+  PG
+}
+
+# Types
+
+type SchemeSyllabusEntry @aws_api_key @aws_cognito_user_pools {
+  syllabusId: ID!
+  year:       String!
+  category:   String!
+  title:      String!
+  subtitle:   String
+  fileUrl:    String
+  order:      Int
+  createdAt:  AWSDateTime
+  updatedAt:  AWSDateTime
+}
+
+type SchemeSyllabusConnection @aws_api_key @aws_cognito_user_pools {
+  items:     [SchemeSyllabusEntry]
+  nextToken: String
+}
+
+type AcademicCalendar @aws_api_key @aws_cognito_user_pools {
+  calendarId:  ID!
+  title:       String!
+  description: String
+  type:        AcademicCalendarType!
+  authority:   AcademicCalendarAuthority!
+  program:     AcademicCalendarProgram!
+  semester:    String
+  year:        String!
+  date:        AWSDateTime
+  fileUrl:     String
+  createdAt:   AWSDateTime
+  updatedAt:   AWSDateTime
+}
+
+type AcademicCalendarConnection @aws_api_key @aws_cognito_user_pools {
+  items:     [AcademicCalendar]
+  nextToken: String
+}
+
+type RulesRegulations @aws_api_key @aws_cognito_user_pools {
+  documentId:       ID!
+  serviceRulesFile: String
+  serviceRulesText: String
+  attendanceFile:   String
+  attendanceText:   String
+  disciplineFile:   String
+  disciplineText:   String
+  updatedAt:        AWSDateTime
+}
+
+type RankHolder @aws_api_key @aws_cognito_user_pools {
+  rankId:      ID!
+  year:        String!
+  program:     AcademicCalendarProgram!
+  usn:         String!
+  studentName: String!
+  branch:      String!
+  rank:        String!
+  rankOrder:   Int
+  createdAt:   AWSDateTime
+  updatedAt:   AWSDateTime
+}
+
+type RankHolderConnection @aws_api_key @aws_cognito_user_pools {
+  items:     [RankHolder]
+  nextToken: String
+}
+
+# Inputs - Scheme Syllabus
+
+input CreateSchemeSyllabusInput {
+  year:     String!
+  category: String!
+  title:    String!
+  subtitle: String
+  fileUrl:  String
+  order:    Int
+}
+
+input UpdateSchemeSyllabusInput {
+  syllabusId: ID!
+  year:       String
+  category:   String
+  title:      String
+  subtitle:   String
+  fileUrl:    String
+  order:      Int
+}
+
+# Inputs - Academic Calendar
+
+input CreateAcademicCalendarInput {
+  title:       String!
+  description: String
+  type:        AcademicCalendarType!
+  authority:   AcademicCalendarAuthority!
+  program:     AcademicCalendarProgram!
+  semester:    String
+  year:        String!
+  date:        AWSDateTime
+  fileUrl:     String
+}
+
+input UpdateAcademicCalendarInput {
+  calendarId:  ID!
+  title:       String
+  description: String
+  type:        AcademicCalendarType
+  authority:   AcademicCalendarAuthority
+  program:     AcademicCalendarProgram
+  semester:    String
+  year:        String
+  date:        AWSDateTime
+  fileUrl:     String
+}
+
+# Inputs - Rules & Regulations
+
+input UpdateRulesRegulationsInput {
+  serviceRulesFile: String
+  serviceRulesText: String
+  attendanceFile:   String
+  attendanceText:   String
+  disciplineFile:   String
+  disciplineText:   String
+}
+
+# Inputs - Rank Holders
+
+input CreateRankHolderInput {
+  year:        String!
+  program:     AcademicCalendarProgram!
+  usn:         String!
+  studentName: String!
+  branch:      String!
+  rank:        String!
+  rankOrder:   Int
+}
+
+input UpdateRankHolderInput {
+  rankId:      ID!
+  year:        String
+  program:     AcademicCalendarProgram
+  usn:         String
+  studentName: String
+  branch:      String
+  rank:        String
+  rankOrder:   Int
+}
+
+# Queries
+
+extend type Query {
+  listSchemeSyllabus(tenantId: ID, limit: Int, nextToken: String): SchemeSyllabusConnection @aws_api_key @aws_cognito_user_pools
+  listAcademicCalendar(tenantId: ID, type: AcademicCalendarType, authority: AcademicCalendarAuthority, program: AcademicCalendarProgram, year: String, limit: Int, nextToken: String): AcademicCalendarConnection @aws_api_key @aws_cognito_user_pools
+  getRulesRegulations: RulesRegulations @aws_api_key @aws_cognito_user_pools
+  listRankHolders(tenantId: ID, year: String, program: AcademicCalendarProgram, limit: Int, nextToken: String): RankHolderConnection @aws_api_key @aws_cognito_user_pools
+}
+
+# Mutations
+
+extend type Mutation {
+  # Scheme Syllabus
+  createSchemeSyllabus(input: CreateSchemeSyllabusInput!): SchemeSyllabusEntry
+  updateSchemeSyllabus(input: UpdateSchemeSyllabusInput!): SchemeSyllabusEntry
+  deleteSchemeSyllabus(syllabusId: ID!): SchemeSyllabusEntry
+
+  # Academic Calendar
+  createAcademicCalendar(input: CreateAcademicCalendarInput!): AcademicCalendar
+  updateAcademicCalendar(input: UpdateAcademicCalendarInput!): AcademicCalendar
+  deleteAcademicCalendar(calendarId: ID!): AcademicCalendar
+
+  # Rules & Regulations (Singleton - no create/delete)
+  updateRulesRegulations(input: UpdateRulesRegulationsInput!): RulesRegulations
+
+  # Rank Holders
+  createRankHolder(input: CreateRankHolderInput!): RankHolder
+  updateRankHolder(input: UpdateRankHolderInput!): RankHolder
+  deleteRankHolder(rankId: ID!): RankHolder
+}

@@ -9,6 +9,9 @@ const { ForbiddenError } = require('./error-handler');
 const REQUESTS_PER_MINUTE = parseInt(process.env.RATE_LIMIT_PER_MINUTE, 10) || 60;
 const REQUESTS_PER_HOUR = parseInt(process.env.RATE_LIMIT_PER_HOUR, 10) || 1000;
 
+// Module-level client — reused across warm Lambda invocations
+const dynamoClient = new DynamoDBClient({ region: process.env.AWS_REGION });
+
 // In-memory fallback for local dev
 const localStore = new Map();
 const LOCAL_CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
@@ -107,15 +110,13 @@ async function checkDynamoRateLimit(key) {
     return checkLocalRateLimit(key);
   }
 
-  const client = new DynamoDBClient({ region: process.env.AWS_REGION });
   const now = Math.floor(Date.now() / 1000);
   const minuteWindow = Math.floor(now / 60);
   const hourWindow = Math.floor(now / 3600);
 
   try {
     // Get current counts
-    const result = await client.send(
-      new GetItemCommand({
+    const result = await dynamoClient.send(new GetItemCommand({
         TableName: tableName,
         Key: {
           identifier: { S: key },
@@ -158,8 +159,7 @@ async function checkDynamoRateLimit(key) {
     }
 
     // Update counters
-    await client.send(
-      new PutItemCommand({
+    await dynamoClient.send(new PutItemCommand({
         TableName: tableName,
         Item: {
           identifier: { S: key },

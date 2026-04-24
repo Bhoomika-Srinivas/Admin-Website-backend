@@ -22,7 +22,7 @@ type Query {
   listTenants(pagination: PaginationInput): TenantConnection
   getUser(user_id: ID!): User
   listUsers(pagination: PaginationInput): UserConnection
-  listRoles(pagination: PaginationInput): RoleConnection
+  listRoles(pagination: PaginationInput): [Role!]
   getAuditEntry(entry_id: ID!): AuditEntry
   listAuditEntries(filter: AuditEntryFilter, pagination: PaginationInput): AuditEntryConnection
 }

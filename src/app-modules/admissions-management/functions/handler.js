@@ -1,4 +1,4 @@
-const { resolveTenant }     = require('/opt/nodejs/middleware/tenant-resolver')
+const { resolveTenant, resolveSecureTenantContext } = require('/opt/nodejs/middleware/tenant-resolver')
 const { requirePermission } = require('/opt/nodejs/middleware/auth-guard')
 const { validate }          = require('/opt/nodejs/middleware/input-validator')
 const { withConnection }    = require('/opt/nodejs/middleware/with-connection')
@@ -6,11 +6,14 @@ const { log }               = require('/opt/nodejs/middleware/request-logger')
 const { generateId }        = require('/opt/nodejs/utils/id-generator')
 const { MongoRepository }   = require('/opt/nodejs/db/mongo-repository')
 const { NotFoundError, ValidationError } = require('/opt/nodejs/middleware/error-handler')
-const { checkRateLimit }  = require('/opt/nodejs/middleware/rate-limiter')
+const { checkRateLimit }    = require('/opt/nodejs/middleware/rate-limiter')
 const { validateBase64File } = require('/opt/nodejs/utils/file-validator')
+const { normalizePagination } = require('/opt/nodejs/utils/pagination')
 const { sanitizePlainText, sanitizeRichText } = require('/opt/nodejs/middleware/sanitizer')
-const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3')
-const path = require('path')
+const { S3Client, PutObjectCommand, GetObjectCommand } = require('@aws-sdk/client-s3')
+const { getSignedUrl } = require('@aws-sdk/s3-request-presigner')
+const crypto = require('crypto')
+const path   = require('path')
 
 const {
   AdmissionsOverview,
@@ -93,6 +96,32 @@ const REGION = process.env.AWS_REGION
  * @returns {Promise<string>} - File URL
  * @throws {Error} - If validation fails
  */
+async function getPresignedUrl(key) {
+  if (!key) return null
+  if (key.startsWith('http://') || key.startsWith('https://')) {
+    try {
+      const url = new URL(key)
+      if (url.hostname.endsWith('amazonaws.com')) {
+        const s3Key = url.hostname.startsWith(BUCKET + '.')
+          ? url.pathname.slice(1)
+          : url.pathname.slice(BUCKET.length + 2)
+        if (s3Key) {
+          const command = new GetObjectCommand({ Bucket: BUCKET, Key: s3Key })
+          return await getSignedUrl(s3, command, { expiresIn: 3600 })
+        }
+      }
+    } catch {}
+    return key
+  }
+  try {
+    const command = new GetObjectCommand({ Bucket: BUCKET, Key: key })
+    return await getSignedUrl(s3, command, { expiresIn: 3600 })
+  } catch (err) {
+    console.error('Failed to generate presigned URL for key:', key, err.message)
+    return null
+  }
+}
+
 async function uploadToS3(key, fileBase64, fileName, options = {}) {
   // Validate file before upload
   const validation = validateBase64File(fileBase64, fileName, {
@@ -129,7 +158,7 @@ async function uploadToS3(key, fileBase64, fileName, options = {}) {
 
 function resolveTenantContext(ctx, args) {
   const validated = validate(tenantIdQuerySchema, args || {})
-  return validated.tenantId ? { ...ctx, tenant_id: validated.tenantId } : ctx
+  return resolveSecureTenantContext(ctx, validated.tenantId)
 }
 
 /* ─────────────────────────────
@@ -158,15 +187,15 @@ function plain(doc) {
   return doc && doc.toObject ? doc.toObject() : { ...doc }
 }
 
-function toOverviewResponse(doc) {
+async function toOverviewResponse(doc) {
   const d = plain(doc)
   return {
     headline:    d.headline    ?? null,
     subheadline: d.subheadline ?? null,
     description: d.description ?? null,
     highlights:  d.highlights  ?? [],
-    imageUrl:    d.image_url   ?? null,
-    bannerUrl:   d.banner_url  ?? null,
+    imageUrl:    await getPresignedUrl(d.image_url),
+    bannerUrl:   await getPresignedUrl(d.banner_url),
     updatedAt:   d.updatedAt   ?? null,
   }
 }
@@ -201,24 +230,24 @@ function toDateResponse(doc) {
   return { ...d, dateId: d.date_id }
 }
 
-function toProspectusResponse(doc) {
+async function toProspectusResponse(doc) {
   const d = plain(doc)
   return {
     title:       d.title       ?? null,
     description: d.description ?? null,
-    fileUrl:     d.file_url    ?? null,
+    fileUrl:     await getPresignedUrl(d.file_url),
     fileName:    d.file_name   ?? null,
     uploadedAt:  d.uploaded_at ?? null,
     updatedAt:   d.updatedAt   ?? null,
   }
 }
 
-function toFeeDocResponse(doc) {
+async function toFeeDocResponse(doc) {
   const d = plain(doc)
   return {
     ...d,
     feeDocId:   d.fee_doc_id,
-    fileUrl:    d.file_url,
+    fileUrl:    await getPresignedUrl(d.file_url),
     fileName:   d.file_name,
     uploadedAt: d.uploaded_at,
   }
@@ -229,9 +258,9 @@ function toScholarshipResponse(doc) {
   return { ...d, scholarshipId: d.scholarship_id }
 }
 
-function toAuditResponse(doc) {
+async function toAuditResponse(doc) {
   const d = plain(doc)
-  return { ...d, auditId: d.audit_id, fileUrl: d.file_url, fileName: d.file_name }
+  return { ...d, auditId: d.audit_id, fileUrl: await getPresignedUrl(d.file_url), fileName: d.file_name }
 }
 
 function toEnquiryResponse(doc) {
@@ -321,162 +350,162 @@ async function handleEvent(event) {
 
     /* ── Singleton mutations ── */
     case 'saveAdmissionsOverview':
-      await requirePermission(ctx, 'admissions:content:write')
+      await requirePermission(ctx, 'admissions:content:create')
       return await saveAdmissionsOverview(ctx, event.arguments)
 
     case 'saveProspectus':
-      await requirePermission(ctx, 'admissions:content:write')
+      await requirePermission(ctx, 'admissions:content:create')
       return await saveProspectus(ctx, event.arguments)
 
     case 'deleteProspectus':
-      await requirePermission(ctx, 'admissions:content:write')
+      await requirePermission(ctx, 'admissions:content:delete')
       return await deleteProspectus(ctx)
 
     case 'saveWhyEnquire':
-      await requirePermission(ctx, 'admissions:content:write')
+      await requirePermission(ctx, 'admissions:content:create')
       return await saveWhyEnquire(ctx, event.arguments)
 
     /* ── Programs ── */
     case 'createAdmissionsProgram':
-      await requirePermission(ctx, 'admissions:content:write')
+      await requirePermission(ctx, 'admissions:content:create')
       return await createAdmissionsProgram(ctx, event.arguments)
 
     case 'updateAdmissionsProgram':
-      await requirePermission(ctx, 'admissions:content:write')
+      await requirePermission(ctx, 'admissions:content:update')
       return await updateAdmissionsProgram(ctx, event.arguments)
 
     case 'deleteAdmissionsProgram':
-      await requirePermission(ctx, 'admissions:content:write')
+      await requirePermission(ctx, 'admissions:content:delete')
       return await deleteAdmissionsProgram(ctx, event.arguments)
 
     /* ── UG Courses ── */
     case 'createUGCourse':
-      await requirePermission(ctx, 'admissions:content:write')
+      await requirePermission(ctx, 'admissions:content:create')
       return await createCourse(ctx, event.arguments, ugCourseRepo, createUGCourseSchema, toUGCourseResponse)
 
     case 'updateUGCourse':
-      await requirePermission(ctx, 'admissions:content:write')
+      await requirePermission(ctx, 'admissions:content:update')
       return await updateCourse(ctx, event.arguments, ugCourseRepo, updateUGCourseSchema, toUGCourseResponse)
 
     case 'deleteUGCourse':
-      await requirePermission(ctx, 'admissions:content:write')
+      await requirePermission(ctx, 'admissions:content:delete')
       return await deleteCourse(ctx, event.arguments, ugCourseRepo, deleteUGCourseSchema, toUGCourseResponse)
 
     /* ── PG Courses ── */
     case 'createPGCourse':
-      await requirePermission(ctx, 'admissions:content:write')
+      await requirePermission(ctx, 'admissions:content:create')
       return await createCourse(ctx, event.arguments, pgCourseRepo, createPGCourseSchema, toPGCourseResponse)
 
     case 'updatePGCourse':
-      await requirePermission(ctx, 'admissions:content:write')
+      await requirePermission(ctx, 'admissions:content:update')
       return await updateCourse(ctx, event.arguments, pgCourseRepo, updatePGCourseSchema, toPGCourseResponse)
 
     case 'deletePGCourse':
-      await requirePermission(ctx, 'admissions:content:write')
+      await requirePermission(ctx, 'admissions:content:delete')
       return await deleteCourse(ctx, event.arguments, pgCourseRepo, deletePGCourseSchema, toPGCourseResponse)
 
     /* ── Eligibility Entries ── */
     case 'createEligibilityEntry':
-      await requirePermission(ctx, 'admissions:content:write')
+      await requirePermission(ctx, 'admissions:content:create')
       return await createEligibilityEntry(ctx, event.arguments)
 
     case 'updateEligibilityEntry':
-      await requirePermission(ctx, 'admissions:content:write')
+      await requirePermission(ctx, 'admissions:content:update')
       return await updateEligibilityEntry(ctx, event.arguments)
 
     case 'deleteEligibilityEntry':
-      await requirePermission(ctx, 'admissions:content:write')
+      await requirePermission(ctx, 'admissions:content:delete')
       return await deleteEligibilityEntry(ctx, event.arguments)
 
     /* ── Steps ── */
     case 'createAdmissionStep':
-      await requirePermission(ctx, 'admissions:content:write')
+      await requirePermission(ctx, 'admissions:content:create')
       return await createAdmissionStep(ctx, event.arguments)
 
     case 'updateAdmissionStep':
-      await requirePermission(ctx, 'admissions:content:write')
+      await requirePermission(ctx, 'admissions:content:update')
       return await updateAdmissionStep(ctx, event.arguments)
 
     case 'deleteAdmissionStep':
-      await requirePermission(ctx, 'admissions:content:write')
+      await requirePermission(ctx, 'admissions:content:delete')
       return await deleteAdmissionStep(ctx, event.arguments)
 
     case 'reorderAdmissionSteps':
-      await requirePermission(ctx, 'admissions:content:write')
+      await requirePermission(ctx, 'admissions:content:update')
       return await reorderAdmissionSteps(ctx, event.arguments)
 
     /* ── Important Dates ── */
     case 'createImportantDate':
-      await requirePermission(ctx, 'admissions:content:write')
+      await requirePermission(ctx, 'admissions:content:create')
       return await createImportantDate(ctx, event.arguments)
 
     case 'updateImportantDate':
-      await requirePermission(ctx, 'admissions:content:write')
+      await requirePermission(ctx, 'admissions:content:update')
       return await updateImportantDate(ctx, event.arguments)
 
     case 'deleteImportantDate':
-      await requirePermission(ctx, 'admissions:content:write')
+      await requirePermission(ctx, 'admissions:content:delete')
       return await deleteImportantDate(ctx, event.arguments)
 
     /* ── Fee Documents ── */
     case 'createFeeDocument':
-      await requirePermission(ctx, 'admissions:content:write')
+      await requirePermission(ctx, 'admissions:content:create')
       return await createFeeDocument(ctx, event.arguments)
 
     case 'updateFeeDocument':
-      await requirePermission(ctx, 'admissions:content:write')
+      await requirePermission(ctx, 'admissions:content:update')
       return await updateFeeDocument(ctx, event.arguments)
 
     case 'deleteFeeDocument':
-      await requirePermission(ctx, 'admissions:content:write')
+      await requirePermission(ctx, 'admissions:content:delete')
       return await deleteFeeDocument(ctx, event.arguments)
 
     /* ── Scholarships ── */
     case 'createScholarship':
-      await requirePermission(ctx, 'admissions:content:write')
+      await requirePermission(ctx, 'admissions:content:create')
       return await createScholarship(ctx, event.arguments)
 
     case 'updateScholarship':
-      await requirePermission(ctx, 'admissions:content:write')
+      await requirePermission(ctx, 'admissions:content:update')
       return await updateScholarship(ctx, event.arguments)
 
     case 'deleteScholarship':
-      await requirePermission(ctx, 'admissions:content:write')
+      await requirePermission(ctx, 'admissions:content:delete')
       return await deleteScholarship(ctx, event.arguments)
 
     /* ── Audit Statements ── */
     case 'createAuditStatement':
-      await requirePermission(ctx, 'admissions:content:write')
+      await requirePermission(ctx, 'admissions:content:create')
       return await createAuditStatement(ctx, event.arguments)
 
     case 'deleteAuditStatement':
-      await requirePermission(ctx, 'admissions:content:write')
+      await requirePermission(ctx, 'admissions:content:delete')
       return await deleteAuditStatement(ctx, event.arguments)
 
     /* ── Enquiry Categories ── */
     case 'createEnquiryCategory':
-      await requirePermission(ctx, 'admissions:content:write')
+      await requirePermission(ctx, 'admissions:content:create')
       return await createEnquiryCategory(ctx, event.arguments)
 
     case 'updateEnquiryCategory':
-      await requirePermission(ctx, 'admissions:content:write')
+      await requirePermission(ctx, 'admissions:content:update')
       return await updateEnquiryCategory(ctx, event.arguments)
 
     case 'deleteEnquiryCategory':
-      await requirePermission(ctx, 'admissions:content:write')
+      await requirePermission(ctx, 'admissions:content:delete')
       return await deleteEnquiryCategory(ctx, event.arguments)
 
     /* ── Info Blocks ── */
     case 'createInfoBlock':
-      await requirePermission(ctx, 'admissions:content:write')
+      await requirePermission(ctx, 'admissions:content:create')
       return await createInfoBlock(ctx, event.arguments)
 
     case 'updateInfoBlock':
-      await requirePermission(ctx, 'admissions:content:write')
+      await requirePermission(ctx, 'admissions:content:update')
       return await updateInfoBlock(ctx, event.arguments)
 
     case 'deleteInfoBlock':
-      await requirePermission(ctx, 'admissions:content:write')
+      await requirePermission(ctx, 'admissions:content:delete')
       return await deleteInfoBlock(ctx, event.arguments)
 
     /* ── Enquiries & Contacts ── */
@@ -485,7 +514,7 @@ async function handleEvent(event) {
       return await updateEnquiryStatus(ctx, event.arguments)
 
     case 'updateAdmissionsContact':
-      await requirePermission(ctx, 'admissions:content:write')
+      await requirePermission(ctx, 'admissions:content:update')
       return await updateAdmissionsContact(ctx, event.arguments)
 
     /* ── Public ── */
@@ -509,7 +538,7 @@ async function getAdmissionsOverview(ctx, args) {
   const resolvedCtx = resolveTenantContext(ctx, args)
   const doc = await AdmissionsOverview.findOne({ tenant_id: resolvedCtx.tenant_id }).lean()
   if (!doc) return null
-  return toOverviewResponse(doc)
+  return await toOverviewResponse(doc)
 }
 
 async function saveAdmissionsOverview(ctx, args) {
@@ -528,17 +557,17 @@ async function saveAdmissionsOverview(ctx, args) {
     { $set: update },
     { upsert: true, new: true }
   )
-  return toOverviewResponse(doc)
+  return await toOverviewResponse(doc)
 }
 
 /* ─── Programs ────────────────────────────────────────────────────────────── */
 
 async function listAdmissionsPrograms(ctx, args) {
   const { level, tenantId } = validate(listAdmissionsProgramsSchema, args || {})
-  const resolvedCtx = tenantId ? { ...ctx, tenant_id: tenantId } : ctx
+  const resolvedCtx = resolveSecureTenantContext(ctx, tenantId)
   const query = {}
   if (level) query.level = level
-  const result = await programRepo.findMany(resolvedCtx, query, { sort: { order: 1 }, limit: 500 })
+  const result = await programRepo.findMany(resolvedCtx, query, { ...normalizePagination(args), sort: { order: 1 } })
   return result.items.map(toProgramResponse)
 }
 
@@ -590,7 +619,7 @@ async function deleteAdmissionsProgram(ctx, args) {
 
 async function listCourses(ctx, args, repo, toResponse) {
   const resolvedCtx = resolveTenantContext(ctx, args)
-  const result = await repo.findMany(resolvedCtx, {}, { sort: { order: 1 }, limit: 500 })
+  const result = await repo.findMany(resolvedCtx, {}, { ...normalizePagination(args), sort: { order: 1 } })
   return result.items.map(toResponse)
 }
 
@@ -640,7 +669,7 @@ async function deleteCourse(ctx, args, repo, schema, toResponse) {
 
 async function listEligibilityEntries(ctx, args) {
   const resolvedCtx = resolveTenantContext(ctx, args)
-  const result = await eligibilityRepo.findMany(resolvedCtx, {}, { sort: { order: 1 }, limit: 500 })
+  const result = await eligibilityRepo.findMany(resolvedCtx, {}, { ...normalizePagination(args), sort: { order: 1 } })
   return result.items.map(toEligibilityEntryResponse)
 }
 
@@ -684,7 +713,7 @@ async function deleteEligibilityEntry(ctx, args) {
 
 async function listAdmissionSteps(ctx, args) {
   const resolvedCtx = resolveTenantContext(ctx, args)
-  const result = await stepRepo.findMany(resolvedCtx, {}, { sort: { order: 1 }, limit: 500 })
+  const result = await stepRepo.findMany(resolvedCtx, {}, { ...normalizePagination(args), sort: { order: 1 } })
   return result.items.map(toStepResponse)
 }
 
@@ -745,7 +774,7 @@ async function reorderAdmissionSteps(ctx, args) {
 
 async function listImportantDates(ctx, args) {
   const resolvedCtx = resolveTenantContext(ctx, args)
-  const result = await dateRepo.findMany(resolvedCtx, {}, { sort: { date: 1 }, limit: 500 })
+  const result = await dateRepo.findMany(resolvedCtx, {}, { ...normalizePagination(args), sort: { date: 1 } })
   return result.items.map(toDateResponse)
 }
 
@@ -793,7 +822,7 @@ async function getProspectus(ctx, args) {
   const resolvedCtx = resolveTenantContext(ctx, args)
   const doc = await Prospectus.findOne({ tenant_id: resolvedCtx.tenant_id }).lean()
   if (!doc) return null
-  return toProspectusResponse(doc)
+  return await toProspectusResponse(doc)
 }
 
 /**
@@ -803,8 +832,6 @@ async function getProspectus(ctx, args) {
 async function saveProspectus(ctx, args) {
   const { input } = validate(saveProspectusSchema, args || {})
 
-  // Generate secure random filename to prevent enumeration
-  const crypto = require('crypto')
   const randomName = crypto.randomBytes(16).toString('hex')
   const ext = path.extname(input.fileName).toLowerCase() || '.pdf'
   const key = `${ctx.tenant_id}/admissions/prospectus/${randomName}${ext}`
@@ -829,7 +856,7 @@ async function saveProspectus(ctx, args) {
     { $set: update },
     { upsert: true, new: true }
   )
-  return toProspectusResponse(doc)
+  return await toProspectusResponse(doc)
 }
 
 async function deleteProspectus(ctx) {
@@ -841,8 +868,8 @@ async function deleteProspectus(ctx) {
 
 async function listFeeDocuments(ctx, args) {
   const resolvedCtx = resolveTenantContext(ctx, args)
-  const result = await feeDocRepo.findMany(resolvedCtx, {}, { sort: { createdAt: 1 }, limit: 500 })
-  return result.items.map(toFeeDocResponse)
+  const result = await feeDocRepo.findMany(resolvedCtx, {}, { ...normalizePagination(args), sort: { createdAt: 1 } })
+  return await Promise.all(result.items.map(toFeeDocResponse))
 }
 
 /**
@@ -868,7 +895,7 @@ async function createFeeDocument(ctx, args) {
     file_key:    key,
     uploaded_at: new Date(),
   })
-  return toFeeDocResponse(created)
+  return await toFeeDocResponse(created)
 }
 
 async function updateFeeDocument(ctx, args) {
@@ -890,7 +917,7 @@ async function updateFeeDocument(ctx, args) {
   }
 
   const updated = await feeDocRepo.updateById(ctx, feeDocId, updates)
-  return toFeeDocResponse(updated)
+  return await toFeeDocResponse(updated)
 }
 
 async function deleteFeeDocument(ctx, args) {
@@ -905,7 +932,7 @@ async function deleteFeeDocument(ctx, args) {
 
 async function listScholarships(ctx, args) {
   const resolvedCtx = resolveTenantContext(ctx, args)
-  const result = await scholarshipRepo.findMany(resolvedCtx, {}, { sort: { order: 1 }, limit: 500 })
+  const result = await scholarshipRepo.findMany(resolvedCtx, {}, { ...normalizePagination(args), sort: { order: 1 } })
   return result.items.map(toScholarshipResponse)
 }
 
@@ -955,8 +982,8 @@ async function deleteScholarship(ctx, args) {
 
 async function listAuditStatements(ctx, args) {
   const resolvedCtx = resolveTenantContext(ctx, args)
-  const result = await auditRepo.findMany(resolvedCtx, {}, { sort: { year: -1 }, limit: 500 })
-  return result.items.map(toAuditResponse)
+  const result = await auditRepo.findMany(resolvedCtx, {}, { ...normalizePagination(args), sort: { year: -1 } })
+  return await Promise.all(result.items.map(toAuditResponse))
 }
 
 async function createAuditStatement(ctx, args) {
@@ -973,7 +1000,7 @@ async function createAuditStatement(ctx, args) {
     file_url:  fileUrl,
     file_name: input.fileName,
   })
-  return toAuditResponse(created)
+  return await toAuditResponse(created)
 }
 
 async function deleteAuditStatement(ctx, args) {
@@ -988,10 +1015,10 @@ async function deleteAuditStatement(ctx, args) {
 
 async function listAdmissionsEnquiries(ctx, args) {
   const { status, tenantId } = validate(listAdmissionsEnquiriesSchema, args || {})
-  const resolvedCtx = tenantId ? { ...ctx, tenant_id: tenantId } : ctx
+  const resolvedCtx = resolveSecureTenantContext(ctx, tenantId)
   const query = {}
   if (status) query.status = status
-  const result = await enquiryRepo.findMany(resolvedCtx, query, { sort: { createdAt: -1 }, limit: 500 })
+  const result = await enquiryRepo.findMany(resolvedCtx, query, { ...normalizePagination(args), sort: { createdAt: -1 } })
   return result.items.map(toEnquiryResponse)
 }
 
@@ -1018,11 +1045,8 @@ async function submitAdmissionsEnquiry(args, event) {
   }
 
   // Rate limiting for public endpoint - use tenant + IP as identifier
-  const rateLimitKey = `${input.tenantId}:${event.identity?.sourceIp || 'unknown'}`
-  const rateLimit = await checkRateLimit(rateLimitKey, { perMinute: 5, perHour: 20 })
-  if (!rateLimit.allowed) {
-    throw new Error('Rate limit exceeded. Please try again later.')
-  }
+  const rateLimitCtx = { user_id: null, ip: event.identity?.sourceIp || null, correlationId: `${input.tenantId}:enquiry` }
+  await checkRateLimit(rateLimitCtx, `${input.tenantId}:${event.identity?.sourceIp || 'unknown'}`)
 
   const enquiry_id = generateId()
 
@@ -1099,7 +1123,7 @@ async function saveWhyEnquire(ctx, args) {
 
 async function listEnquiryCategories(ctx, args) {
   const resolvedCtx = resolveTenantContext(ctx, args)
-  const result = await categoryRepo.findMany(resolvedCtx, {}, { sort: { createdAt: 1 }, limit: 500 })
+  const result = await categoryRepo.findMany(resolvedCtx, {}, { ...normalizePagination(args), sort: { createdAt: 1 } })
   return result.items.map(toCategoryResponse)
 }
 
@@ -1141,7 +1165,7 @@ async function deleteEnquiryCategory(ctx, args) {
 
 async function listInfoBlocks(ctx, args) {
   const resolvedCtx = resolveTenantContext(ctx, args)
-  const result = await infoBlockRepo.findMany(resolvedCtx, {}, { sort: { type: 1 }, limit: 500 })
+  const result = await infoBlockRepo.findMany(resolvedCtx, {}, { ...normalizePagination(args), sort: { type: 1 } })
   return result.items.map(toInfoBlockResponse)
 }
 

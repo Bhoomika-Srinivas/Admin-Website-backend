@@ -20,6 +20,7 @@ type MODULE_NAMEType {
 type MODULE_NAMEConnection {
   items: [MODULE_NAMEType!]!
   nextCursor: String
+  pageInfo: PageInfo
 }
 
 input CreateMODULE_NAMEInput {

@@ -1,4 +1,4 @@
-const { resolveTenant } = require('/opt/nodejs/middleware/tenant-resolver')
+const { resolveTenant, resolveSecureTenantContext } = require('/opt/nodejs/middleware/tenant-resolver')
 const { requirePermission } = require('/opt/nodejs/middleware/auth-guard')
 const { validate } = require('/opt/nodejs/middleware/input-validator')
 const { withConnection } = require('/opt/nodejs/middleware/with-connection')
@@ -8,6 +8,8 @@ const { generateId } = require('/opt/nodejs/utils/id-generator')
 const { MongoRepository } = require('/opt/nodejs/db/mongo-repository')
 const { NotFoundError } = require('/opt/nodejs/middleware/error-handler')
 const { normalizePagination } = require('/opt/nodejs/utils/pagination')
+const { getSignedUrl } = require('@aws-sdk/s3-request-presigner')
+const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3')
 
 const {
   getFacultySchema,
@@ -21,6 +23,35 @@ const Faculty = require('../schemas/faculty.model')
 
 const facultyRepo = new MongoRepository({ model: Faculty, primaryKey: 'faculty_id' })
 
+const s3 = new S3Client({ region: process.env.AWS_REGION })
+const BUCKET = process.env.BUCKET_NAME
+
+async function getPresignedUrl(key) {
+  if (!key) return null
+  if (key.startsWith('http://') || key.startsWith('https://')) {
+    try {
+      const url = new URL(key)
+      if (url.hostname.endsWith('amazonaws.com')) {
+        const s3Key = url.hostname.startsWith(BUCKET + '.')
+          ? url.pathname.slice(1)
+          : url.pathname.slice(BUCKET.length + 2)
+        if (s3Key) {
+          const command = new GetObjectCommand({ Bucket: BUCKET, Key: s3Key })
+          return await getSignedUrl(s3, command, { expiresIn: 3600 })
+        }
+      }
+    } catch {}
+    return key
+  }
+  try {
+    const command = new GetObjectCommand({ Bucket: BUCKET, Key: key })
+    return await getSignedUrl(s3, command, { expiresIn: 3600 })
+  } catch (err) {
+    console.error('Failed to generate presigned URL for key:', key, err.message)
+    return null
+  }
+}
+
 const DESIGNATION_OPTIONS = [
   'Professor',
   'Associate Professor',
@@ -29,14 +60,16 @@ const DESIGNATION_OPTIONS = [
   'Principal'
 ]
 
-function toFacultyResponse(doc) {
+async function toFacultyResponse(doc) {
   const plain = doc && doc.toObject ? doc.toObject() : { ...doc }
   return {
     ...plain,
-    facultyId:   plain.faculty_id || (plain._id ? plain._id.toString() : null),
-    name:        plain.name || [plain.firstName, plain.lastName].filter(Boolean).join(' ') || null,
-    designation: plain.designation || plain.title || null,
-    department:  plain.department || null,
+    facultyId:    plain.faculty_id || (plain._id ? plain._id.toString() : null),
+    name:         plain.name || [plain.firstName, plain.lastName].filter(Boolean).join(' ') || null,
+    designation:  plain.designation || plain.title || null,
+    department:   plain.department || null,
+    profileImage: await getPresignedUrl(plain.profileImage),
+    cvUrl:        await getPresignedUrl(plain.cvUrl),
   }
 }
 
@@ -85,10 +118,10 @@ exports.handler = withConnection(handleEvent)
 
 async function getFaculty(ctx, args) {
   const { facultyId, tenantId } = validate(getFacultySchema, args || {})
-  const resolvedCtx = tenantId ? { ...ctx, tenant_id: tenantId } : ctx
+  const resolvedCtx = resolveSecureTenantContext(ctx, tenantId)
   const doc = await facultyRepo.findById(resolvedCtx, facultyId)
   if (!doc) throw new NotFoundError('Faculty not found')
-  return toFacultyResponse(doc)
+  return await toFacultyResponse(doc)
 }
 
 
@@ -98,7 +131,7 @@ async function getFaculty(ctx, args) {
 
 async function listFaculty(ctx, args) {
   const validated   = validate(listFacultySchema, args || {})
-  const resolvedCtx = validated.tenantId ? { ...ctx, tenant_id: validated.tenantId } : ctx
+  const resolvedCtx = resolveSecureTenantContext(ctx, validated.tenantId)
 
   const query = {}
   if (validated.deptId)      query.deptId      = validated.deptId
@@ -123,7 +156,7 @@ async function listFaculty(ctx, args) {
     : null
 
   return {
-    items:     page.map(toFacultyResponse),
+    items:     await Promise.all(page.map(toFacultyResponse)),
     nextToken
   }
 }
@@ -161,7 +194,7 @@ async function createFaculty(ctx, args) {
     created_by:   ctx.user_id
   })
 
-  const response = toFacultyResponse(created)
+  const response = await toFacultyResponse(created)
 
   await publishEvent('faculty-management', 'FacultyCreated', {
     faculty_id: response.facultyId,
@@ -215,7 +248,7 @@ async function updateFaculty(ctx, args) {
   }
 
   const updated = await facultyRepo.updateById(ctx, input.facultyId, updates)
-  return toFacultyResponse(updated)
+  return await toFacultyResponse(updated)
 }
 
 
@@ -250,5 +283,5 @@ async function deleteFaculty(ctx, args) {
     timestamp:  new Date().toISOString()
   })
 
-  return toFacultyResponse(existing)
+  return await toFacultyResponse(existing)
 }

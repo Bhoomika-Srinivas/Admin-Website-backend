@@ -8,6 +8,37 @@ const { generateId }          = require('/opt/nodejs/utils/id-generator')
 const { MongoRepository }     = require('/opt/nodejs/db/mongo-repository')
 const { NotFoundError }       = require('/opt/nodejs/middleware/error-handler')
 const { normalizePagination } = require('/opt/nodejs/utils/pagination')
+const { getSignedUrl }        = require('@aws-sdk/s3-request-presigner')
+const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3')
+
+const s3 = new S3Client({ region: process.env.AWS_REGION })
+const BUCKET = process.env.BUCKET_NAME
+
+async function getPresignedUrl(key) {
+  if (!key) return null
+  if (key.startsWith('http://') || key.startsWith('https://')) {
+    try {
+      const url = new URL(key)
+      if (url.hostname.endsWith('amazonaws.com')) {
+        const s3Key = url.hostname.startsWith(BUCKET + '.')
+          ? url.pathname.slice(1)
+          : url.pathname.slice(BUCKET.length + 2)
+        if (s3Key) {
+          const command = new GetObjectCommand({ Bucket: BUCKET, Key: s3Key })
+          return await getSignedUrl(s3, command, { expiresIn: 3600 })
+        }
+      }
+    } catch {}
+    return key
+  }
+  try {
+    const command = new GetObjectCommand({ Bucket: BUCKET, Key: key })
+    return await getSignedUrl(s3, command, { expiresIn: 3600 })
+  } catch (err) {
+    console.error('Failed to generate presigned URL for key:', key, err.message)
+    return null
+  }
+}
 
 const {
   getDepartmentSchema,
@@ -28,12 +59,13 @@ const departmentRepo = new MongoRepository({
    Response Normalizer
 ─────────────────────────────*/
 
-function toDepartmentResponse(doc) {
+async function toDepartmentResponse(doc) {
   const plain = doc && doc.toObject ? doc.toObject() : { ...doc }
   return {
     ...plain,
     departmentId: plain.department_id || (plain._id ? plain._id.toString() : null),
-    tenantId:     plain.tenant_id     || null
+    tenantId:     plain.tenant_id     || null,
+    imageUrl:     await getPresignedUrl(plain.imageUrl)
   }
 }
 
@@ -111,7 +143,7 @@ async function getDepartment(ctx, args) {
     tenant_id: tenantId || ctx.tenant_id  // Use provided tenantId or from auth context
   }).lean()
   if (!doc) throw new NotFoundError('Department not found')
-  return toDepartmentResponse(doc)
+  return await toDepartmentResponse(doc)
 }
 
 
@@ -133,7 +165,7 @@ async function listDepartments(ctx, args) {
   }).sort(sort).lean()
 
   return {
-    items:     docs.map(toDepartmentResponse),
+    items:     await Promise.all(docs.map(toDepartmentResponse)),
     nextToken: null
   }
 }
@@ -164,7 +196,7 @@ async function createDepartment(ctx, args) {
   }
 
   const created  = await departmentRepo.create(ctx, data)
-  const response = toDepartmentResponse(created)
+  const response = await toDepartmentResponse(created)
 
   await publishEvent('department', 'DepartmentCreated', {
     department_id: response.departmentId,
@@ -211,7 +243,7 @@ async function updateDepartment(ctx, args) {
     timestamp:     new Date().toISOString()
   })
 
-  return toDepartmentResponse(updated)
+  return await toDepartmentResponse(updated)
 }
 
 
@@ -235,5 +267,5 @@ async function deleteDepartment(ctx, args) {
     timestamp:     new Date().toISOString()
   })
 
-  return toDepartmentResponse(existing)
+  return await toDepartmentResponse(existing)
 }

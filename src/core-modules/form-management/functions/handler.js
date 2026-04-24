@@ -103,5 +103,5 @@ async function listSubmissions(ctx, args) {
   const pagination = normalizePagination(validated.pagination);
   const filter = validated.form_id ? { form_id: validated.form_id } : {};
   const result = await submissionRepo.findMany(ctx, filter, pagination);
-  return { items: result.items, nextCursor: result.nextCursor };
+  return { items: result.items, nextCursor: result.nextCursor, pageInfo: result.pageInfo };
 }

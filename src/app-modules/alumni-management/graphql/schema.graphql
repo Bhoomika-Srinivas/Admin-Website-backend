@@ -1,13 +1,12 @@
+# ─── Alumni ───────────────────────────────────────────────────────────────────
 type Alumni @aws_api_key @aws_cognito_user_pools {
   alumniId:    ID!
-  deptId:      ID
   name:        String!
-  batch:       String
+  batch:       String!
   department:  String
   company:     String
   designation: String
   location:    String
-  achievement: String
   email:       String
   linkedin:    String
   image:       String
@@ -21,14 +20,12 @@ type AlumniList @aws_api_key @aws_cognito_user_pools {
 }
 
 input CreateAlumniInput {
-  deptId:      ID!
   name:        String!
   batch:       String!
   department:  String
-  company:     String!
-  designation: String!
+  company:     String
+  designation: String
   location:    String
-  achievement: String
   email:       String
   linkedin:    String
   image:       String
@@ -42,19 +39,321 @@ input UpdateAlumniInput {
   company:     String
   designation: String
   location:    String
-  achievement: String
   email:       String
   linkedin:    String
   image:       String
 }
 
-extend type Query {
-  getAlumni(alumniId: ID!, tenantId: ID): Alumni @aws_api_key @aws_cognito_user_pools
-  listAlumni(tenantId: ID, deptId: ID, batch: String, search: String, limit: Int, nextToken: String): AlumniList @aws_api_key @aws_cognito_user_pools
+# ─── AlumniEvent ──────────────────────────────────────────────────────────────
+type AlumniEvent @aws_api_key @aws_cognito_user_pools {
+  eventId:     ID!
+  title:       String!
+  date:        String
+  time:        String
+  department:  String
+  location:    String
+  description: String
+  image:       String
+  status:      String!
+  createdAt:   AWSDateTime
+  updatedAt:   AWSDateTime
 }
 
+type AlumniEventList @aws_api_key @aws_cognito_user_pools {
+  items:     [AlumniEvent]
+  nextToken: String
+}
+
+input CreateAlumniEventInput {
+  title:       String!
+  date:        String
+  time:        String
+  department:  String
+  location:    String
+  description: String
+  image:       String
+  status:      String
+}
+
+input UpdateAlumniEventInput {
+  eventId:     ID!
+  title:       String
+  date:        String
+  time:        String
+  department:  String
+  location:    String
+  description: String
+  image:       String
+  status:      String
+}
+
+# ─── TimelineEntry ────────────────────────────────────────────────────────────
+type AlumniTimelineEntry @aws_api_key @aws_cognito_user_pools {
+  entryId:     ID!
+  year:        String!
+  title:       String!
+  description: String
+  order:       Int
+  isActive:    Boolean
+  createdAt:   AWSDateTime
+  updatedAt:   AWSDateTime
+}
+
+type AlumniTimelineEntryList @aws_api_key @aws_cognito_user_pools {
+  items:     [AlumniTimelineEntry]
+  nextToken: String
+}
+
+input CreateAlumniTimelineEntryInput {
+  year:        String!
+  title:       String!
+  description: String
+  order:       Int
+  isActive:    Boolean
+}
+
+input UpdateAlumniTimelineEntryInput {
+  entryId:     ID!
+  year:        String
+  title:       String
+  description: String
+  order:       Int
+  isActive:    Boolean
+}
+
+# ─── VisionMission ────────────────────────────────────────────────────────────
+type AlumniVisionMission @aws_api_key @aws_cognito_user_pools {
+  documentId: ID
+  vision:     String
+  mission:    String
+  objectives: String
+  updatedAt:  AWSDateTime
+}
+
+input UpsertAlumniVisionMissionInput {
+  vision:     String
+  mission:    String
+  objectives: String
+}
+
+# ─── CommitteeMember ──────────────────────────────────────────────────────────
+type AlumniCommitteeMember @aws_api_key @aws_cognito_user_pools {
+  memberId:     ID!
+  name:         String!
+  roleType:     String
+  designation:  String
+  department:   String
+  organization: String
+  profileImage: String
+  order:        Int
+  createdAt:    AWSDateTime
+  updatedAt:    AWSDateTime
+}
+
+type AlumniCommitteeMemberList @aws_api_key @aws_cognito_user_pools {
+  items:     [AlumniCommitteeMember]
+  nextToken: String
+}
+
+input CreateAlumniCommitteeMemberInput {
+  name:         String!
+  roleType:     String
+  designation:  String
+  department:   String
+  organization: String
+  profileImage: String
+  order:        Int
+}
+
+input UpdateAlumniCommitteeMemberInput {
+  memberId:     ID!
+  name:         String
+  roleType:     String
+  designation:  String
+  department:   String
+  organization: String
+  profileImage: String
+  order:        Int
+}
+
+# ─── DeanMessage ──────────────────────────────────────────────────────────────
+type AlumniDeanMessage @aws_api_key @aws_cognito_user_pools {
+  messageId:   ID
+  name:        String
+  role:        String
+  department:  String
+  designation: String
+  message:     String
+  image:       String
+  isActive:    Boolean
+  updatedAt:   AWSDateTime
+}
+
+input UpsertAlumniDeanMessageInput {
+  name:        String
+  role:        String
+  department:  String
+  designation: String
+  message:     String
+  image:       String
+  isActive:    Boolean
+}
+
+# ─── Coordinator ──────────────────────────────────────────────────────────────
+type AlumniCoordinator @aws_api_key @aws_cognito_user_pools {
+  coordinatorId: ID!
+  name:          String!
+  roleType:      String
+  department:    String
+  email:         String
+  isActive:      Boolean
+  createdAt:     AWSDateTime
+  updatedAt:     AWSDateTime
+}
+
+type AlumniCoordinatorList @aws_api_key @aws_cognito_user_pools {
+  items:     [AlumniCoordinator]
+  nextToken: String
+}
+
+input CreateAlumniCoordinatorInput {
+  name:       String!
+  roleType:   String
+  department: String
+  email:      String
+  isActive:   Boolean
+}
+
+input UpdateAlumniCoordinatorInput {
+  coordinatorId: ID!
+  name:          String
+  roleType:      String
+  department:    String
+  email:         String
+  isActive:      Boolean
+}
+
+# ─── RegistrationSettings ─────────────────────────────────────────────────────
+type AlumniRegistrationSettings @aws_api_key @aws_cognito_user_pools {
+  settingsId:       ID
+  title:            String
+  description:      String
+  registrationLink: String
+  updatedAt:        AWSDateTime
+}
+
+input UpsertAlumniRegistrationSettingsInput {
+  title:            String
+  description:      String
+  registrationLink: String
+}
+
+# ─── AlumniContact ────────────────────────────────────────────────────────────
+type AlumniContact @aws_api_key @aws_cognito_user_pools {
+  contactId:   ID!
+  name:        String!
+  roleType:    String
+  department:  String
+  designation: String
+  email:       String
+  createdAt:   AWSDateTime
+  updatedAt:   AWSDateTime
+}
+
+type AlumniContactList @aws_api_key @aws_cognito_user_pools {
+  items:     [AlumniContact]
+  nextToken: String
+}
+
+input CreateAlumniContactInput {
+  name:        String!
+  roleType:    String
+  department:  String
+  designation: String
+  email:       String
+}
+
+input UpdateAlumniContactInput {
+  contactId:   ID!
+  name:        String
+  roleType:    String
+  department:  String
+  designation: String
+  email:       String
+}
+
+# ─── Queries ──────────────────────────────────────────────────────────────────
+extend type Query {
+  # Alumni
+  getAlumni(alumniId: ID!): Alumni @aws_api_key @aws_cognito_user_pools
+  listAlumni(department: String, batch: String, search: String, limit: Int, nextToken: String): AlumniList @aws_api_key @aws_cognito_user_pools
+
+  # AlumniEvent
+  getAlumniEvent(eventId: ID!): AlumniEvent @aws_api_key @aws_cognito_user_pools
+  listAlumniEvents(department: String, status: String, limit: Int, nextToken: String): AlumniEventList @aws_api_key @aws_cognito_user_pools
+
+  # Timeline
+  listAlumniTimelineEntries(limit: Int, nextToken: String): AlumniTimelineEntryList @aws_api_key @aws_cognito_user_pools
+
+  # Vision/Mission
+  getAlumniVisionMission: AlumniVisionMission @aws_api_key @aws_cognito_user_pools
+
+  # Committee
+  listAlumniCommitteeMembers(roleType: String, limit: Int, nextToken: String): AlumniCommitteeMemberList @aws_api_key @aws_cognito_user_pools
+
+  # Dean Message
+  getAlumniDeanMessage: AlumniDeanMessage @aws_api_key @aws_cognito_user_pools
+
+  # Coordinators
+  listAlumniCoordinators(roleType: String, department: String, limit: Int, nextToken: String): AlumniCoordinatorList @aws_api_key @aws_cognito_user_pools
+
+
+  # Registration Settings
+  getAlumniRegistrationSettings: AlumniRegistrationSettings @aws_api_key @aws_cognito_user_pools
+
+  # Contacts
+  listAlumniContacts(department: String, limit: Int, nextToken: String): AlumniContactList @aws_api_key @aws_cognito_user_pools
+}
+
+# ─── Mutations ────────────────────────────────────────────────────────────────
 extend type Mutation {
+  # Alumni
   createAlumni(input: CreateAlumniInput!): Alumni
   updateAlumni(input: UpdateAlumniInput!): Alumni
   deleteAlumni(alumniId: ID!): Alumni
+
+  # AlumniEvent
+  createAlumniEvent(input: CreateAlumniEventInput!): AlumniEvent
+  updateAlumniEvent(input: UpdateAlumniEventInput!): AlumniEvent
+  deleteAlumniEvent(eventId: ID!): AlumniEvent
+
+  # Timeline
+  createAlumniTimelineEntry(input: CreateAlumniTimelineEntryInput!): AlumniTimelineEntry
+  updateAlumniTimelineEntry(input: UpdateAlumniTimelineEntryInput!): AlumniTimelineEntry
+  deleteAlumniTimelineEntry(entryId: ID!): AlumniTimelineEntry
+
+  # Vision/Mission (singleton upsert)
+  upsertAlumniVisionMission(input: UpsertAlumniVisionMissionInput!): AlumniVisionMission
+
+  # Committee Members
+  createAlumniCommitteeMember(input: CreateAlumniCommitteeMemberInput!): AlumniCommitteeMember
+  updateAlumniCommitteeMember(input: UpdateAlumniCommitteeMemberInput!): AlumniCommitteeMember
+  deleteAlumniCommitteeMember(memberId: ID!): AlumniCommitteeMember
+
+  # Dean Message (singleton upsert)
+  upsertAlumniDeanMessage(input: UpsertAlumniDeanMessageInput!): AlumniDeanMessage
+
+  # Coordinators
+  createAlumniCoordinator(input: CreateAlumniCoordinatorInput!): AlumniCoordinator
+  updateAlumniCoordinator(input: UpdateAlumniCoordinatorInput!): AlumniCoordinator
+  deleteAlumniCoordinator(coordinatorId: ID!): AlumniCoordinator
+
+
+  # Registration Settings (singleton upsert)
+  upsertAlumniRegistrationSettings(input: UpsertAlumniRegistrationSettingsInput!): AlumniRegistrationSettings
+
+  # Contacts
+  createAlumniContact(input: CreateAlumniContactInput!): AlumniContact
+  updateAlumniContact(input: UpdateAlumniContactInput!): AlumniContact
+  deleteAlumniContact(contactId: ID!): AlumniContact
 }

@@ -23,13 +23,33 @@ async function handleEvent(event) {
 
 exports.handler = withConnection(handleEvent);
 
+function mapEntry(doc) {
+  const after = doc.after;
+  const details = after ? JSON.stringify(after) : null;
+  return {
+    ...doc,
+    id: doc.entry_id,
+    userId: doc.actor_id || '',
+    userName: doc.actor_email || '',
+    actor_email: doc.actor_email || '',
+    resourceType: doc.resource_type || null,
+    resourceId: doc.resource_id || null,
+    ipAddress: doc.metadata?.ip || null,
+    severity: doc.severity || 'info',
+    createdAt: doc.timestamp,
+    metadata: doc.metadata
+      ? { ...doc.metadata, details }
+      : { details },
+  };
+}
+
 async function getAuditEntry(ctx, args) {
   const AuditEntry = require('../schemas/audit-entry.model');
   const entry_id = args?.entry_id;
   if (!entry_id) throw new ValidationError('entry_id is required');
   const doc = await AuditEntry.findOne({ entry_id, tenant_id: ctx.tenant_id }).lean();
   if (!doc) throw new NotFoundError('Audit entry not found');
-  return doc;
+  return mapEntry(doc);
 }
 
 async function listAuditEntries(ctx, args) {
@@ -44,16 +64,18 @@ async function listAuditEntries(ctx, args) {
   if (filter.from) query.timestamp = { ...query.timestamp, $gte: new Date(filter.from) };
   if (filter.to) query.timestamp = { ...query.timestamp, $lte: new Date(filter.to) };
 
-  const limit = Math.min(pagination.limit || 20, 100);
-  const cursor = pagination.cursor ? new Date(pagination.cursor) : null;
-  if (cursor) query.timestamp = { ...query.timestamp, $lt: cursor };
+  const limit = Math.min(pagination.limit || 100, 500);
+  const page = Math.max(pagination.page || 1, 1);
+  const skip = (page - 1) * limit;
 
-  const items = await AuditEntry.find(query).sort({ timestamp: -1 }).limit(limit + 1).lean();
-  const hasMore = items.length > limit;
-  const nextCursor = hasMore ? items[limit - 1]?.timestamp?.toISOString() : null;
+  const [items, total] = await Promise.all([
+    AuditEntry.find(query).sort({ timestamp: -1 }).skip(skip).limit(limit).lean(),
+    AuditEntry.countDocuments(query),
+  ]);
 
   return {
-    items: hasMore ? items.slice(0, limit) : items,
-    nextCursor: nextCursor || undefined,
+    items: items.map(mapEntry),
+    nextCursor: null,
+    pageInfo: { total, page, limit, hasNextPage: skip + items.length < total, endCursor: null },
   };
 }

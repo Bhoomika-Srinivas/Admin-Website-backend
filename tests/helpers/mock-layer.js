@@ -3,6 +3,29 @@
  * can invoke the real handler with stubbed DB and common layer. Must be required before the handler.
  */
 
+// Virtual mocks for AWS SDK packages (live in Lambda layer, not installed locally)
+jest.mock('@aws-sdk/client-cognito-identity-provider', () => ({
+  CognitoIdentityProviderClient: jest.fn().mockImplementation(() => ({
+    send: jest.fn().mockResolvedValue({ User: { Attributes: [{ Name: 'sub', Value: 'mock-cognito-sub' }] } }),
+  })),
+  AdminCreateUserCommand: jest.fn(),
+  AdminSetUserPasswordCommand: jest.fn(),
+  AdminDisableUserCommand: jest.fn(),
+  AdminEnableUserCommand: jest.fn(),
+  AdminUpdateUserAttributesCommand: jest.fn(),
+}), { virtual: true });
+
+jest.mock('@aws-sdk/client-s3', () => ({
+  S3Client: jest.fn().mockImplementation(() => ({ send: jest.fn().mockResolvedValue({}) })),
+  GetObjectCommand: jest.fn(),
+  PutObjectCommand: jest.fn(),
+  DeleteObjectCommand: jest.fn(),
+}), { virtual: true });
+
+jest.mock('@aws-sdk/s3-request-presigner', () => ({
+  getSignedUrl: jest.fn().mockResolvedValue('https://mock-signed-url.example.com'),
+}), { virtual: true });
+
 const repoMocks = [];
 
 function createMockRepo() {

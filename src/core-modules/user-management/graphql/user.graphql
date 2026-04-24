@@ -10,8 +10,12 @@ type User {
   tenant_id: ID!
   email: String!
   name: String
+  phone: String
   status: UserStatus!
   roles: [String!]
+  role: String
+  department: String
+  last_login_at: AWSDateTime
   profile: AWSJSON
   created_at: AWSDateTime
   updated_at: AWSDateTime
@@ -20,6 +24,7 @@ type User {
 type UserConnection {
   items: [User!]!
   nextCursor: String
+  pageInfo: PageInfo
 }
 
 type Role {
@@ -33,20 +38,22 @@ type Role {
   updated_at: AWSDateTime
 }
 
-type RoleConnection {
-  items: [Role!]!
-  nextCursor: String
-}
-
 input UpdateUserInput {
   name: String
+  phone: String
   profile: AWSJSON
   status: UserStatus
+  role: String
+  department: String
 }
 
 input InviteUserInput {
   email: String!
   name: String
+  phone: String
+  role: String!
+  department: String
+  password: String!
 }
 
 input CreateRoleInput {
@@ -62,17 +69,18 @@ input UpdateRoleInput {
 }
 
 extend type Query {
+  getMe: User
   getUser(user_id: ID!): User
   listUsers(pagination: PaginationInput): UserConnection
-  listRoles(pagination: PaginationInput): RoleConnection
+  listRoles(pagination: PaginationInput): [Role]
 }
 
 extend type Mutation {
-  updateUser(user_id: ID!, input: UpdateUserInput!): User
-  inviteUser(input: InviteUserInput!): User
-  deactivateUser(user_id: ID!): User
+  updateUser(user_id: String!, input: UpdateUserInput!): MutationResponse
+  inviteUser(input: InviteUserInput!): MutationResponse
+  deactivateUser(user_id: String!): MutationResponse
   createRole(input: CreateRoleInput!): Role
-  updateRole(role_id: ID!, input: UpdateRoleInput!): Role
-  assignRole(user_id: ID!, role_id: ID!): User
-  removeRole(user_id: ID!, role_id: ID!): User
+  updateRole(role_id: String!, input: UpdateRoleInput!): Role
+  assignRole(user_id: String!, role_id: String!): MutationResponse
+  removeRole(user_id: String!, role_id: String!): MutationResponse
 }

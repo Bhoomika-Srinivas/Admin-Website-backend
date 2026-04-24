@@ -3,15 +3,21 @@
  * Event: { triggerSource, request: { userAttributes }, response: { autoConfirmUser, ... } }
  */
 const { withCognitoErrorHandler } = require('/opt/nodejs/middleware/with-cognito-error-handler');
+const { connectToDatabase } = require('/opt/nodejs/db/mongo-client');
 
 async function handlePreSignUp(event) {
-  if (event.triggerSource !== 'PreSignUp_AdminCreateUser' && event.triggerSource !== 'PreSignUp_SignUp') {
+  // Skip tenant check for admin-created users — inviteUser handler validates tenant context
+  if (event.triggerSource === 'PreSignUp_AdminCreateUser') {
+    return event;
+  }
+  if (event.triggerSource !== 'PreSignUp_SignUp') {
     return event;
   }
   const tenant_id = event.request?.userAttributes?.['custom:tenant_id'];
   if (!tenant_id) {
     return event;
   }
+  await connectToDatabase();
   const TenantRef = require('../schemas/tenant-ref.model');
   const tenant = await TenantRef.findOne({ tenant_id }).lean();
   if (!tenant) {

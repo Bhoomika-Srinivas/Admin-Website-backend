@@ -1,4 +1,4 @@
-const { resolveTenant }       = require('/opt/nodejs/middleware/tenant-resolver')
+const { resolveTenant, resolveSecureTenantContext } = require('/opt/nodejs/middleware/tenant-resolver')
 const { requirePermission }   = require('/opt/nodejs/middleware/auth-guard')
 const { validate }            = require('/opt/nodejs/middleware/input-validator')
 const { withConnection }      = require('/opt/nodejs/middleware/with-connection')
@@ -7,6 +7,37 @@ const { generateId }          = require('/opt/nodejs/utils/id-generator')
 const { MongoRepository }     = require('/opt/nodejs/db/mongo-repository')
 const { NotFoundError }       = require('/opt/nodejs/middleware/error-handler')
 const { normalizePagination } = require('/opt/nodejs/utils/pagination')
+const { getSignedUrl }               = require('@aws-sdk/s3-request-presigner')
+const { S3Client, GetObjectCommand } = require('@aws-sdk/client-s3')
+
+const s3     = new S3Client({ region: process.env.AWS_REGION })
+const BUCKET = process.env.BUCKET_NAME
+
+async function getPresignedUrl(key) {
+  if (!key) return null
+  if (key.startsWith('http://') || key.startsWith('https://')) {
+    try {
+      const url = new URL(key)
+      if (url.hostname.endsWith('amazonaws.com')) {
+        const s3Key = url.hostname.startsWith(BUCKET + '.')
+          ? url.pathname.slice(1)
+          : url.pathname.slice(BUCKET.length + 2)
+        if (s3Key) {
+          const command = new GetObjectCommand({ Bucket: BUCKET, Key: s3Key })
+          return await getSignedUrl(s3, command, { expiresIn: 3600 })
+        }
+      }
+    } catch {}
+    return key
+  }
+  try {
+    const command = new GetObjectCommand({ Bucket: BUCKET, Key: key })
+    return await getSignedUrl(s3, command, { expiresIn: 3600 })
+  } catch (err) {
+    console.error('Failed to generate presigned URL for key:', key, err.message)
+    return null
+  }
+}
 
 const {
   listEventsSchema,
@@ -28,9 +59,13 @@ const eventRepo = new MongoRepository({ model: Event, primaryKey: 'event_id' })
    Response Normalizer
 ─────────────────────────────*/
 
-function toEventResponse(doc) {
+async function toEventResponse(doc) {
   const plain = doc && doc.toObject ? doc.toObject() : { ...doc }
-  return { ...plain, eventId: plain.event_id || (plain._id ? plain._id.toString() : null) }
+  return {
+    ...plain,
+    eventId: plain.event_id || (plain._id ? plain._id.toString() : null),
+    images:  await Promise.all((plain.images || []).map(getPresignedUrl)),
+  }
 }
 
 /* ─────────────────────────────
@@ -77,19 +112,19 @@ async function handleEvent(event) {
       return await deleteEvent(ctx, event.arguments)
 
     case 'approveEvent':
-      await requirePermission(ctx, 'events:event:update')
+      await requirePermission(ctx, 'events:event:approve')
       return await approveEvent(ctx, event.arguments)
 
     case 'rejectEvent':
-      await requirePermission(ctx, 'events:event:update')
+      await requirePermission(ctx, 'events:event:reject')
       return await rejectEvent(ctx, event.arguments)
 
     case 'cancelEvent':
-      await requirePermission(ctx, 'events:event:update')
+      await requirePermission(ctx, 'events:event:cancel')
       return await cancelEvent(ctx, event.arguments)
 
     case 'togglePinEvent':
-      await requirePermission(ctx, 'events:event:update')
+      await requirePermission(ctx, 'events:event:pin')
       return await togglePinEvent(ctx, event.arguments)
 
     default:
@@ -103,48 +138,38 @@ exports.handler = withConnection(handleEvent)
    Handlers
 ─────────────────────────────*/
 
-async function autoCompleteExpiredEvents(tenantId) {
-  const today = new Date().toISOString().slice(0, 10) // "YYYY-MM-DD"
-  await Event.updateMany(
-    {
-      tenant_id: tenantId,
-      status: 'upcoming',
-      $or: [
-        { isMultiDay: false, date:    { $lt: today } },
-        { isMultiDay: true,  endDate: { $lt: today } }
-      ]
-    },
-    { $set: { status: 'completed' } }
-  )
-}
-
 async function listEvents(ctx, args) {
   const validated = validate(listEventsSchema, args || {})
   const { tenantId, ...rest } = validated
-  const resolvedCtx = tenantId ? { ...ctx, tenant_id: tenantId } : ctx
-
-  await autoCompleteExpiredEvents(resolvedCtx.tenant_id)
+  const resolvedCtx = resolveSecureTenantContext(ctx, tenantId)
 
   const query      = buildEventQuery(rest)
   const pagination = normalizePagination(validated)
   const sort       = { createdAt: -1 }
 
+  // Non-admins only see approved events
+  const isAdmin = (ctx.permissions || []).some(p => p === '*:*:*' || p === 'events:*:*')
+  if (!isAdmin && !query.approvalStatus) query.approvalStatus = 'approved'
+
   const result = await eventRepo.findMany(resolvedCtx, query, { ...pagination, sort })
 
   return {
-    items:     result.items.map(toEventResponse),
-    nextToken: result.nextCursor,
+    items:     await Promise.all(result.items.map(toEventResponse)),
+    nextToken: result.nextCursor, pageInfo: result.pageInfo,
   }
 }
 
 async function getEvent(ctx, args) {
   const { eventId } = validate(getEventSchema, args || {})
 
-  // Direct query (no tenant filter) — eventId is a globally unique UUID
-  const doc = await Event.findOne({ event_id: eventId }).lean()
+  const isAdmin = (ctx.permissions || []).some(p => p === '*:*:*' || p === 'events:*:*')
+  const filter  = { event_id: eventId, tenant_id: ctx.tenant_id }
+  if (!isAdmin) filter.approvalStatus = 'approved'
+
+  const doc = await Event.findOne(filter).lean()
   if (!doc) throw new NotFoundError('Event not found')
 
-  return toEventResponse(doc)
+  return await toEventResponse(doc)
 }
 
 async function createEvent(ctx, args) {
@@ -176,7 +201,7 @@ async function createEvent(ctx, args) {
     created_by:     ctx.user_id,
   })
 
-  return toEventResponse(created)
+  return await toEventResponse(created)
 }
 
 async function updateEvent(ctx, args) {
@@ -201,12 +226,12 @@ async function updateEvent(ctx, args) {
   if (fields.pinned         !== undefined) updates.pinned         = fields.pinned
   if (fields.level          !== undefined) updates.level          = fields.level
   if (fields.department     !== undefined) updates.department     = fields.department
-  if (fields.status         !== undefined) updates.status         = fields.status
-  if (fields.approvalStatus !== undefined) updates.approvalStatus = fields.approvalStatus
+  if (fields.status     !== undefined) updates.status = fields.status
+  // approvalStatus is intentionally excluded — use approveEvent/rejectEvent
 
   const updated = await eventRepo.updateById(ctx, eventId, updates)
 
-  return toEventResponse(updated)
+  return await toEventResponse(updated)
 }
 
 async function deleteEvent(ctx, args) {
@@ -217,7 +242,7 @@ async function deleteEvent(ctx, args) {
 
   await eventRepo.deleteById(ctx, eventId)
 
-  return toEventResponse(existing)
+  return await toEventResponse(existing)
 }
 
 async function approveEvent(ctx, args) {
@@ -227,7 +252,7 @@ async function approveEvent(ctx, args) {
   if (!existing) throw new NotFoundError('Event not found')
 
   const updated = await eventRepo.updateById(ctx, eventId, { approvalStatus: 'approved' })
-  return toEventResponse(updated)
+  return await toEventResponse(updated)
 }
 
 async function rejectEvent(ctx, args) {
@@ -237,7 +262,7 @@ async function rejectEvent(ctx, args) {
   if (!existing) throw new NotFoundError('Event not found')
 
   const updated = await eventRepo.updateById(ctx, eventId, { approvalStatus: 'rejected' })
-  return toEventResponse(updated)
+  return await toEventResponse(updated)
 }
 
 async function cancelEvent(ctx, args) {
@@ -247,7 +272,7 @@ async function cancelEvent(ctx, args) {
   if (!existing) throw new NotFoundError('Event not found')
 
   const updated = await eventRepo.updateById(ctx, eventId, { status: 'cancelled' })
-  return toEventResponse(updated)
+  return await toEventResponse(updated)
 }
 
 async function togglePinEvent(ctx, args) {
@@ -258,5 +283,5 @@ async function togglePinEvent(ctx, args) {
 
   const plain   = existing.toObject ? existing.toObject() : existing
   const updated = await eventRepo.updateById(ctx, eventId, { pinned: !plain.pinned })
-  return toEventResponse(updated)
+  return await toEventResponse(updated)
 }

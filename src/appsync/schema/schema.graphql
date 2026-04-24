@@ -2,7 +2,10 @@ scalar AWSDateTime
 scalar AWSJSON
 
 type PageInfo {
-  hasNextPage: Boolean!
+  total: Int
+  page: Int
+  limit: Int
+  hasNextPage: Boolean
   endCursor: String
 }
 
@@ -13,28 +16,36 @@ type MutationResponse {
 
 input PaginationInput {
   limit: Int
+  page: Int
   cursor: String
 }
 
 type Query {
   _empty: String
   getAuditEntry(entry_id: ID!): AuditEntry
-  listAuditEntries(filter: AuditEntryFilter, pagination: PaginationInput): AuditEntryConnection
+  listAuditEntries(filter: AuditFilterInput, pagination: PaginationInput): AuditEntryConnection
   getForm(form_id: ID!): FormDefinition
   listForms(pagination: PaginationInput): FormDefinitionConnection
   listFormSubmissions(form_id: ID, pagination: PaginationInput): FormSubmissionConnection
   getNotificationTemplate(template_id: ID!): NotificationTemplate
   listNotificationTemplates(pagination: PaginationInput): NotificationTemplateConnection
   listNotifications(pagination: PaginationInput): NotificationConnection
+  listSettings(category: String): [Setting!]!
+  getSetting(key: String!): Setting
   listFiles(module: String, entity_id: String, pagination: PaginationInput): FileConnection
   getTenant(tenant_id: ID!): Tenant
   listTenants(pagination: PaginationInput): TenantConnection
+  getMe: User
   getUser(user_id: ID!): User
   listUsers(pagination: PaginationInput): UserConnection
-  listRoles(pagination: PaginationInput): RoleConnection
+  listRoles(pagination: PaginationInput): [Role]
   getWorkflow(workflow_id: ID!): WorkflowDefinition
   listWorkflows(pagination: PaginationInput): WorkflowDefinitionConnection
   listWorkflowInstances(workflow_id: ID, pagination: PaginationInput): WorkflowInstanceConnection
+  listSchemeSyllabus(tenantId: ID, limit: Int, nextToken: String): SchemeSyllabusConnection @aws_api_key @aws_cognito_user_pools
+  listAcademicCalendar(tenantId: ID, type: AcademicCalendarType, authority: AcademicCalendarAuthority, program: AcademicCalendarProgram, year: String, limit: Int, nextToken: String): AcademicCalendarConnection @aws_api_key @aws_cognito_user_pools
+  getRulesRegulations: RulesRegulations @aws_api_key @aws_cognito_user_pools
+  listRankHolders(tenantId: ID, year: String, program: AcademicCalendarProgram, limit: Int, nextToken: String): RankHolderConnection @aws_api_key @aws_cognito_user_pools
   listAccreditationRecords(type: String!, section: String, sub_section: String, sub_sub_section: String, department: String, tenantId: ID, limit: Int, nextToken: String): AccreditationRecordList @aws_api_key @aws_cognito_user_pools
   getAccreditationRecord(accreditationId: ID!): AccreditationRecord @aws_api_key @aws_cognito_user_pools
   getAdmissionsOverview(tenantId: ID):                   AdmissionsOverview  @aws_api_key @aws_cognito_user_pools
@@ -53,8 +64,37 @@ type Query {
   getWhyEnquire(tenantId: ID):                           WhyEnquire          @aws_api_key @aws_cognito_user_pools
   listEnquiryCategories(tenantId: ID):                   [EnquiryCategory]   @aws_api_key @aws_cognito_user_pools
   listInfoBlocks(tenantId: ID):                          [InfoBlock]         @aws_api_key @aws_cognito_user_pools
-  getAlumni(alumniId: ID!, tenantId: ID): Alumni @aws_api_key @aws_cognito_user_pools
-  listAlumni(tenantId: ID, deptId: ID, batch: String, search: String, limit: Int, nextToken: String): AlumniList @aws_api_key @aws_cognito_user_pools
+  # Alumni
+  getAlumni(alumniId: ID!): Alumni @aws_api_key @aws_cognito_user_pools
+  listAlumni(department: String, batch: String, search: String, limit: Int, nextToken: String): AlumniList @aws_api_key @aws_cognito_user_pools
+
+  # AlumniEvent
+  getAlumniEvent(eventId: ID!): AlumniEvent @aws_api_key @aws_cognito_user_pools
+  listAlumniEvents(department: String, status: String, limit: Int, nextToken: String): AlumniEventList @aws_api_key @aws_cognito_user_pools
+
+  # Timeline
+  listAlumniTimelineEntries(limit: Int, nextToken: String): AlumniTimelineEntryList @aws_api_key @aws_cognito_user_pools
+
+  # Vision/Mission
+  getAlumniVisionMission: AlumniVisionMission @aws_api_key @aws_cognito_user_pools
+
+  # Committee
+  listAlumniCommitteeMembers(roleType: String, limit: Int, nextToken: String): AlumniCommitteeMemberList @aws_api_key @aws_cognito_user_pools
+
+  # Dean Message
+  getAlumniDeanMessage: AlumniDeanMessage @aws_api_key @aws_cognito_user_pools
+
+  # Coordinators
+  listAlumniCoordinators(roleType: String, department: String, limit: Int, nextToken: String): AlumniCoordinatorList @aws_api_key @aws_cognito_user_pools
+
+
+  # Registration Settings
+  getAlumniRegistrationSettings: AlumniRegistrationSettings @aws_api_key @aws_cognito_user_pools
+
+  # Contacts
+  listAlumniContacts(department: String, limit: Int, nextToken: String): AlumniContactList @aws_api_key @aws_cognito_user_pools
+  getCollegeProfile: CollegeProfile
+  listColleges: [CollegeProfile]
   # Public endpoints now require tenantId for tenant isolation
   getDepartment(departmentId: ID!, tenantId: ID!): Department @aws_cognito_user_pools @aws_api_key
   listDepartments(tenantId: ID!, limit: Int, nextToken: String): DepartmentList @aws_cognito_user_pools @aws_api_key
@@ -108,19 +148,39 @@ type Mutation {
   submitForm(input: SubmitFormInput!): FormSubmission
   createNotificationTemplate(input: CreateTemplateInput!): NotificationTemplate
   updateNotificationPreference(input: UpdatePreferenceInput!): NotificationPreference
+  createSetting(input: CreateSettingInput!): Setting!
+  updateSetting(key: String!, input: UpdateSettingInput!): Setting!
+  deleteSetting(key: String!): MutationResponse!
   getUploadUrl(module: String, entity_id: String, extension: String): UploadUrlResult
   getDownloadUrl(key: String!): DownloadUrlResult
   deleteFile(file_id: ID!): MutationResponse
   createTenant(input: CreateTenantInput!): Tenant
   updateTenant(tenant_id: ID!, input: UpdateTenantInput!): Tenant
   suspendTenant(tenant_id: ID!): Tenant
-  updateUser(user_id: ID!, input: UpdateUserInput!): User
-  inviteUser(input: InviteUserInput!): User
-  deactivateUser(user_id: ID!): User
+  updateUser(user_id: String!, input: UpdateUserInput!): MutationResponse
+  inviteUser(input: InviteUserInput!): MutationResponse
+  deactivateUser(user_id: String!): MutationResponse
   createRole(input: CreateRoleInput!): Role
-  updateRole(role_id: ID!, input: UpdateRoleInput!): Role
-  assignRole(user_id: ID!, role_id: ID!): User
-  removeRole(user_id: ID!, role_id: ID!): User
+  updateRole(role_id: String!, input: UpdateRoleInput!): Role
+  assignRole(user_id: String!, role_id: String!): MutationResponse
+  removeRole(user_id: String!, role_id: String!): MutationResponse
+  # Scheme Syllabus
+  createSchemeSyllabus(input: CreateSchemeSyllabusInput!): SchemeSyllabusEntry
+  updateSchemeSyllabus(input: UpdateSchemeSyllabusInput!): SchemeSyllabusEntry
+  deleteSchemeSyllabus(syllabusId: ID!): SchemeSyllabusEntry
+
+  # Academic Calendar
+  createAcademicCalendar(input: CreateAcademicCalendarInput!): AcademicCalendar
+  updateAcademicCalendar(input: UpdateAcademicCalendarInput!): AcademicCalendar
+  deleteAcademicCalendar(calendarId: ID!): AcademicCalendar
+
+  # Rules & Regulations (Singleton - no create/delete)
+  updateRulesRegulations(input: UpdateRulesRegulationsInput!): RulesRegulations
+
+  # Rank Holders
+  createRankHolder(input: CreateRankHolderInput!): RankHolder
+  updateRankHolder(input: UpdateRankHolderInput!): RankHolder
+  deleteRankHolder(rankId: ID!): RankHolder
   createAccreditationRecord(input: CreateAccreditationRecordInput!): AccreditationRecord!
   updateAccreditationRecord(input: UpdateAccreditationRecordInput!): AccreditationRecord!
   deleteAccreditationRecord(accreditationId: ID!): AccreditationRecord!
@@ -191,9 +251,46 @@ type Mutation {
 
   # Public (unauthenticated)
   submitAdmissionsEnquiry(input: EnquirySubmitInput!): Boolean! @aws_api_key
+  # Alumni
   createAlumni(input: CreateAlumniInput!): Alumni
   updateAlumni(input: UpdateAlumniInput!): Alumni
   deleteAlumni(alumniId: ID!): Alumni
+
+  # AlumniEvent
+  createAlumniEvent(input: CreateAlumniEventInput!): AlumniEvent
+  updateAlumniEvent(input: UpdateAlumniEventInput!): AlumniEvent
+  deleteAlumniEvent(eventId: ID!): AlumniEvent
+
+  # Timeline
+  createAlumniTimelineEntry(input: CreateAlumniTimelineEntryInput!): AlumniTimelineEntry
+  updateAlumniTimelineEntry(input: UpdateAlumniTimelineEntryInput!): AlumniTimelineEntry
+  deleteAlumniTimelineEntry(entryId: ID!): AlumniTimelineEntry
+
+  # Vision/Mission (singleton upsert)
+  upsertAlumniVisionMission(input: UpsertAlumniVisionMissionInput!): AlumniVisionMission
+
+  # Committee Members
+  createAlumniCommitteeMember(input: CreateAlumniCommitteeMemberInput!): AlumniCommitteeMember
+  updateAlumniCommitteeMember(input: UpdateAlumniCommitteeMemberInput!): AlumniCommitteeMember
+  deleteAlumniCommitteeMember(memberId: ID!): AlumniCommitteeMember
+
+  # Dean Message (singleton upsert)
+  upsertAlumniDeanMessage(input: UpsertAlumniDeanMessageInput!): AlumniDeanMessage
+
+  # Coordinators
+  createAlumniCoordinator(input: CreateAlumniCoordinatorInput!): AlumniCoordinator
+  updateAlumniCoordinator(input: UpdateAlumniCoordinatorInput!): AlumniCoordinator
+  deleteAlumniCoordinator(coordinatorId: ID!): AlumniCoordinator
+
+
+  # Registration Settings (singleton upsert)
+  upsertAlumniRegistrationSettings(input: UpsertAlumniRegistrationSettingsInput!): AlumniRegistrationSettings
+
+  # Contacts
+  createAlumniContact(input: CreateAlumniContactInput!): AlumniContact
+  updateAlumniContact(input: UpdateAlumniContactInput!): AlumniContact
+  deleteAlumniContact(contactId: ID!): AlumniContact
+  upsertCollegeProfile(input: CollegeProfileInput!): CollegeProfile
   createDepartment(input: CreateDepartmentInput!): Department
   updateDepartment(input: UpdateDepartmentInput!): Department
   deleteDepartment(departmentId: ID!): Department
@@ -327,23 +424,26 @@ type AuditEntry {
   resource_id: String
   before: AWSJSON
   after: AWSJSON
-  metadata: AuditMetadata
+  metadata: AWSJSON
   timestamp: AWSDateTime
-}
-
-type AuditMetadata {
-  ip: String
-  user_agent: String
-  source: String
-  detail_type: String
+  severity: String
+  # Frontend-facing camelCase aliases
+  id: ID
+  userId: String
+  userName: String
+  resourceType: String
+  resourceId: String
+  ipAddress: String
+  createdAt: AWSDateTime
 }
 
 type AuditEntryConnection {
   items: [AuditEntry!]!
   nextCursor: String
+  pageInfo: PageInfo
 }
 
-input AuditEntryFilter {
+input AuditFilterInput {
   action: String
   resource_type: String
   actor_id: String
@@ -378,11 +478,13 @@ type FormSubmission {
 type FormDefinitionConnection {
   items: [FormDefinition!]!
   nextCursor: String
+  pageInfo: PageInfo
 }
 
 type FormSubmissionConnection {
   items: [FormSubmission!]!
   nextCursor: String
+  pageInfo: PageInfo
 }
 
 input CreateFormInput {
@@ -476,12 +578,39 @@ input QuietHoursInput {
 type NotificationTemplateConnection {
   items: [NotificationTemplate!]!
   nextCursor: String
+  pageInfo: PageInfo
 }
 
 type NotificationConnection {
   items: [Notification!]!
   nextCursor: String
+  pageInfo: PageInfo
 }
+
+# module: settings-management
+type Setting {
+  key: String!
+  value: String!
+  category: String
+  sensitivity: String
+  updated_by: String
+  updated_at: AWSDateTime
+}
+
+input CreateSettingInput {
+  key: String!
+  value: String!
+  category: String
+  sensitivity: String
+}
+
+input UpdateSettingInput {
+  value: String!
+  category: String
+  sensitivity: String
+}
+
+
 
 # module: storage-management
 type FileMetadata {
@@ -500,6 +629,7 @@ type FileMetadata {
 type FileConnection {
   items: [FileMetadata!]!
   nextCursor: String
+  pageInfo: PageInfo
 }
 
 type UploadUrlResult {
@@ -555,6 +685,7 @@ type Tenant {
 type TenantConnection {
   items: [Tenant!]!
   nextCursor: String
+  pageInfo: PageInfo
 }
 
 input CreateTenantInput {
@@ -598,8 +729,12 @@ type User {
   tenant_id: ID!
   email: String!
   name: String
+  phone: String
   status: UserStatus!
   roles: [String!]
+  role: String
+  department: String
+  last_login_at: AWSDateTime
   profile: AWSJSON
   created_at: AWSDateTime
   updated_at: AWSDateTime
@@ -608,6 +743,7 @@ type User {
 type UserConnection {
   items: [User!]!
   nextCursor: String
+  pageInfo: PageInfo
 }
 
 type Role {
@@ -621,20 +757,22 @@ type Role {
   updated_at: AWSDateTime
 }
 
-type RoleConnection {
-  items: [Role!]!
-  nextCursor: String
-}
-
 input UpdateUserInput {
   name: String
+  phone: String
   profile: AWSJSON
   status: UserStatus
+  role: String
+  department: String
 }
 
 input InviteUserInput {
   email: String!
   name: String
+  phone: String
+  role: String!
+  department: String
+  password: String!
 }
 
 input CreateRoleInput {
@@ -675,12 +813,188 @@ type WorkflowInstance {
 type WorkflowDefinitionConnection {
   items: [WorkflowDefinition!]!
   nextCursor: String
+  pageInfo: PageInfo
 }
 
 type WorkflowInstanceConnection {
   items: [WorkflowInstance!]!
   nextCursor: String
+  pageInfo: PageInfo
 }
+
+
+# module: academics-management
+# Enums
+
+enum AcademicCalendarType {
+  CURRENT
+  HISTORIC
+}
+
+enum AcademicCalendarAuthority {
+  INSTITUTE
+  VTU
+}
+
+enum AcademicCalendarProgram {
+  UG
+  PG
+}
+
+# Types
+
+type SchemeSyllabusEntry @aws_api_key @aws_cognito_user_pools {
+  syllabusId: ID!
+  year:       String!
+  category:   String!
+  title:      String!
+  subtitle:   String
+  fileUrl:    String
+  order:      Int
+  createdAt:  AWSDateTime
+  updatedAt:  AWSDateTime
+}
+
+type SchemeSyllabusConnection @aws_api_key @aws_cognito_user_pools {
+  items:     [SchemeSyllabusEntry]
+  nextToken: String
+}
+
+type AcademicCalendar @aws_api_key @aws_cognito_user_pools {
+  calendarId:  ID!
+  title:       String!
+  description: String
+  type:        AcademicCalendarType!
+  authority:   AcademicCalendarAuthority!
+  program:     AcademicCalendarProgram!
+  semester:    String
+  year:        String!
+  date:        AWSDateTime
+  fileUrl:     String
+  createdAt:   AWSDateTime
+  updatedAt:   AWSDateTime
+}
+
+type AcademicCalendarConnection @aws_api_key @aws_cognito_user_pools {
+  items:     [AcademicCalendar]
+  nextToken: String
+}
+
+type RulesRegulations @aws_api_key @aws_cognito_user_pools {
+  documentId:       ID!
+  serviceRulesFile: String
+  serviceRulesText: String
+  attendanceFile:   String
+  attendanceText:   String
+  disciplineFile:   String
+  disciplineText:   String
+  updatedAt:        AWSDateTime
+}
+
+type RankHolder @aws_api_key @aws_cognito_user_pools {
+  rankId:      ID!
+  year:        String!
+  program:     AcademicCalendarProgram!
+  usn:         String!
+  studentName: String!
+  branch:      String!
+  rank:        String!
+  rankOrder:   Int
+  createdAt:   AWSDateTime
+  updatedAt:   AWSDateTime
+}
+
+type RankHolderConnection @aws_api_key @aws_cognito_user_pools {
+  items:     [RankHolder]
+  nextToken: String
+}
+
+# Inputs - Scheme Syllabus
+
+input CreateSchemeSyllabusInput {
+  year:     String!
+  category: String!
+  title:    String!
+  subtitle: String
+  fileUrl:  String
+  order:    Int
+}
+
+input UpdateSchemeSyllabusInput {
+  syllabusId: ID!
+  year:       String
+  category:   String
+  title:      String
+  subtitle:   String
+  fileUrl:    String
+  order:      Int
+}
+
+# Inputs - Academic Calendar
+
+input CreateAcademicCalendarInput {
+  title:       String!
+  description: String
+  type:        AcademicCalendarType!
+  authority:   AcademicCalendarAuthority!
+  program:     AcademicCalendarProgram!
+  semester:    String
+  year:        String!
+  date:        AWSDateTime
+  fileUrl:     String
+}
+
+input UpdateAcademicCalendarInput {
+  calendarId:  ID!
+  title:       String
+  description: String
+  type:        AcademicCalendarType
+  authority:   AcademicCalendarAuthority
+  program:     AcademicCalendarProgram
+  semester:    String
+  year:        String
+  date:        AWSDateTime
+  fileUrl:     String
+}
+
+# Inputs - Rules & Regulations
+
+input UpdateRulesRegulationsInput {
+  serviceRulesFile: String
+  serviceRulesText: String
+  attendanceFile:   String
+  attendanceText:   String
+  disciplineFile:   String
+  disciplineText:   String
+}
+
+# Inputs - Rank Holders
+
+input CreateRankHolderInput {
+  year:        String!
+  program:     AcademicCalendarProgram!
+  usn:         String!
+  studentName: String!
+  branch:      String!
+  rank:        String!
+  rankOrder:   Int
+}
+
+input UpdateRankHolderInput {
+  rankId:      ID!
+  year:        String
+  program:     AcademicCalendarProgram
+  usn:         String
+  studentName: String
+  branch:      String
+  rank:        String
+  rankOrder:   Int
+}
+
+# Queries
+
+
+# Mutations
 
 
 # module: accreditations-management
@@ -1112,16 +1426,15 @@ input UpdateInfoBlockInput {
 
 
 # module: alumni-management
+# ─── Alumni ───────────────────────────────────────────────────────────────────
 type Alumni @aws_api_key @aws_cognito_user_pools {
   alumniId:    ID!
-  deptId:      ID
   name:        String!
-  batch:       String
+  batch:       String!
   department:  String
   company:     String
   designation: String
   location:    String
-  achievement: String
   email:       String
   linkedin:    String
   image:       String
@@ -1135,14 +1448,12 @@ type AlumniList @aws_api_key @aws_cognito_user_pools {
 }
 
 input CreateAlumniInput {
-  deptId:      ID!
   name:        String!
   batch:       String!
   department:  String
-  company:     String!
-  designation: String!
+  company:     String
+  designation: String
   location:    String
-  achievement: String
   email:       String
   linkedin:    String
   image:       String
@@ -1156,10 +1467,297 @@ input UpdateAlumniInput {
   company:     String
   designation: String
   location:    String
-  achievement: String
   email:       String
   linkedin:    String
   image:       String
+}
+
+# ─── AlumniEvent ──────────────────────────────────────────────────────────────
+type AlumniEvent @aws_api_key @aws_cognito_user_pools {
+  eventId:     ID!
+  title:       String!
+  date:        String
+  time:        String
+  department:  String
+  location:    String
+  description: String
+  image:       String
+  status:      String!
+  createdAt:   AWSDateTime
+  updatedAt:   AWSDateTime
+}
+
+type AlumniEventList @aws_api_key @aws_cognito_user_pools {
+  items:     [AlumniEvent]
+  nextToken: String
+}
+
+input CreateAlumniEventInput {
+  title:       String!
+  date:        String
+  time:        String
+  department:  String
+  location:    String
+  description: String
+  image:       String
+  status:      String
+}
+
+input UpdateAlumniEventInput {
+  eventId:     ID!
+  title:       String
+  date:        String
+  time:        String
+  department:  String
+  location:    String
+  description: String
+  image:       String
+  status:      String
+}
+
+# ─── TimelineEntry ────────────────────────────────────────────────────────────
+type AlumniTimelineEntry @aws_api_key @aws_cognito_user_pools {
+  entryId:     ID!
+  year:        String!
+  title:       String!
+  description: String
+  order:       Int
+  isActive:    Boolean
+  createdAt:   AWSDateTime
+  updatedAt:   AWSDateTime
+}
+
+type AlumniTimelineEntryList @aws_api_key @aws_cognito_user_pools {
+  items:     [AlumniTimelineEntry]
+  nextToken: String
+}
+
+input CreateAlumniTimelineEntryInput {
+  year:        String!
+  title:       String!
+  description: String
+  order:       Int
+  isActive:    Boolean
+}
+
+input UpdateAlumniTimelineEntryInput {
+  entryId:     ID!
+  year:        String
+  title:       String
+  description: String
+  order:       Int
+  isActive:    Boolean
+}
+
+# ─── VisionMission ────────────────────────────────────────────────────────────
+type AlumniVisionMission @aws_api_key @aws_cognito_user_pools {
+  documentId: ID
+  vision:     String
+  mission:    String
+  objectives: String
+  updatedAt:  AWSDateTime
+}
+
+input UpsertAlumniVisionMissionInput {
+  vision:     String
+  mission:    String
+  objectives: String
+}
+
+# ─── CommitteeMember ──────────────────────────────────────────────────────────
+type AlumniCommitteeMember @aws_api_key @aws_cognito_user_pools {
+  memberId:     ID!
+  name:         String!
+  roleType:     String
+  designation:  String
+  department:   String
+  organization: String
+  profileImage: String
+  order:        Int
+  createdAt:    AWSDateTime
+  updatedAt:    AWSDateTime
+}
+
+type AlumniCommitteeMemberList @aws_api_key @aws_cognito_user_pools {
+  items:     [AlumniCommitteeMember]
+  nextToken: String
+}
+
+input CreateAlumniCommitteeMemberInput {
+  name:         String!
+  roleType:     String
+  designation:  String
+  department:   String
+  organization: String
+  profileImage: String
+  order:        Int
+}
+
+input UpdateAlumniCommitteeMemberInput {
+  memberId:     ID!
+  name:         String
+  roleType:     String
+  designation:  String
+  department:   String
+  organization: String
+  profileImage: String
+  order:        Int
+}
+
+# ─── DeanMessage ──────────────────────────────────────────────────────────────
+type AlumniDeanMessage @aws_api_key @aws_cognito_user_pools {
+  messageId:   ID
+  name:        String
+  role:        String
+  department:  String
+  designation: String
+  message:     String
+  image:       String
+  isActive:    Boolean
+  updatedAt:   AWSDateTime
+}
+
+input UpsertAlumniDeanMessageInput {
+  name:        String
+  role:        String
+  department:  String
+  designation: String
+  message:     String
+  image:       String
+  isActive:    Boolean
+}
+
+# ─── Coordinator ──────────────────────────────────────────────────────────────
+type AlumniCoordinator @aws_api_key @aws_cognito_user_pools {
+  coordinatorId: ID!
+  name:          String!
+  roleType:      String
+  department:    String
+  email:         String
+  isActive:      Boolean
+  createdAt:     AWSDateTime
+  updatedAt:     AWSDateTime
+}
+
+type AlumniCoordinatorList @aws_api_key @aws_cognito_user_pools {
+  items:     [AlumniCoordinator]
+  nextToken: String
+}
+
+input CreateAlumniCoordinatorInput {
+  name:       String!
+  roleType:   String
+  department: String
+  email:      String
+  isActive:   Boolean
+}
+
+input UpdateAlumniCoordinatorInput {
+  coordinatorId: ID!
+  name:          String
+  roleType:      String
+  department:    String
+  email:         String
+  isActive:      Boolean
+}
+
+# ─── RegistrationSettings ─────────────────────────────────────────────────────
+type AlumniRegistrationSettings @aws_api_key @aws_cognito_user_pools {
+  settingsId:       ID
+  title:            String
+  description:      String
+  registrationLink: String
+  updatedAt:        AWSDateTime
+}
+
+input UpsertAlumniRegistrationSettingsInput {
+  title:            String
+  description:      String
+  registrationLink: String
+}
+
+# ─── AlumniContact ────────────────────────────────────────────────────────────
+type AlumniContact @aws_api_key @aws_cognito_user_pools {
+  contactId:   ID!
+  name:        String!
+  roleType:    String
+  department:  String
+  designation: String
+  email:       String
+  createdAt:   AWSDateTime
+  updatedAt:   AWSDateTime
+}
+
+type AlumniContactList @aws_api_key @aws_cognito_user_pools {
+  items:     [AlumniContact]
+  nextToken: String
+}
+
+input CreateAlumniContactInput {
+  name:        String!
+  roleType:    String
+  department:  String
+  designation: String
+  email:       String
+}
+
+input UpdateAlumniContactInput {
+  contactId:   ID!
+  name:        String
+  roleType:    String
+  department:  String
+  designation: String
+  email:       String
+}
+
+# ─── Queries ──────────────────────────────────────────────────────────────────
+
+# ─── Mutations ────────────────────────────────────────────────────────────────
+
+# module: college-management
+enum CollegeType {
+  private_aided
+  private_unaided
+  government
+  government_aided
+  autonomous
+  deemed_university
+  central_university
+}
+
+type CollegeProfile {
+  tenant_id:            ID!
+  logo_url:             String
+  name:                 String
+  shortName:            String
+  established:          Int
+  affiliatedUniversity: String
+  collegeType:          CollegeType
+  address:              String
+  city:                 String
+  state:                String
+  pincode:              String
+  phone:                String
+  email:                String
+  website:              String
+  created_at:           AWSDateTime
+  updated_at:           AWSDateTime
+}
+
+input CollegeProfileInput {
+  logo_url:             String
+  name:                 String
+  shortName:            String
+  established:          Int
+  affiliatedUniversity: String
+  collegeType:          CollegeType
+  address:              String
+  city:                 String
+  state:                String
+  pincode:              String
+  phone:                String
+  email:                String
+  website:              String
 }
 
 

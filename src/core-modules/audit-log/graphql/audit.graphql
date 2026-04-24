@@ -8,23 +8,26 @@ type AuditEntry {
   resource_id: String
   before: AWSJSON
   after: AWSJSON
-  metadata: AuditMetadata
+  metadata: AWSJSON
   timestamp: AWSDateTime
-}
-
-type AuditMetadata {
-  ip: String
-  user_agent: String
-  source: String
-  detail_type: String
+  severity: String
+  # Frontend-facing camelCase aliases
+  id: ID
+  userId: String
+  userName: String
+  resourceType: String
+  resourceId: String
+  ipAddress: String
+  createdAt: AWSDateTime
 }
 
 type AuditEntryConnection {
   items: [AuditEntry!]!
   nextCursor: String
+  pageInfo: PageInfo
 }
 
-input AuditEntryFilter {
+input AuditFilterInput {
   action: String
   resource_type: String
   actor_id: String
@@ -34,5 +37,5 @@ input AuditEntryFilter {
 
 extend type Query {
   getAuditEntry(entry_id: ID!): AuditEntry
-  listAuditEntries(filter: AuditEntryFilter, pagination: PaginationInput): AuditEntryConnection
+  listAuditEntries(filter: AuditFilterInput, pagination: PaginationInput): AuditEntryConnection
 }
